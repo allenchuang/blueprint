@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./theme": "./src/theme.ts",
-    "./og": "./src/og.ts"
+    "./og": "./src/og.ts",
+    "./languages": "./src/languages.json"
   },
   "scripts": {
     "sync": "tsx scripts/sync.ts"
