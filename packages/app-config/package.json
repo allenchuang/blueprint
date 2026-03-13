@@ -5,13 +5,16 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./theme": "./src/theme.ts"
+    "./theme": "./src/theme.ts",
+    "./og": "./src/og.ts"
   },
   "scripts": {
     "sync": "tsx scripts/sync.ts"
   },
   "dependencies": {
-    "culori": "^4.0.1"
+    "@resvg/resvg-js": "^2.6.2",
+    "culori": "^4.0.1",
+    "satori": "^0.25.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

@@ -41,6 +41,10 @@ pnpm sync-config      # Sync app-config assets/theme to all apps
 
 This project uses **pnpm 10** with workspaces. Always use `pnpm` (never npm or yarn).
 
+## Runtime
+
+Node.js >= 23 (`.nvmrc` is provided — run `nvm use`).
+
 ---
 
 ## Core Rules
@@ -60,8 +64,12 @@ Brand assets (logos, favicons, icons) live in `packages/app-config/assets/`:
 - `favicon.svg` — favicon
 - `icon-512.png` / `icon-192.png` — app icons (mobile + PWA)
 - `splash.png` — mobile splash screen
+- `og-banner.png` / `og-banner.jpg` — banner for OG image generation
+- `og-font.ttf` — (optional) custom font for OG image text
 
-Run `pnpm sync-config` after editing the config or assets. This generates theme CSS and copies assets to all apps.
+The config also includes `slogan` (used on OG images and landing pages).
+
+Run `pnpm sync-config` after editing the config or assets. This generates theme CSS, OG images, and copies assets to all apps.
 
 **DO NOT** manually edit generated theme files (`apps/web/src/app/theme.css`, `apps/admin/src/app/theme.css`) or brand assets in `apps/*/public/`.
 

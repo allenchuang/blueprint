@@ -4,6 +4,7 @@ export const appConfig = {
   name: "Mastermind",
   slug: "mastermind",
   description: "Build your next big thing",
+  slogan: "Ship ideas at the speed of thought",
   version: "0.1.0",
 
   colors: {

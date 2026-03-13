@@ -1,8 +1,9 @@
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync } from "node:fs";
+import { resolve, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { appConfig } from "../src/config.js";
 import { generateFullThemeFile } from "../src/theme.js";
+import { generateOgPng } from "../src/og.js";
 import { parse, converter, formatHex } from "culori";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -154,14 +155,57 @@ function syncNextApps(): void {
 }
 
 // ---------------------------------------------------------------------------
+// 4. Generate OG image from banner + slogan
+// ---------------------------------------------------------------------------
+function findBanner(): string | null {
+  const bannerNames = readdirSync(ASSETS_DIR).filter((f) => {
+    const ext = extname(f).toLowerCase();
+    return f.startsWith("og-banner") && [".png", ".jpg", ".jpeg"].includes(ext);
+  });
+  return bannerNames.length > 0 ? resolve(ASSETS_DIR, bannerNames[0]!) : null;
+}
+
+async function syncOgImage(): Promise<void> {
+  console.log("\n[OG Image] Generating OpenGraph image...");
+
+  const bannerPath = findBanner();
+  if (!bannerPath) {
+    console.warn("  Skipped: no og-banner.{png,jpg} found in assets/");
+    return;
+  }
+
+  const png = await generateOgPng({
+    config: appConfig,
+    bannerPath,
+    assetsDir: ASSETS_DIR,
+  });
+
+  const ogPath = resolve(ASSETS_DIR, "og.png");
+  writeFileSync(ogPath, png);
+  console.log("  Generated assets/og.png");
+
+  for (const app of ["apps/web", "apps/admin"]) {
+    const dest = resolve(ROOT, app, "public/og.png");
+    ensureDir(dirname(dest));
+    copyFileSync(ogPath, dest);
+    console.log(`  Copied og.png -> ${app}/public/og.png`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Run all syncs
 // ---------------------------------------------------------------------------
-console.log("Syncing app config...");
-console.log(`  App: ${appConfig.name} (${appConfig.slug})`);
-console.log(`  Primary color: ${appConfig.colors.primary}`);
+async function main(): Promise<void> {
+  console.log("Syncing app config...");
+  console.log(`  App: ${appConfig.name} (${appConfig.slug})`);
+  console.log(`  Primary color: ${appConfig.colors.primary}`);
 
-syncReactNative();
-syncDocs();
-syncNextApps();
+  syncReactNative();
+  syncDocs();
+  syncNextApps();
+  await syncOgImage();
 
-console.log("\nDone! Config synced across all apps.");
+  console.log("\nDone! Config synced across all apps.");
+}
+
+main();

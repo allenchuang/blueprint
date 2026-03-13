@@ -5,6 +5,8 @@ export interface AppConfig {
   slug: string;
   /** Short description of the app */
   description: string;
+  /** Marketing slogan displayed on OG images and landing pages */
+  slogan: string;
   /** Semantic version string */
   version: string;
 

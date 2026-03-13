@@ -15,9 +15,10 @@ mastermind/
 │   ├── admin/          → Next.js 15 + shadcn/ui + Tailwind CSS v4       :3002
 │   ├── docs/           → Mintlify documentation                         :3003
 │   ├── react-native/   → Expo + Expo Router + NativeWind
-│   ├── remotion/       → Remotion video generation                    :3004
+│   ├── remotion/       → Remotion video generation                      :3004
 │   └── server/         → Fastify + Swagger API server                   :3001
 ├── packages/
+│   ├── app-config/     → Centralized app metadata, branding, and assets
 │   ├── db/             → Drizzle ORM + Neon PostgreSQL (shared schema)
 │   ├── eslint-config/  → Shared ESLint configs
 │   └── typescript-config/ → Shared TypeScript configs
@@ -26,7 +27,7 @@ mastermind/
 ## Package Relationships
 
 - `apps/web`, `apps/admin`, and `apps/server` depend on `@repo/db`
-- All apps use `@repo/eslint-config` and `@repo/typescript-config`
+- All apps use `@repo/app-config`, `@repo/eslint-config`, and `@repo/typescript-config`
 - Each Next.js app has its own independent shadcn/ui install
 
 ## Key Commands
@@ -36,7 +37,12 @@ mastermind/
 - `pnpm db:push` — push schema to database
 - `pnpm db:generate` — generate migrations
 - `pnpm db:studio` — open Drizzle Studio
+- `pnpm sync-config` — sync app-config branding, theme, and assets to all apps
 
 ## Package Manager
 
 This project uses **pnpm 10** with workspaces. Always use `pnpm` (never npm or yarn).
+
+## Runtime
+
+Node.js >= 23 (`.nvmrc` is provided — run `nvm use`).
