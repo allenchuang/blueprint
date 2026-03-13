@@ -8,11 +8,11 @@
   "favicon": "/favicon.svg",
   "colors": {
     "primary": "#0D9373",
-    "light": "#07C983",
+    "light": "#52c2a0",
     "dark": "#0D9373",
     "anchors": {
       "from": "#0D9373",
-      "to": "#07C983"
+      "to": "#52c2a0"
     }
   },
   "topbarLinks": [
@@ -41,15 +41,24 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["introduction", "quickstart", "architecture"]
+      "pages": [
+        "introduction",
+        "quickstart",
+        "architecture"
+      ]
     },
     {
       "group": "API Reference",
-      "pages": ["api-reference/introduction"]
+      "pages": [
+        "api-reference/introduction"
+      ]
     },
     {
       "group": "Endpoints",
-      "pages": ["api-reference/endpoint/get", "api-reference/endpoint/create"]
+      "pages": [
+        "api-reference/endpoint/get",
+        "api-reference/endpoint/create"
+      ]
     }
   ],
   "footerSocials": {

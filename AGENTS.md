@@ -15,6 +15,7 @@ mastermind/
 │   └── server/         → API server (Fastify + Swagger, port 3001)
 ├── packages/
 │   ├── db/             → Drizzle ORM + Neon PostgreSQL schema
+│   ├── wallet/         → EVM wallet generation & HD derivation (viem)
 │   ├── eslint-config/  → Shared ESLint configs
 │   └── typescript-config/ → Shared TypeScript configs
 ```

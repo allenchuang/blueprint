@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@repo/app-config": "workspace:*",
     "@repo/db": "workspace:*",
     "next": "^15.3.0",
     "react": "^19.1.0",

@@ -2,8 +2,10 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import { appConfig } from "@repo/app-config";
 import { healthRoutes } from "./routes/health";
 import { exampleRoutes } from "./routes/example";
+import { walletRoutes } from "./routes/wallets";
 
 export async function buildApp() {
   const app = Fastify({
@@ -17,13 +19,13 @@ export async function buildApp() {
   await app.register(swagger, {
     openapi: {
       info: {
-        title: "Mastermind API",
-        description: "Mastermind API documentation",
-        version: "0.1.0",
+        title: `${appConfig.name} API`,
+        description: `${appConfig.name} API documentation`,
+        version: appConfig.version,
       },
       servers: [
         {
-          url: "http://localhost:3001",
+          url: appConfig.urls.api,
           description: "Development server",
         },
       ],
@@ -36,6 +38,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes, { prefix: "/api" });
   await app.register(exampleRoutes, { prefix: "/api" });
+  await app.register(walletRoutes, { prefix: "/api" });
 
   return app;
 }

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { appConfig } from "@repo/app-config";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mastermind",
-  description: "Mastermind Web App",
+  title: appConfig.name,
+  description: appConfig.description,
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({

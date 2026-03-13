@@ -15,15 +15,23 @@
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",
-    "db:studio": "turbo run db:studio"
+    "db:studio": "turbo run db:studio",
+    "sync-config": "tsx packages/app-config/scripts/sync.ts"
   },
   "devDependencies": {
     "prettier": "^3.7.4",
+    "tsx": "^4.19.0",
     "turbo": "^2.8.16",
     "typescript": "5.9.2"
   },
   "packageManager": "pnpm@10.0.0",
   "engines": {
     "node": ">=18"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.0.0",
+      "@types/react-dom": "^19.0.0"
+    }
   }
 }

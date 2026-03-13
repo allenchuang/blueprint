@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { appConfig } from "@repo/app-config";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mastermind Admin",
-  description: "Mastermind Admin Panel",
+  title: `${appConfig.name} Admin`,
+  description: `${appConfig.name} Admin Panel`,
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({

@@ -15,6 +15,7 @@ mastermind/
 │   └── server/         → API server (Fastify + Swagger)                        :3001
 ├── packages/
 │   ├── db/             → Database schema & client (Drizzle + Neon PostgreSQL)
+│   ├── wallet/         → EVM wallet generation & HD derivation (viem)
 │   ├── eslint-config/  → Shared ESLint configuration
 │   └── typescript-config/ → Shared TypeScript configuration
 ├── turbo.json          → Turborepo task pipeline
@@ -92,6 +93,7 @@ pnpm dev:server
 ## Shared Packages
 
 - **`@repo/db`** — Drizzle ORM schema definitions and database client. Used by `web`, `admin`, and `server`.
+- **`@repo/wallet`** — EVM wallet generation and HD derivation using viem. Provides `WalletService` for main wallets, agent wallets, and subaccount wallets.
 - **`@repo/eslint-config`** — Shared ESLint configurations (base, Next.js, React).
 - **`@repo/typescript-config`** — Shared TypeScript configurations (base, Next.js, React library).
 
