@@ -6,9 +6,12 @@ Next.js 15 app with App Router, shadcn/ui, and Tailwind CSS v4.
 
 - `src/app/` — Pages and layouts (App Router file-based routing)
 - `src/components/ui/` — shadcn/ui primitives (managed by CLI, do not manually edit)
+- `src/components/layout/` — Layout components (mobile-top-nav, mobile-footer, mobile-layout)
+- `src/components/mobile/` — Mobile interaction components (bottom-sheet, slide-in-sheet)
 - `src/components/` — Composed feature components
-- `src/hooks/` — React Query hooks (one per file, e.g., `use-get-users.ts`)
+- `src/hooks/` — React Query hooks + utility hooks (e.g., `use-mobile.ts`)
 - `src/lib/utils.ts` — `cn()` utility for Tailwind class merging
+- `src/lib/mobile-animations.ts` — Shared animation presets for native-like mobile UX
 
 ## Rules
 

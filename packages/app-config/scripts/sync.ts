@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 import { appConfig } from "../src/config.js";
 import { generateFullThemeFile } from "../src/theme.js";
 import { generateOgPng } from "../src/og.js";
@@ -151,6 +152,7 @@ function syncNextApps(): void {
     copyAsset("logo-dark.svg", `${app}/public/logo-dark.svg`);
     copyAsset("icon-192.png", `${app}/public/icon-192.png`);
     copyAsset("icon-512.png", `${app}/public/icon-512.png`);
+    copyAsset("apple-touch-icon.png", `${app}/public/apple-touch-icon.png`);
   }
 }
 
@@ -193,6 +195,62 @@ async function syncOgImage(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// 5. Generate PNG icons from favicon.svg
+// ---------------------------------------------------------------------------
+async function generateIcons(): Promise<void> {
+  console.log("\n[Icons] Generating PNG icons from favicon.svg...");
+
+  const svgPath = resolve(ASSETS_DIR, "favicon.svg");
+  if (!existsSync(svgPath)) {
+    console.warn("  Skipped: favicon.svg not found in assets/");
+    return;
+  }
+
+  const svgBuffer = readFileSync(svgPath);
+
+  const sizes: Array<{ name: string; size: number }> = [
+    { name: "icon-512.png", size: 512 },
+    { name: "icon-192.png", size: 192 },
+    { name: "apple-touch-icon.png", size: 180 },
+  ];
+
+  for (const { name, size } of sizes) {
+    const outPath = resolve(ASSETS_DIR, name);
+    if (existsSync(outPath)) {
+      console.log(`  Skipped ${name} (already exists)`);
+      continue;
+    }
+    await sharp(svgBuffer).resize(size, size).png().toFile(outPath);
+    console.log(`  Generated ${name} (${size}x${size})`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 6. Generate manifest.json for Next.js apps
+// ---------------------------------------------------------------------------
+function syncManifest(): void {
+  console.log("\n[Manifest] Generating web app manifest...");
+
+  const manifest = {
+    name: appConfig.name,
+    short_name: appConfig.name,
+    description: appConfig.description,
+    start_url: "/",
+    display: "standalone" as const,
+    background_color: "#ffffff",
+    theme_color: appConfig.colors.primary,
+    icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  };
+
+  for (const app of ["apps/web", "apps/admin"]) {
+    writeFile(`${app}/public/manifest.json`, JSON.stringify(manifest, null, 2) + "\n");
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Run all syncs
 // ---------------------------------------------------------------------------
 async function main(): Promise<void> {
@@ -200,9 +258,11 @@ async function main(): Promise<void> {
   console.log(`  App: ${appConfig.name} (${appConfig.slug})`);
   console.log(`  Primary color: ${appConfig.colors.primary}`);
 
+  await generateIcons();
   syncReactNative();
   syncDocs();
   syncNextApps();
+  syncManifest();
   await syncOgImage();
 
   console.log("\nDone! Config synced across all apps.");
