@@ -154,8 +154,17 @@ importers:
       '@remotion/cli':
         specifier: ^4.0.0
         version: 4.0.435(@swc/helpers@0.5.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@remotion/google-fonts':
+        specifier: ^4.0.435
+        version: 4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@remotion/paths':
+        specifier: ^4.0.435
+        version: 4.0.435
       '@remotion/player':
         specifier: ^4.0.0
+        version: 4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@remotion/transitions':
+        specifier: ^4.0.435
         version: 4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: ^19.0.0
@@ -2426,6 +2435,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@remotion/google-fonts@4.0.435':
+    resolution: {integrity: sha512-DyPSxmQg4nnPxb/jTZHgMot4NKTZTTLouYYgSKN+vFceqmg9f6Gy9zULEvDS6Ft1Uz0ubU3qanBxdpq2QfjuKQ==}
+
   '@remotion/licensing@4.0.435':
     resolution: {integrity: sha512-H/W1LU0eCwsPk9P0YCF9GaFBWnpfhuV5HDObT45DITKQiIfBtPcnCph8qXESKuwJV6d8IBLk6a5Y7HO9cHbx2g==}
 
@@ -2438,6 +2450,9 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
 
+  '@remotion/paths@4.0.435':
+    resolution: {integrity: sha512-PTC1f7n5Dvia6pc/YQb5IGiOo4+Ic0g8DyEfomZpaAGcBEUN04m3GRp/uWHlh4jST2H2HaUZw5qDf5jjCD+SOw==}
+
   '@remotion/player@4.0.435':
     resolution: {integrity: sha512-PfQW9Slq2rXTkXL6M7apJUC+LQuWBMOrcFOBOgJPoV+WL7uu1Rom3BrCiNPQt5/7dx0TuqoiaV1Iv1Th16z2pQ==}
     peerDependencies:
@@ -2446,6 +2461,12 @@ packages:
 
   '@remotion/renderer@4.0.435':
     resolution: {integrity: sha512-Ytzn6h76p44R9w3UzzqgiAKTt+QoAvjfIM0x9KuODWdorGBCMKULGEkJoXQrNTCFQLj52M7U44v5Uq00tdAiQQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+  '@remotion/shapes@4.0.435':
+    resolution: {integrity: sha512-fff+JNZbp6ZkPoBhYKJx3gTIXFN6s8To/C6qrCfLiMDCmOzVYiSk5kOQgKF28eIVmbbGpjfh/Ox76EY5WFRJxA==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -2461,6 +2482,12 @@ packages:
 
   '@remotion/studio@4.0.435':
     resolution: {integrity: sha512-q19Sr9ygUlmp7c3nyJcAjasxPrIJ5cv/VcuPntMxMYcYSf/pV0zPabnUV0Rbueht89iM1M09UYpsR+F7EG4F5A==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+  '@remotion/transitions@4.0.435':
+    resolution: {integrity: sha512-TJUgd2l5UTtjNrMO+7PvxkRwngsyi8JhfMoGBxv1cDxekjjQUqlgGwIdp8kaIYuZElO7uKgirIDU8Jm9oWjdmQ==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -9448,6 +9475,13 @@ snapshots:
   '@remotion/compositor-win32-x64-msvc@4.0.435':
     optional: true
 
+  '@remotion/google-fonts@4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      remotion: 4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+    transitivePeerDependencies:
+      - react
+      - react-dom
+
   '@remotion/licensing@4.0.435': {}
 
   '@remotion/media-parser@4.0.435': {}
@@ -9460,6 +9494,8 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       remotion: 4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+
+  '@remotion/paths@4.0.435': {}
 
   '@remotion/player@4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
@@ -9490,6 +9526,12 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  '@remotion/shapes@4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@remotion/paths': 4.0.435
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   '@remotion/streaming@4.0.435': {}
 
@@ -9546,6 +9588,14 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  '@remotion/transitions@4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@remotion/paths': 4.0.435
+      '@remotion/shapes': 4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      remotion: 4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   '@remotion/web-renderer@4.0.435(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
