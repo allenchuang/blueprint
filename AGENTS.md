@@ -16,7 +16,6 @@ mastermind/
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
 │   ├── db/             → Drizzle ORM + Neon PostgreSQL schema
-│   ├── wallet/         → EVM wallet generation & HD derivation (viem)
 │   ├── eslint-config/  → Shared ESLint configs
 │   └── typescript-config/ → Shared TypeScript configs
 ```

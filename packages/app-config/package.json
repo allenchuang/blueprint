@@ -14,8 +14,9 @@
     "culori": "^4.0.1"
   },
   "devDependencies": {
-    "typescript": "^5.8.0",
+    "@repo/typescript-config": "workspace:*",
+    "@types/culori": "^4.0.1",
     "tsx": "^4.19.0",
-    "@repo/typescript-config": "workspace:*"
+    "typescript": "^5.8.0"
   }
 }

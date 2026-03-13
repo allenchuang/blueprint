@@ -1,6 +1,6 @@
 # Mastermind
 
-Full-stack monorepo for rapidly building and shipping app ideas. Built with Turborepo for orchestration, with shared packages for database access, linting, and TypeScript configuration.
+Full-stack monorepo for rapidly building and shipping app ideas. Built with Turborepo for orchestration, with shared packages for app configuration, database access, linting, and TypeScript configuration.
 
 ## Architecture
 
@@ -14,8 +14,8 @@ mastermind/
 │   ├── remotion/       → Video generation (Remotion)                           :3004
 │   └── server/         → API server (Fastify + Swagger)                        :3001
 ├── packages/
+│   ├── app-config/     → Centralized app metadata, branding, and assets
 │   ├── db/             → Database schema & client (Drizzle + Neon PostgreSQL)
-│   ├── wallet/         → EVM wallet generation & HD derivation (viem)
 │   ├── eslint-config/  → Shared ESLint configuration
 │   └── typescript-config/ → Shared TypeScript configuration
 ├── turbo.json          → Turborepo task pipeline
@@ -63,6 +63,7 @@ pnpm dev
 | `pnpm db:migrate` | Run database migrations |
 | `pnpm db:push` | Push schema directly to database |
 | `pnpm db:studio` | Open Drizzle Studio |
+| `pnpm sync-config` | Sync app-config assets and theme to all apps |
 
 ## Running Individual Apps
 
@@ -92,8 +93,8 @@ pnpm dev:server
 
 ## Shared Packages
 
+- **`@repo/app-config`** — Centralized app metadata, branding colors, URLs, and assets. Used by all apps. Run `pnpm sync-config` after edits.
 - **`@repo/db`** — Drizzle ORM schema definitions and database client. Used by `web`, `admin`, and `server`.
-- **`@repo/wallet`** — EVM wallet generation and HD derivation using viem. Provides `WalletService` for main wallets, agent wallets, and subaccount wallets.
 - **`@repo/eslint-config`** — Shared ESLint configurations (base, Next.js, React).
 - **`@repo/typescript-config`** — Shared TypeScript configurations (base, Next.js, React library).
 
