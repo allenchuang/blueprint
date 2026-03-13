@@ -1,4 +1,4 @@
-# Mastermind
+# Blueprint
 
 Full-stack monorepo for rapidly building and shipping app ideas. Built with Turborepo for orchestration, with shared packages for app configuration, database access, linting, and TypeScript configuration.
 
