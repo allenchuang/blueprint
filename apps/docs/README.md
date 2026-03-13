@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# Documentation
 
-## Getting Started
+Project documentation powered by [Mintlify](https://mintlify.com). Covers getting started guides, architecture decisions, and API reference.
 
-First, run the development server:
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# From monorepo root
+pnpm dev:docs
+
+# Or directly
+cd apps/docs && npx mintlify dev --port 3003
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Runs on **http://localhost:3003**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Directory Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load Inter, a custom Google Font.
+```
+apps/docs/
+├── mint.json                    → Mintlify configuration and navigation
+├── introduction.mdx             → Project overview
+├── quickstart.mdx               → Getting started guide
+├── architecture.mdx             → Architecture documentation
+├── api-reference/
+│   ├── introduction.mdx         → API overview
+│   └── endpoint/
+│       ├── get.mdx              → GET endpoint docs
+│       └── create.mdx           → POST endpoint docs
+├── logo/
+│   ├── dark.svg                 → Dark mode logo
+│   └── light.svg                → Light mode logo
+└── favicon.svg                  → Browser favicon
+```
 
-## Learn More
+## Patterns
 
-To learn more about Next.js, take a look at the following resources:
+- **Keep docs concise** — document what users need, avoid filler content
+- **Update navigation** in `mint.json` when adding new pages
+- **API docs** should reference the Swagger UI at `http://localhost:3001/docs` for interactive testing
+- **MDX format** — all pages use `.mdx` with Mintlify components (`<Card>`, `<Steps>`, `<CardGroup>`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Adding a New Page
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Create a new `.mdx` file in the appropriate directory
+2. Add the page path to `mint.json` under the correct navigation group
+3. Preview with `pnpm dev:docs`
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Mintlify handles deployment through their platform. Connect the repository and point to `apps/docs/`.

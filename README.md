@@ -1,159 +1,106 @@
-# Turborepo starter
+# Mastermind
 
-This Turborepo starter is maintained by the Turborepo core team.
+Full-stack monorepo for rapidly building and shipping app ideas. Built with Turborepo for orchestration, with shared packages for database access, linting, and TypeScript configuration.
 
-## Using this example
+## Architecture
 
-Run the following command:
-
-```sh
-npx create-turbo@latest
+```
+mastermind/
+├── apps/
+│   ├── web/            → Main web app (Next.js + shadcn/ui + Tailwind)         :3000
+│   ├── admin/          → Admin panel (Next.js + shadcn/ui + Tailwind)          :3002
+│   ├── docs/           → Documentation (Mintlify)                              :3003
+│   ├── react-native/   → Mobile app (Expo + Expo Router + NativeWind)
+│   ├── remotion/       → Video generation (Remotion)                           :3004
+│   └── server/         → API server (Fastify + Swagger)                        :3001
+├── packages/
+│   ├── db/             → Database schema & client (Drizzle + Neon PostgreSQL)
+│   ├── eslint-config/  → Shared ESLint configuration
+│   └── typescript-config/ → Shared TypeScript configuration
+├── turbo.json          → Turborepo task pipeline
+└── pnpm-workspace.yaml → Workspace definition
 ```
 
-## What's inside?
+## Prerequisites
 
-This Turborepo includes the following packages/apps:
+- **Node.js** >= 18
+- **pnpm** >= 10 (`corepack enable && corepack prepare pnpm@latest --activate`)
+- **Neon** PostgreSQL database (or any PostgreSQL instance)
 
-### Apps and Packages
+## Getting Started
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+```bash
+# Install dependencies
+pnpm install
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your DATABASE_URL
 
-### Utilities
+# Push database schema
+pnpm db:push
 
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+# Start all apps in development
+pnpm dev
 ```
 
-Without global `turbo`, use your package manager:
+## Scripts
 
-```sh
-cd my-turborepo
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start all apps in development mode |
+| `pnpm dev:web` | Start web app only (port 3000) |
+| `pnpm dev:admin` | Start admin panel only (port 3002) |
+| `pnpm dev:server` | Start API server only (port 3001) |
+| `pnpm dev:docs` | Start documentation (port 3003) |
+| `pnpm dev:remotion` | Start Remotion studio |
+| `pnpm build` | Build all apps |
+| `pnpm lint` | Lint all apps and packages |
+| `pnpm check-types` | Type check all apps and packages |
+| `pnpm format` | Format all files with Prettier |
+| `pnpm db:generate` | Generate Drizzle migrations |
+| `pnpm db:migrate` | Run database migrations |
+| `pnpm db:push` | Push schema directly to database |
+| `pnpm db:studio` | Open Drizzle Studio |
+
+## Running Individual Apps
+
+```bash
+# Using turbo filter
+pnpm --filter web dev
+pnpm --filter server dev
+pnpm --filter react-native dev
+
+# Or use the shorthand scripts
+pnpm dev:web
+pnpm dev:server
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Tech Stack
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+| Layer | Technology |
+|-------|-----------|
+| Web Frontend | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
+| Admin Panel | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
+| Mobile | Expo, Expo Router, NativeWind, React Native |
+| Video | Remotion |
+| API Server | Fastify, Swagger/OpenAPI |
+| Database | Drizzle ORM, Neon (serverless PostgreSQL) |
+| Monorepo | Turborepo, pnpm workspaces |
+| Language | TypeScript (strict mode) |
 
-```sh
-turbo build --filter=docs
+## Shared Packages
+
+- **`@repo/db`** — Drizzle ORM schema definitions and database client. Used by `web`, `admin`, and `server`.
+- **`@repo/eslint-config`** — Shared ESLint configurations (base, Next.js, React).
+- **`@repo/typescript-config`** — Shared TypeScript configurations (base, Next.js, React library).
+
+## Environment Variables
+
+Create a `.env` file at the root (or per-app) with:
+
+```bash
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 ```
 
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+See each app's README for app-specific environment variables.

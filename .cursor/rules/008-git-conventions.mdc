@@ -1,0 +1,49 @@
+---
+description: Git commit and branching conventions for the monorepo.
+globs:
+alwaysApply: true
+---
+
+# Git Conventions
+
+## Commit Messages
+
+Use conventional commits format:
+
+```
+type(scope): description
+
+feat(web): add user profile page
+fix(server): handle null email in user creation
+chore(db): add posts table schema
+docs: update API reference for user endpoints
+```
+
+### Types
+
+- `feat` — new feature
+- `fix` — bug fix
+- `chore` — maintenance (deps, config, tooling)
+- `docs` — documentation only
+- `refactor` — code restructuring with no behavior change
+- `test` — adding or updating tests
+- `style` — formatting, whitespace changes
+
+### Scopes
+
+Use the app or package name: `web`, `admin`, `server`, `react-native`, `remotion`, `docs`, `db`
+
+Omit scope for cross-cutting changes (e.g., `chore: update turbo.json`).
+
+## Branching
+
+- `main` — production-ready code
+- `feat/[description]` — feature branches
+- `fix/[description]` — bug fix branches
+
+## What to Commit
+
+- Always run `pnpm lint` and `pnpm check-types` before committing
+- Never commit `.env` files (only `.env.example`)
+- Commit `pnpm-lock.yaml` changes
+- Do not commit `node_modules`, `.next`, `dist`, or build artifacts
