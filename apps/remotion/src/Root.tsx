@@ -37,7 +37,7 @@ export const RemotionRoot: React.FC = () => {
         height={HEIGHT}
       />
 
-      <Folder name="Animation Skills">
+      <Folder name="Animation-Skills">
         <Folder name="Timing">
           <Composition
             id="SpringPhysics"
@@ -103,7 +103,7 @@ export const RemotionRoot: React.FC = () => {
           />
         </Folder>
 
-        <Folder name="Data Visualization">
+        <Folder name="Data-Visualization">
           <Composition
             id="AnimatedBarChart"
             component={AnimatedBarChart}
