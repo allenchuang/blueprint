@@ -2,7 +2,7 @@ import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, extname } from "node:path";
-import type { AppConfig } from "./types.js";
+import type { AppConfig } from "./types";
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;

@@ -1,4 +1,4 @@
-import type { AppConfig } from "./types.js";
+import type { AppConfig } from "./types";
 
 export const appConfig = {
   name: "Mastermind",
