@@ -12,6 +12,7 @@ mastermind/
 │   ├── docs/           → Documentation (Mintlify)                              :3003
 │   ├── react-native/   → Mobile app (Expo + Expo Router + NativeWind)
 │   ├── remotion/       → Video generation (Remotion)                           :3004
+│   ├── os/             → Desktop environment (Next.js + shadcn/ui + Tailwind)  :7777
 │   └── server/         → API server (Fastify + Swagger)                        :3001
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
@@ -198,6 +199,15 @@ appConfig.urls.api    // "http://localhost:3001"
 | `pnpm dev:remotion` | Start Remotion Studio |
 | `pnpm --filter remotion build` | Render video compositions |
 
+### OS Desktop (`apps/os` — port 7777)
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev:os` | Start the OS desktop dev server |
+| `pnpm --filter os build` | Production build |
+| `pnpm --filter os lint` | Lint the OS app |
+| `npx shadcn@latest add <component>` | Add a shadcn/ui component (run from `apps/os/`) |
+
 ### Database
 
 | Command | Description |
@@ -216,6 +226,7 @@ appConfig.urls.api    // "http://localhost:3001"
 | Web Frontend | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
 | Admin Panel | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
 | Mobile | Expo, Expo Router, NativeWind, React Native |
+| OS Desktop | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
 | Video | Remotion |
 | API Server | Fastify, Swagger/OpenAPI |
 | Database | Drizzle ORM, Neon (serverless PostgreSQL) |

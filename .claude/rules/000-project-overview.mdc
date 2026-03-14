@@ -16,6 +16,7 @@ mastermind/
 │   ├── docs/           → Mintlify documentation                         :3003
 │   ├── react-native/   → Expo + Expo Router + NativeWind
 │   ├── remotion/       → Remotion video generation                      :3004
+│   ├── os/             → Desktop environment (Next.js 15 + shadcn/ui)   :7777
 │   └── server/         → Fastify + Swagger API server                   :3001
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
@@ -28,14 +29,14 @@ mastermind/
 
 ## Package Relationships
 
-- `apps/web`, `apps/admin`, and `apps/server` depend on `@repo/db`
+- `apps/web`, `apps/admin`, `apps/os`, and `apps/server` depend on `@repo/db`
 - All apps use `@repo/app-config`, `@repo/eslint-config`, and `@repo/typescript-config`
 - Each Next.js app has its own independent shadcn/ui install
 
 ## Key Commands
 
 - `pnpm dev` — start all apps
-- `pnpm dev:web` / `pnpm dev:admin` / `pnpm dev:server` — start individual apps
+- `pnpm dev:web` / `pnpm dev:admin` / `pnpm dev:server` / `pnpm dev:os` — start individual apps
 - `pnpm db:push` — push schema to database
 - `pnpm db:generate` — generate migrations
 - `pnpm db:studio` — open Drizzle Studio

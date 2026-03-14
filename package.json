@@ -9,6 +9,7 @@
     "dev:server": "turbo run dev --filter=server",
     "dev:docs": "turbo run dev --filter=docs",
     "dev:remotion": "turbo run dev --filter=remotion",
+    "dev:os": "turbo run dev --filter=os",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",

@@ -12,6 +12,7 @@ mastermind/
 │   ├── docs/           → Documentation (Mintlify, port 3003)
 │   ├── react-native/   → Mobile app (Expo + Expo Router + NativeWind)
 │   ├── remotion/       → Video generation (Remotion, port 3004)
+│   ├── os/             → Desktop environment (Next.js 15 + shadcn/ui + Tailwind CSS v4, port 7777)
 │   └── server/         → API server (Fastify + Swagger, port 3001)
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
@@ -30,6 +31,7 @@ pnpm dev              # Start all apps
 pnpm dev:web          # Start web only
 pnpm dev:admin        # Start admin only
 pnpm dev:server       # Start server only
+pnpm dev:os           # Start OS desktop only
 pnpm build            # Build all apps
 pnpm lint             # Lint all
 pnpm check-types      # Type check all

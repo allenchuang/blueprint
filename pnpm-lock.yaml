@@ -92,6 +92,64 @@ importers:
         specifier: ^4.2.433
         version: 4.2.433(@radix-ui/react-popover@1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.3))(react@19.2.3))(@types/node@22.19.15)(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.3))(typescript@5.9.2)
 
+  apps/os:
+    dependencies:
+      '@repo/app-config':
+        specifier: workspace:*
+        version: link:../../packages/app-config
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.4)
+      next:
+        specifier: ^15.3.0
+        version: 15.5.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: ^19.1.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.2.4(react@19.2.4)
+      tailwind-merge:
+        specifier: ^3.3.0
+        version: 3.5.0
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@tailwindcss/postcss':
+        specifier: ^4.1.0
+        version: 4.2.1
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.15
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      eslint:
+        specifier: ^9.27.0
+        version: 9.39.4(jiti@2.6.1)
+      tailwindcss:
+        specifier: ^4.1.0
+        version: 4.2.1
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.2
+
   apps/react-native:
     dependencies:
       '@repo/app-config':
