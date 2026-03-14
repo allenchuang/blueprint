@@ -1,5 +1,5 @@
 {
-  "name": "mastermind",
+  "name": "blueprint-stack",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -16,7 +16,11 @@
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",
     "db:studio": "turbo run db:studio",
-    "sync-config": "tsx packages/app-config/scripts/sync.ts"
+    "sync-config": "tsx packages/app-config/scripts/sync.ts",
+    "build:cli": "turbo run build --filter=blueprint-stack",
+    "release:cli": "npm run release --prefix packages/blueprint-cli",
+    "release:cli:minor": "cd packages/blueprint-cli && npm version minor --no-git-tag-version && bash release.sh --no-bump",
+    "release:cli:major": "cd packages/blueprint-cli && npm version major --no-git-tag-version && bash release.sh --no-bump"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

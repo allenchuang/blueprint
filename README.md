@@ -15,9 +15,11 @@ mastermind/
 │   └── server/         → API server (Fastify + Swagger)                        :3001
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
+│   ├── blueprint-cli/  → npx blueprint CLI (scaffold & workspace commands)
 │   ├── db/             → Database schema & client (Drizzle + Neon PostgreSQL)
 │   ├── eslint-config/  → Shared ESLint configuration
 │   └── typescript-config/ → Shared TypeScript configuration
+├── prompts/            → AI prompt library (branding, design systems, components)
 ├── turbo.json          → Turborepo task pipeline
 └── pnpm-workspace.yaml → Workspace definition
 ```
@@ -222,10 +224,53 @@ appConfig.urls.api    // "http://localhost:3001"
 
 ## Shared Packages
 
+- **`blueprint`** (`packages/blueprint-cli`) — Published CLI for scaffolding and managing Blueprint projects. See [CLI Usage](#cli-usage) below.
 - **`@repo/app-config`** — Centralized app metadata, branding colors, URLs, slogan, and assets. Used by all apps. Run `pnpm sync-config` after edits. Also generates OG images from a banner + slogan.
 - **`@repo/db`** — Drizzle ORM schema definitions and database client. Used by `web`, `admin`, and `server`.
 - **`@repo/eslint-config`** — Shared ESLint configurations (base, Next.js, React).
 - **`@repo/typescript-config`** — Shared TypeScript configurations (base, Next.js, React library).
+
+---
+
+## CLI Usage
+
+The `blueprint` CLI is published to npm and lets anyone scaffold or manage a Blueprint project.
+
+### Scaffold a new project
+
+```bash
+npx blueprint new my-app
+```
+
+This will:
+1. Clone the Blueprint repo into `./my-app`
+2. Remove the origin git history
+3. Optionally prompt for `DATABASE_URL` and write `.env`
+4. Run `pnpm install`
+5. Initialize a fresh git repository
+
+### Run workspace commands
+
+When inside an existing Blueprint project, the CLI proxies to the root pnpm scripts:
+
+```bash
+blueprint dev              # pnpm dev (all apps)
+blueprint dev:web          # pnpm dev:web
+blueprint sync-config      # pnpm sync-config
+blueprint build            # pnpm build
+blueprint lint             # pnpm lint
+blueprint check-types      # pnpm check-types
+blueprint db:push          # pnpm db:push
+blueprint db:studio        # pnpm db:studio
+```
+
+### Publishing the CLI
+
+```bash
+cd packages/blueprint-cli
+pnpm build
+npm publish --access public
+```
 
 ## Environment Variables
 

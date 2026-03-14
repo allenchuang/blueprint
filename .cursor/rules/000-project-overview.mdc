@@ -19,9 +19,11 @@ mastermind/
 │   └── server/         → Fastify + Swagger API server                   :3001
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
+│   ├── blueprint-cli/  → npx blueprint CLI (scaffold & workspace commands)
 │   ├── db/             → Drizzle ORM + Neon PostgreSQL (shared schema)
 │   ├── eslint-config/  → Shared ESLint configs
 │   └── typescript-config/ → Shared TypeScript configs
+├── prompts/            → AI prompt library (branding, design systems, components)
 ```
 
 ## Package Relationships

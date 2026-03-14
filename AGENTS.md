@@ -15,9 +15,11 @@ mastermind/
 │   └── server/         → API server (Fastify + Swagger, port 3001)
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
+│   ├── blueprint-cli/  → npx blueprint CLI (scaffold & workspace commands)
 │   ├── db/             → Drizzle ORM + Neon PostgreSQL schema
 │   ├── eslint-config/  → Shared ESLint configs
 │   └── typescript-config/ → Shared TypeScript configs
+├── prompts/            → AI prompt library (branding, design systems, components)
 ```
 
 ## Build & Dev Commands
