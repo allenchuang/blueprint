@@ -5,5 +5,8 @@
   "scripts": {
     "dev": "mintlify dev --port 3003",
     "build": "echo 'Mintlify builds are handled by Mintlify hosting'"
+  },
+  "devDependencies": {
+    "mintlify": "^4.2.433"
   }
 }
