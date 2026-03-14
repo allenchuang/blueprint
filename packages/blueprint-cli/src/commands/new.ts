@@ -17,11 +17,8 @@ export async function newCommand(projectName: string): Promise<void> {
     process.exit(1);
   }
 
-  console.log();
   console.log(
-    kleur.bold().cyan("  blueprint-stack") +
-      kleur.dim(` — scaffolding new project into `) +
-      kleur.bold(projectName),
+    kleur.dim("  Scaffolding into ") + kleur.bold(projectName) + kleur.dim("..."),
   );
   console.log();
 

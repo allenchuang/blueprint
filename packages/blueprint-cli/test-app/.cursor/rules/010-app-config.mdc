@@ -1,0 +1,60 @@
+---
+description: Centralized app config — single source of truth for app metadata, branding, and theme
+globs:
+alwaysApply: true
+---
+
+# App Config
+
+## Single Source of Truth
+
+All app metadata lives in `packages/app-config/src/config.ts`. **Never hardcode** app names, descriptions, colors, URLs, or branding in individual apps.
+
+## What Lives in the Config
+
+- App name, slug, description, version
+- Brand colors (primary, secondary)
+- URLs (website, API, docs, support email)
+- Social links (GitHub, Twitter, Discord)
+- Mobile identifiers (bundle ID, deep link scheme)
+- SEO metadata (OG image, keywords)
+
+## How to Use
+
+### In TypeScript apps (web, admin, server)
+
+Import directly:
+
+```typescript
+import { appConfig } from "@repo/app-config";
+```
+
+- `apps/web/src/app/layout.tsx` — uses `appConfig.name`, `appConfig.description`
+- `apps/admin/src/app/layout.tsx` — uses `appConfig.name` with "Admin" suffix
+- `apps/server/src/app.ts` — uses `appConfig.name`, `appConfig.version`, `appConfig.urls.api`
+
+### For JSON configs and assets (react-native, docs)
+
+Run `pnpm sync-config` after editing the config. This:
+
+- Patches `apps/react-native/app.json` (name, slug, scheme, bundleId, colors)
+- Patches `apps/docs/mint.json` (name, colors, URLs, socials)
+- Generates `theme.css` for web and admin (full OKLCH light/dark palette from primary color)
+- Copies logo/favicon/icon assets from `packages/app-config/assets/` to all apps
+
+## Brand Assets
+
+All logos, favicons, and icons live in `packages/app-config/assets/`:
+
+- `logo-light.svg` / `logo-dark.svg` — brand logos
+- `favicon.svg` — favicon
+- `icon-512.png` / `icon-192.png` — app icons (mobile + PWA)
+- `splash.png` — mobile splash screen
+
+## Rules
+
+- **DO** import `appConfig` from `@repo/app-config` for any app identity reference
+- **DO** run `pnpm sync-config` after changing config or assets
+- **DO NOT** hardcode "Mastermind" or any app name in component files
+- **DO NOT** manually edit `apps/web/src/app/theme.css` or `apps/admin/src/app/theme.css` — they are generated
+- **DO NOT** manually edit brand assets in `apps/*/public/` or `apps/docs/logo/` — they are copied from the config package

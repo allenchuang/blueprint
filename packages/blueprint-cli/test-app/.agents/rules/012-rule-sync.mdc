@@ -1,0 +1,21 @@
+---
+description: Keep rules in sync across .cursor/rules/, .agents/rules/, and .claude/rules/
+alwaysApply: true
+---
+
+# Rule Sync
+
+Rules exist in three parallel directories that must stay identical:
+
+- `.cursor/rules/` — Cursor
+- `.agents/rules/` — Codex / generic agents
+- `.claude/rules/` — Claude Code
+
+When creating, editing, or deleting any rule file, apply the **same change** to all three directories. Also update `AGENTS.md` at the project root if the change affects a core rule documented there.
+
+## Workflow
+
+1. Make the change in `.cursor/rules/<file>.mdc`
+2. Copy the identical file to `.agents/rules/<file>.mdc` and `.claude/rules/<file>.mdc`
+3. If a rule is deleted, delete it from all three directories
+4. If `AGENTS.md` documents the same rule, update it to match

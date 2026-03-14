@@ -1,0 +1,61 @@
+---
+description: Database schema management rules using Drizzle ORM and @repo/db package.
+globs:
+  - packages/db/**
+alwaysApply: false
+---
+
+# Database Patterns
+
+## Schema Location
+
+All database schema definitions live in `packages/db/src/schema/`. This is the single source of truth for the database structure.
+
+## Adding or Modifying Tables
+
+1. Create/edit files in `packages/db/src/schema/`
+2. Export new tables from `packages/db/src/schema/index.ts`
+3. Run `pnpm db:generate` to create migration files
+4. Run `pnpm db:push` (development) or `pnpm db:migrate` (production)
+
+## Schema Conventions
+
+- Table names: **plural snake_case** (`users`, `blog_posts`)
+- Column names: **snake_case** (`created_at`, `user_id`)
+- Always include `id`, `createdAt`, `updatedAt` on every table
+- Use `uuid` for primary keys with `.defaultRandom()`
+- Use `timestamp("...", { withTimezone: true })` for all timestamps
+- Foreign keys reference the `id` column: `.references(() => otherTable.id)`
+
+## Example Table
+
+```typescript
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+
+export const posts = pgTable("posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  content: text("content"),
+  authorId: uuid("author_id").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+```
+
+## Using the Database in Apps
+
+```typescript
+import { createDb } from "@repo/db";
+import { users } from "@repo/db/schema";
+import { eq } from "drizzle-orm";
+
+const db = createDb(process.env.DATABASE_URL!);
+const user = await db.select().from(users).where(eq(users.id, userId));
+```
+
+## Rules
+
+- **Never write raw SQL for schema changes** — always use Drizzle schema definitions
+- **Never modify the database directly** — always go through `packages/db`
+- **Export types** from `@repo/db` so consuming apps get type safety
+- Run `pnpm db:generate` after any schema change before committing

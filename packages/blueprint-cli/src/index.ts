@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import kleur from "kleur";
+import prompts from "prompts";
 import { newCommand } from "./commands/new.js";
 import { runCommand, listProxyCommands } from "./commands/run.js";
+import { printLogo } from "./utils/logo.js";
 
 const program = new Command();
 
@@ -11,15 +13,31 @@ program
   .description("Scaffold and manage a Blueprint monorepo")
   .version("0.1.0");
 
-// blueprint new <project-name>
 program
-  .command("new <project-name>")
+  .command("new [project-name]")
   .description("Scaffold a new Blueprint monorepo project")
-  .action(async (projectName: string) => {
-    await newCommand(projectName);
+  .action(async (projectName?: string) => {
+    printLogo();
+
+    if (!projectName) {
+      const { name } = await prompts({
+        type: "text",
+        name: "name",
+        message: "What is the name of your app?",
+        initial: "my-app",
+        validate: (v: string) => (v.trim() ? true : "Name cannot be empty"),
+      });
+
+      if (!name) {
+        console.log(kleur.dim("\n  Cancelled.\n"));
+        process.exit(0);
+      }
+      projectName = name;
+    }
+
+    await newCommand(projectName!);
   });
 
-// Proxy commands: dev, build, lint, check-types, sync-config, db:*
 const proxyCommands = listProxyCommands();
 
 for (const cmdName of proxyCommands) {
@@ -32,16 +50,26 @@ for (const cmdName of proxyCommands) {
     });
 }
 
-program.addHelpText(
-  "after",
-  `
-${kleur.bold("Examples:")}
-  ${kleur.cyan("npx blueprint-stack new")} my-app       Scaffold a new project
-  ${kleur.cyan("blueprint-stack dev")}                  Start all apps
-  ${kleur.cyan("blueprint-stack dev:web")}              Start the web app only
-  ${kleur.cyan("blueprint-stack sync-config")}          Sync branding & theme to all apps
-  ${kleur.cyan("blueprint-stack db:push")}              Push DB schema changes
-`,
-);
+// When run with no arguments, show logo and prompt
+if (process.argv.length <= 2) {
+  printLogo();
 
-program.parse(process.argv);
+  (async () => {
+    const { name } = await prompts({
+      type: "text",
+      name: "name",
+      message: "What is the name of your app?",
+      initial: "my-app",
+      validate: (v: string) => (v.trim() ? true : "Name cannot be empty"),
+    });
+
+    if (!name) {
+      console.log(kleur.dim("\n  Cancelled.\n"));
+      process.exit(0);
+    }
+
+    await newCommand(name);
+  })();
+} else {
+  program.parse(process.argv);
+}

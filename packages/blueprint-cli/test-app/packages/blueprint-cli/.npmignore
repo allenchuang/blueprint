@@ -1,0 +1,9 @@
+# Exclude source and dev files from the published package
+src/
+.npmrc
+*.tsbuildinfo
+*.tgz
+node_modules/
+.gitignore
+.turbo/
+tsconfig.json

@@ -16,7 +16,7 @@ npx tsc
 # Create tarball manually (bypasses npm pack bug)
 TMPD=$(mktemp -d)
 mkdir -p "$TMPD/package"
-cp -r dist package.json "$TMPD/package/"
+cp -r dist package.json README.md "$TMPD/package/"
 tar czf "$TMPD/blueprint-stack-$VERSION.tgz" -C "$TMPD" package
 rm -rf "$TMPD/package"
 
