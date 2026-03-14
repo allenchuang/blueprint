@@ -270,8 +270,11 @@ export function Window({
     if (isBrowserWindow(config)) {
       setIframeLoading(true);
       setIframeError(null);
-      if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.location.reload();
+      if (iframeRef.current) {
+        // Re-assign src to avoid cross-origin SecurityError from location.reload()
+        const src = iframeRef.current.src;
+        iframeRef.current.src = "";
+        iframeRef.current.src = src;
       }
     }
   }, [config]);
