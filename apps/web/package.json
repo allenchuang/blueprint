@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@next/third-parties": "^16.1.6",
     "@repo/app-config": "workspace:*",
     "@repo/db": "workspace:*",
     "@tanstack/react-query": "^5.75.0",
