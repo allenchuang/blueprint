@@ -200,6 +200,12 @@ const SettingsIcon = () => (
   </div>
 );
 
+const ClawDashIcon = () => (
+  <div className="w-14 h-14 bg-linear-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+    <span className="text-2xl">🦞</span>
+  </div>
+);
+
 /* ==========================================================================
    TITLE BAR ICONS (small, shown in the window chrome)
    ========================================================================== */
@@ -259,6 +265,12 @@ const SettingsTitleIcon = () => (
   <svg className="w-4 h-4 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="12" r="3" />
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
+
+const ClawDashTitleIcon = () => (
+  <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
   </svg>
 );
 
@@ -353,6 +365,15 @@ const desktopConfig: DesktopConfig = {
         height: "400px",
       },
     },
+    {
+      id: "clawdash",
+      type: "browser",
+      title: "http://localhost:7778",
+      icon: <ClawDashTitleIcon />,
+      url: "http://localhost:7778",
+      showReloadButton: true,
+      openMaximized: true,
+    },
   ],
   icons: [
     { id: "web-icon", windowId: "web", icon: <WebAppIcon />, label: "Web" },
@@ -363,6 +384,7 @@ const desktopConfig: DesktopConfig = {
     { id: "terminal-icon", windowId: "terminal", icon: <TerminalIcon />, label: "Terminal" },
     { id: "notes-icon", windowId: "notes", icon: <NotesIcon />, label: "Notes" },
     { id: "settings-icon", windowId: "settings", icon: <SettingsIcon />, label: "Settings" },
+    { id: "clawdash-icon", windowId: "clawdash", icon: <ClawDashIcon />, label: "ClawDash" },
   ],
   darkBackground: {
     type: "image",

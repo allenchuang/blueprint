@@ -113,5 +113,5 @@ export const DesktopIcon = forwardRef<DesktopIconRef, DesktopIconProps>(
         </span>
       </div>
     );
-  }
+  },
 );

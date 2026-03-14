@@ -13,6 +13,7 @@ mastermind/
 │   ├── react-native/   → Mobile app (Expo + Expo Router + NativeWind)
 │   ├── remotion/       → Video generation (Remotion)                           :3004
 │   ├── os/             → Desktop environment (Next.js + shadcn/ui + Tailwind)  :7777
+│   ├── clawdash/       → OpenClaw diagnostics dashboard (Next.js + shadcn/ui) :7778
 │   └── server/         → API server (Fastify + Swagger)                        :3001
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
@@ -208,6 +209,16 @@ appConfig.urls.api    // "http://localhost:3001"
 | `pnpm --filter os lint` | Lint the OS app |
 | `npx shadcn@latest add <component>` | Add a shadcn/ui component (run from `apps/os/`) |
 
+### ClawDash (`apps/clawdash` — port 7778)
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev:clawdash` | Start the ClawDash dashboard |
+| `pnpm --filter clawdash build` | Production build |
+| `pnpm --filter clawdash lint` | Lint the ClawDash app |
+
+See [`apps/clawdash/README.md`](apps/clawdash/README.md) for OpenClaw integration setup.
+
 ### Database
 
 | Command | Description |
@@ -227,6 +238,7 @@ appConfig.urls.api    // "http://localhost:3001"
 | Admin Panel | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
 | Mobile | Expo, Expo Router, NativeWind, React Native |
 | OS Desktop | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
+| ClawDash | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4, React Query |
 | Video | Remotion |
 | API Server | Fastify, Swagger/OpenAPI |
 | Database | Drizzle ORM, Neon (serverless PostgreSQL) |
