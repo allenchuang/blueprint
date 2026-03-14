@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "remotion studio --port 3004",
+    "dev": "remotion studio --port 3004 --no-open",
     "build": "remotion bundle",
     "render": "remotion render",
     "lint": "eslint ."

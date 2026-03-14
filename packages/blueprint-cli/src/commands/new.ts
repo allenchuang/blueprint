@@ -103,14 +103,9 @@ export async function newCommand(projectName: string): Promise<void> {
     gitInitSpinner.warn("Could not initialize git — run git init manually");
   }
 
-  // Done
+  // Done — cd into project and start dev server
   console.log();
   console.log(kleur.green().bold("  ✔ Project ready!"));
-  console.log();
-  console.log(kleur.dim("  Next steps:"));
-  console.log();
-  console.log(`    ${kleur.cyan("cd")} ${projectName}`);
-  console.log(`    ${kleur.cyan("pnpm dev")}`);
   console.log();
   console.log(
     kleur.dim(
@@ -123,4 +118,10 @@ export async function newCommand(projectName: string): Promise<void> {
     ),
   );
   console.log();
+
+  console.log(kleur.cyan("  Starting dev server...\n"));
+  await execa("pnpm", ["dev"], {
+    cwd: targetDir,
+    stdio: "inherit",
+  });
 }
