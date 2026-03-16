@@ -1,11 +1,13 @@
 "use client";
 
 import { Desktop } from "@/components/desktop";
+import { OpenClawControl } from "@/components/openclaw-control";
 import { useTheme } from "@/contexts/theme-context";
+import { getRegistryWindows, getRegistryIcons } from "@/lib/registry-config";
 import type { DesktopConfig } from "@/types";
 
 /* ==========================================================================
-   APP WINDOW COMPONENTS
+   APP WINDOW COMPONENTS (static, not from registry)
    ========================================================================== */
 
 function TerminalDemo() {
@@ -119,57 +121,8 @@ function SettingsDemo() {
 }
 
 /* ==========================================================================
-   DESKTOP ICONS (large, for the desktop grid)
+   STATIC APP ICONS (for Terminal, Notes, Settings)
    ========================================================================== */
-
-const WebAppIcon = () => (
-  <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  </div>
-);
-
-const ServerIcon = () => (
-  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-      <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-      <line x1="6" y1="6" x2="6.01" y2="6" />
-      <line x1="6" y1="18" x2="6.01" y2="18" />
-    </svg>
-  </div>
-);
-
-const AdminIcon = () => (
-  <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
-    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  </div>
-);
-
-const DocsIcon = () => (
-  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      <line x1="8" y1="7" x2="16" y2="7" />
-      <line x1="8" y1="11" x2="14" y2="11" />
-    </svg>
-  </div>
-);
-
-const RemotionIcon = () => (
-  <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg">
-    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polygon points="23 7 16 12 23 17 23 7" />
-      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-    </svg>
-  </div>
-);
 
 const TerminalIcon = () => (
   <div className="w-14 h-14 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-700 shadow-lg">
@@ -273,73 +226,42 @@ const ClawDashTitleIcon = () => (
     <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
   </svg>
 );
+const OpenClawIcon = () => (
+  <div className="w-14 h-14 bg-linear-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="4" y="5" width="16" height="12" rx="2" />
+      <path d="M10 5v-2M14 5v-2M14 3h-4" strokeLinecap="round" />
+      <circle cx="9" cy="10" r="1" />
+      <circle cx="15" cy="10" r="1" />
+      <path d="M9 15h6" strokeLinecap="round" />
+    </svg>
+  </div>
+);
+
+const OpenClawTitleIcon = () => (
+  <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="4" y="5" width="16" height="12" rx="2" />
+    <path d="M10 5v-2M14 5v-2M14 3h-4" strokeLinecap="round" />
+    <circle cx="9" cy="10" r="1" />
+    <circle cx="15" cy="10" r="1" />
+    <path d="M9 15h6" strokeLinecap="round" />
+  </svg>
+);
 
 /* ==========================================================================
-   DESKTOP CONFIG
+   DESKTOP CONFIG (registry-driven browser windows + static app windows)
    ========================================================================== */
 
 const desktopConfig: DesktopConfig = {
   windows: [
-    {
-      id: "web",
-      type: "browser",
-      title: "http://localhost:3000",
-      icon: <WebTitleIcon />,
-      url: "http://localhost:3000",
-      showReloadButton: true,
-      openMaximized: true,
-    },
-    {
-      id: "server",
-      type: "browser",
-      title: "http://localhost:3001/docs",
-      icon: <ServerTitleIcon />,
-      url: "http://localhost:3001/docs",
-      showReloadButton: true,
-      dimensions: {
-        responsive: false,
-        width: "1000px",
-        height: "700px",
-      },
-    },
-    {
-      id: "admin",
-      type: "browser",
-      title: "http://localhost:3002",
-      icon: <AdminTitleIcon />,
-      url: "http://localhost:3002",
-      showReloadButton: true,
-      openMaximized: true,
-    },
-    {
-      id: "docs",
-      type: "browser",
-      title: "http://localhost:3003",
-      icon: <DocsTitleIcon />,
-      url: "http://localhost:3003",
-      showReloadButton: true,
-      openMaximized: true,
-    },
-    {
-      id: "remotion",
-      type: "browser",
-      title: "http://localhost:3004",
-      icon: <RemotionTitleIcon />,
-      url: "http://localhost:3004",
-      showReloadButton: true,
-      openMaximized: true,
-    },
+    ...getRegistryWindows(),
     {
       id: "terminal",
       type: "app",
       title: "Terminal",
       icon: <TerminalTitleIcon />,
       component: TerminalDemo,
-      dimensions: {
-        responsive: false,
-        width: "650px",
-        height: "450px",
-      },
+      dimensions: { responsive: false, width: "650px", height: "450px" },
     },
     {
       id: "notes",
@@ -347,11 +269,7 @@ const desktopConfig: DesktopConfig = {
       title: "Notes",
       icon: <NotesTitleIcon />,
       component: NotesDemo,
-      dimensions: {
-        responsive: false,
-        width: "380px",
-        height: "480px",
-      },
+      dimensions: { responsive: false, width: "380px", height: "480px" },
     },
     {
       id: "settings",
@@ -359,11 +277,15 @@ const desktopConfig: DesktopConfig = {
       title: "Settings",
       icon: <SettingsTitleIcon />,
       component: SettingsDemo,
-      dimensions: {
-        responsive: false,
-        width: "450px",
-        height: "400px",
-      },
+      dimensions: { responsive: false, width: "450px", height: "400px" },
+    },
+    {
+      id: "openclaw",
+      type: "app",
+      title: "OpenClaw",
+      icon: <OpenClawTitleIcon />,
+      component: OpenClawControl,
+      dimensions: { responsive: false, width: "480px", height: "520px" },
     },
     {
       id: "clawdash",
@@ -376,15 +298,12 @@ const desktopConfig: DesktopConfig = {
     },
   ],
   icons: [
-    { id: "web-icon", windowId: "web", icon: <WebAppIcon />, label: "Web" },
-    { id: "server-icon", windowId: "server", icon: <ServerIcon />, label: "API Server" },
-    { id: "admin-icon", windowId: "admin", icon: <AdminIcon />, label: "Admin" },
-    { id: "docs-icon", windowId: "docs", icon: <DocsIcon />, label: "Docs" },
-    { id: "remotion-icon", windowId: "remotion", icon: <RemotionIcon />, label: "Remotion" },
+    ...getRegistryIcons(),
     { id: "terminal-icon", windowId: "terminal", icon: <TerminalIcon />, label: "Terminal" },
     { id: "notes-icon", windowId: "notes", icon: <NotesIcon />, label: "Notes" },
     { id: "settings-icon", windowId: "settings", icon: <SettingsIcon />, label: "Settings" },
     { id: "clawdash-icon", windowId: "clawdash", icon: <ClawDashIcon />, label: "ClawDash" },
+    { id: "openclaw-icon", windowId: "openclaw", icon: <OpenClawIcon />, label: "OpenClaw" },
   ],
   darkBackground: {
     type: "image",

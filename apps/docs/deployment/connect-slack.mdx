@@ -1,0 +1,155 @@
+---
+title: "Connect Slack"
+description: "Create a Slack bot app for OpenClaw"
+---
+
+## Overview
+
+Slack integration uses a Slack App with Socket Mode. The bot joins your workspace, listens for messages in specified channels, and routes them to OpenClaw agents.
+
+## Create a Slack App
+
+<Steps>
+  <Step title="Go to the Slack API dashboard">
+    Open [api.slack.com/apps](https://api.slack.com/apps) and click **Create New App**.
+  </Step>
+  <Step title="Choose 'From scratch'">
+    Name the app (e.g., `Mastermind Agent`) and select your workspace.
+  </Step>
+  <Step title="Enable Socket Mode">
+    In the left sidebar, go to **Socket Mode** and toggle it **on**.
+
+    Generate an **App-Level Token** with the `connections:write` scope. Name it `socket-token`. Copy the token (`xapp-...`).
+  </Step>
+  <Step title="Add Bot Token Scopes">
+    Go to **OAuth & Permissions** → **Scopes** → **Bot Token Scopes**. Add:
+
+    | Scope | Purpose |
+    |-------|---------|
+    | `chat:write` | Send messages |
+    | `channels:read` | List public channels |
+    | `channels:history` | Read messages in public channels |
+    | `groups:read` | List private channels |
+    | `groups:history` | Read messages in private channels |
+    | `im:read` | Read DMs |
+    | `im:history` | Read DM history |
+    | `app_mentions:read` | Detect @mentions |
+  </Step>
+  <Step title="Enable Event Subscriptions">
+    Go to **Event Subscriptions** and toggle **on**. Under **Subscribe to bot events**, add:
+
+    - `message.channels` — messages in public channels
+    - `message.groups` — messages in private channels
+    - `message.im` — direct messages
+    - `app_mention` — @mentions
+  </Step>
+  <Step title="Install to Workspace">
+    Go to **OAuth & Permissions** and click **Install to Workspace**. Authorize the app.
+
+    Copy the **Bot User OAuth Token** (`xoxb-...`).
+  </Step>
+</Steps>
+
+## Configure in OpenClaw
+
+Add the Slack channel configuration. You need two tokens:
+
+- **App-Level Token** (`xapp-...`) — for Socket Mode connection
+- **Bot Token** (`xoxb-...`) — for sending messages and reading channels
+
+```bash
+openclaw channels add slack
+```
+
+When prompted, provide both tokens. Or edit `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "channels": [
+    {
+      "type": "slack",
+      "app_token": "xapp-1-A0123456789-...",
+      "bot_token": "xoxb-1234567890-...",
+      "policy": {
+        "allowed_channels": ["C0123456789"],
+        "allow_dms": true
+      }
+    }
+  ]
+}
+```
+
+<Note>
+Find channel IDs by right-clicking a channel in Slack → **View channel details** → the ID is at the bottom.
+</Note>
+
+## Restart the Gateway
+
+```bash
+openclaw restart
+```
+
+Or with PM2:
+
+```bash
+pm2 restart openclaw
+```
+
+## Invite the Bot to a Channel
+
+In Slack, go to the channel where you want to use the agent and type:
+
+```
+/invite @Mastermind Agent
+```
+
+## Test
+
+Send a message in the channel:
+
+```
+@Mastermind Agent What apps are running?
+```
+
+Or DM the bot directly:
+
+```
+Show me the git status
+```
+
+## Bind Channels to Agents
+
+Map specific Slack channels to specific agents:
+
+```json
+{
+  "bindings": [
+    {
+      "channel_type": "slack",
+      "channel_id": "C0123456789",
+      "agent": "os-admin"
+    },
+    {
+      "channel_type": "slack",
+      "channel_id": "C9876543210",
+      "agent": "dev-ops"
+    }
+  ]
+}
+```
+
+This lets you have a `#development` channel routed to `os-admin` and an `#infrastructure` channel routed to `dev-ops`.
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Bot doesn't respond | Check `openclaw logs` for Slack connection errors |
+| "not_authed" error | Verify both tokens are correct and the app is installed |
+| Bot can't read messages | Ensure Event Subscriptions are enabled and the bot is invited to the channel |
+| Socket Mode disconnects | Check the App-Level Token has `connections:write` scope |
+| "channel_not_found" | Make sure the bot is invited to the channel with `/invite` |
+
+<Tip>
+Use Slack's **Workflow Builder** or thread replies for structured agent interactions. The bot responds in-thread by default, keeping channels clean.
+</Tip>

@@ -1,0 +1,117 @@
+---
+title: "Deployment Overview"
+description: "Deploy the monorepo and OpenClaw on a VPS"
+---
+
+## Architecture
+
+The full production deployment runs on a single VPS:
+
+```
+Internet
+  │
+  ├─ Caddy (reverse proxy, auto-HTTPS)
+  │    ├─ app.yourdomain.com     → localhost:3000  (web)
+  │    ├─ api.yourdomain.com     → localhost:3001  (server)
+  │    ├─ docs.yourdomain.com    → localhost:3003  (docs)
+  │    └─ video.yourdomain.com   → localhost:3004  (remotion)
+  │
+  ├─ Tailscale (mesh VPN, private access)
+  │    ├─ admin.tailnet.ts.net   → localhost:3002  (admin)
+  │    └─ os.tailnet.ts.net      → localhost:7777  (os)
+  │
+  ├─ PM2 (process manager)
+  │    └─ Keeps all Node.js apps alive, handles restarts
+  │
+  └─ OpenClaw Gateway
+       └─ Connects Telegram/WhatsApp/Slack to AI agents
+```
+
+## Time Estimate
+
+| Step | Duration |
+|------|----------|
+| VPS provisioning | 10–15 min |
+| System dependencies (Node, pnpm, PM2, Caddy) | 10–15 min |
+| GitHub deploy keys | 5 min |
+| Clone & build monorepo | 10–15 min |
+| Caddy + DNS setup | 10–15 min |
+| Tailscale setup | 5–10 min |
+| OpenClaw installation | 10–15 min |
+| Messaging channel connections | 5–10 min |
+| **Total** | **~1 hour** |
+
+## Cost
+
+<Tabs>
+  <Tab title="AWS EC2">
+    | Instance | vCPUs | RAM | Storage | Monthly Cost |
+    |----------|-------|-----|---------|-------------|
+    | t3.medium | 2 | 4 GB | 30 GB EBS | ~$30/mo |
+    | t3.large | 2 | 8 GB | 50 GB EBS | ~$60/mo |
+    | t3.xlarge | 4 | 16 GB | 80 GB EBS | ~$120/mo |
+
+    **Recommended:** t3.large (8 GB RAM handles Node.js builds comfortably)
+  </Tab>
+  <Tab title="Hetzner Cloud">
+    | Server | vCPUs | RAM | Storage | Monthly Cost |
+    |--------|-------|-----|---------|-------------|
+    | CX22 | 2 | 4 GB | 40 GB | ~€4/mo |
+    | CX32 | 4 | 8 GB | 80 GB | ~€8/mo |
+    | CX42 | 8 | 16 GB | 160 GB | ~€16/mo |
+
+    **Recommended:** CX32 or CX42 for production workloads
+  </Tab>
+</Tabs>
+
+## Prerequisites
+
+Before starting, make sure you have:
+
+- [ ] A domain name with DNS access (e.g., Cloudflare, Namecheap)
+- [ ] An SSH key pair on your local machine (`~/.ssh/id_ed25519`)
+- [ ] A GitHub account with access to the repository
+- [ ] A Telegram, WhatsApp, or Slack account for agent messaging
+- [ ] A [Tailscale](https://tailscale.com) account (free tier works)
+
+## Deployment Steps
+
+Follow these guides in order:
+
+<Steps>
+  <Step title="VPS Setup">
+    Provision a server, create a deploy user, install Node.js 23, pnpm, PM2, and Caddy.
+
+    [VPS Setup →](/deployment/vps-setup)
+  </Step>
+  <Step title="GitHub Deploy Keys">
+    Set up SSH authentication so the VPS can pull from your private repo.
+
+    [GitHub Deploy Keys →](/deployment/github-deploy-keys)
+  </Step>
+  <Step title="Deploy the Monorepo">
+    Clone the repo, configure environment variables, build all apps, and start with PM2.
+
+    [Deploy the Monorepo →](/deployment/monorepo-on-vps)
+  </Step>
+  <Step title="Caddy Reverse Proxy">
+    Configure auto-HTTPS for public-facing apps with DNS and Caddy.
+
+    [Caddy Reverse Proxy →](/deployment/caddy-reverse-proxy)
+  </Step>
+  <Step title="Private Access with Tailscale">
+    Secure admin and OS apps behind a mesh VPN.
+
+    [Private Access with Tailscale →](/deployment/tailscale)
+  </Step>
+  <Step title="OpenClaw Setup">
+    Install the AI agent gateway and configure agents.
+
+    [OpenClaw Setup →](/deployment/openclaw-setup)
+  </Step>
+  <Step title="Connect Messaging Channels">
+    Link Telegram, WhatsApp, and/or Slack to OpenClaw.
+
+    [Telegram →](/deployment/connect-telegram) · [WhatsApp →](/deployment/connect-whatsapp) · [Slack →](/deployment/connect-slack)
+  </Step>
+</Steps>

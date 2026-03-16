@@ -1,0 +1,135 @@
+---
+title: "Connect WhatsApp"
+description: "Link WhatsApp to OpenClaw via QR pairing"
+---
+
+## Overview
+
+OpenClaw connects to WhatsApp using the multi-device protocol. You scan a QR code from your phone, and messages sent to the linked number are routed to your AI agent.
+
+## Start the WhatsApp Login
+
+On the VPS:
+
+```bash
+openclaw channels login whatsapp
+```
+
+This displays a QR code in your terminal.
+
+<Note>
+If the QR code doesn't render properly in your terminal, try increasing the terminal width or use `--ascii` mode if available.
+</Note>
+
+## Scan the QR Code
+
+<Steps>
+  <Step title="Open WhatsApp on your phone">
+    Go to **Settings → Linked Devices** (iOS) or **⋮ Menu → Linked Devices** (Android).
+  </Step>
+  <Step title="Tap 'Link a Device'">
+    Your phone's camera opens.
+  </Step>
+  <Step title="Scan the QR code">
+    Point your phone at the terminal QR code.
+  </Step>
+  <Step title="Wait for connection">
+    WhatsApp syncs. The terminal confirms:
+
+    ```
+    ✓ WhatsApp connected successfully
+    ```
+  </Step>
+</Steps>
+
+## Configure DM Policy
+
+Decide who can message the agent:
+
+```json
+{
+  "channels": [
+    {
+      "type": "whatsapp",
+      "policy": {
+        "allow_dms": true,
+        "allowed_numbers": ["+1234567890"]
+      }
+    }
+  ]
+}
+```
+
+| Policy | Behavior |
+|--------|----------|
+| `allow_dms: true` + `allowed_numbers: []` | Anyone can message (not recommended) |
+| `allow_dms: true` + `allowed_numbers: ["+1..."]` | Only listed numbers can message |
+| `allow_dms: false` | WhatsApp DMs are ignored |
+
+<Warning>
+Restrict `allowed_numbers` to your own number(s). An open WhatsApp bot could be abused by anyone who knows the number.
+</Warning>
+
+## Approve Pairing
+
+The first time you send a message, OpenClaw may require approval:
+
+1. Send a message from your phone to the linked number
+2. Check the gateway logs: `openclaw logs`
+3. Approve the pairing when prompted
+
+After approval, subsequent messages are processed automatically.
+
+## Dedicated vs. Personal Number
+
+<Tabs>
+  <Tab title="Dedicated Number">
+    Use a separate SIM or VoIP number exclusively for the agent. Benefits:
+
+    - Clean separation from personal messages
+    - No risk of personal messages being processed by the agent
+    - Can be shared with team members
+
+    Get a cheap number from providers like Google Voice, Twilio, or a prepaid SIM.
+  </Tab>
+  <Tab title="Personal Number">
+    Link your personal WhatsApp. The agent processes messages based on the DM policy:
+
+    - If `allowed_numbers` is set, only your number triggers the agent
+    - Other messages pass through normally
+    - Simpler setup (no extra number needed)
+
+    **Risk:** Misconfiguration could send personal messages to the agent.
+  </Tab>
+</Tabs>
+
+## Restart and Verify
+
+```bash
+openclaw restart
+```
+
+Send a test message:
+
+```
+What apps are running?
+```
+
+The agent should respond with the current PM2 status or repo information.
+
+## Session Persistence
+
+The WhatsApp session persists across gateway restarts. You don't need to re-scan the QR code unless:
+
+- You manually log out from WhatsApp's Linked Devices screen
+- The session expires (WhatsApp disconnects linked devices after ~14 days of inactivity)
+- You delete the OpenClaw session data
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| QR code expired | Run `openclaw channels login whatsapp` again |
+| "Device was removed" | Re-scan the QR code from your phone |
+| Messages not arriving | Check `openclaw logs` for connection errors |
+| Session lost after restart | Re-authenticate with `openclaw channels login whatsapp` |

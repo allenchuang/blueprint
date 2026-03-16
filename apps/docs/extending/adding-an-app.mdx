@@ -1,0 +1,163 @@
+---
+title: "Adding a New App"
+description: "The complete pipeline from scaffolding to deployment"
+---
+
+## The Traditional Way (6 Steps)
+
+Without the apps registry, adding a new app means touching 6 different files and systems:
+
+1. **Scaffold** the app in `apps/`
+2. **Register** it in root `package.json` (add `dev:<name>` script)
+3. **Build** and verify locally
+4. **PM2** — add an entry to `ecosystem.config.cjs`
+5. **Caddy** — add a reverse proxy block (if public)
+6. **OS** — add a window config to the desktop environment
+
+Miss any step and something breaks: the app won't start, won't have HTTPS, or won't show up in the desktop.
+
+## The Registry Way (2 Steps)
+
+With the apps registry, it collapses to:
+
+<Steps>
+  <Step title="Scaffold and register">
+    Create the app and add an entry to `packages/app-config/src/apps-registry.ts`.
+  </Step>
+  <Step title="Run the deploy script">
+    `scripts/deploy-app.sh` reads the registry and generates PM2, Caddy, and OS configurations automatically.
+  </Step>
+</Steps>
+
+## Example: Creating a Blog App
+
+### Step 1: Scaffold the App
+
+```bash
+cd apps
+npx create-next-app@latest blog --typescript --tailwind --eslint --app --src-dir
+cd blog
+```
+
+Install shared dependencies:
+
+```bash
+pnpm add @repo/app-config @repo/db
+```
+
+Update `apps/blog/package.json`:
+
+```json
+{
+  "name": "blog",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@repo/app-config": "workspace:*",
+    "@repo/db": "workspace:*"
+  }
+}
+```
+
+### Step 2: Register in the Apps Registry
+
+Edit `packages/app-config/src/apps-registry.ts`:
+
+```typescript
+export const appsRegistry: AppEntry[] = [
+  // ... existing entries ...
+  {
+    id: "blog",
+    name: "Blog",
+    port: 3005,
+    description: "Public blog with MDX content",
+    icon: "newspaper",
+    color: "blue",
+    subdomain: "blog",
+    openMaximized: true,
+    access: "public",
+    type: "nextjs",
+  },
+];
+```
+
+### Step 3: Add Dev Script
+
+In root `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev:blog": "turbo dev --filter=blog"
+  }
+}
+```
+
+### Step 4: Build and Test Locally
+
+```bash
+pnpm dev:blog
+# Visit http://localhost:3005
+```
+
+### Step 5: Deploy
+
+On the VPS, pull the changes and run the deploy script:
+
+```bash
+git pull
+pnpm install
+pnpm build --filter=blog
+```
+
+Then either run the deploy script or manually:
+
+```bash
+# Add to PM2
+pm2 start node_modules/next/dist/bin/next \
+  --name blog \
+  --cwd ./apps/blog \
+  -- start -p 3005
+
+# Add Caddy block
+echo 'blog.yourdomain.com {
+  reverse_proxy localhost:3005
+}' | sudo tee -a /etc/caddy/Caddyfile
+
+sudo systemctl reload caddy
+pm2 save
+```
+
+### Step 6: DNS
+
+Add an A record for `blog.yourdomain.com` pointing to your VPS IP.
+
+## The Deploy Script
+
+For automated deployments, use `scripts/deploy-app.sh`:
+
+```bash
+./scripts/deploy-app.sh blog
+```
+
+This reads the registry entry for `blog` and:
+
+1. Generates the correct PM2 start command based on `type`
+2. Generates the Caddy reverse proxy block based on `subdomain` and `access`
+3. Reloads PM2 and Caddy
+
+See [Deploy Pipeline](/extending/deploy-pipeline) for full details.
+
+## Agent Workflow
+
+When an AI agent creates a new app, it follows the same pipeline:
+
+1. Agent scaffolds the app on a feature branch
+2. Agent adds the registry entry
+3. Agent adds the dev script
+4. Agent commits: `feat(blog): scaffold blog app`
+5. After merge, the deploy script handles PM2 + Caddy on the VPS
+
+<Tip>
+The agent knows this workflow from `AGENTS.md`. It will automatically register apps and follow conventional commits.
+</Tip>

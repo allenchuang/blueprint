@@ -1,0 +1,116 @@
+---
+title: "Private Access with Tailscale"
+description: "Secure access to admin apps without public exposure"
+---
+
+## What Is Tailscale?
+
+[Tailscale](https://tailscale.com) is a **mesh VPN** built on WireGuard. It creates a private network (called a "tailnet") between your devices — laptop, phone, VPS — without opening any ports to the public internet.
+
+For this project, Tailscale gives you secure HTTPS access to private apps (admin panel, OS desktop) without exposing them via Caddy or public DNS.
+
+## Access Split
+
+| App | Access | Served By | URL |
+|-----|--------|-----------|-----|
+| Web | Public | Caddy | `https://app.yourdomain.com` |
+| API Server | Public | Caddy | `https://api.yourdomain.com` |
+| Docs | Public | Caddy | `https://docs.yourdomain.com` |
+| Admin | **Private** | Tailscale | `https://admin.your-tailnet.ts.net` |
+| OS | **Private** | Tailscale | `https://os.your-tailnet.ts.net` |
+| Remotion | **Private** | Tailscale | `https://video.your-tailnet.ts.net` |
+
+## Install Tailscale on the VPS
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+```
+
+Start Tailscale and authenticate:
+
+```bash
+sudo tailscale up
+```
+
+This prints a URL. Open it in your browser, log in to your Tailscale account, and authorize the device.
+
+Verify the VPS is connected:
+
+```bash
+tailscale status
+```
+
+You should see the VPS listed with a `100.x.x.x` IP address.
+
+## Install Tailscale on Your Devices
+
+Install Tailscale on every device that needs access to private apps:
+
+- **macOS/Windows/Linux:** [tailscale.com/download](https://tailscale.com/download)
+- **iOS/Android:** App Store / Play Store
+
+Log in with the same account. All devices on the same Tailscale account can reach each other.
+
+## Serve Apps Over Tailscale
+
+Use `tailscale serve` to expose local ports as HTTPS services on your tailnet:
+
+```bash
+# Admin panel
+sudo tailscale serve --bg --set-path / https+insecure://localhost:3002
+sudo tailscale serve --bg --set-path / --serve-port 8443 https+insecure://localhost:7777
+```
+
+Or use Tailscale Funnel config for named services. A simpler approach is to configure Tailscale's built-in HTTPS proxy:
+
+```bash
+# Enable HTTPS certificates for the machine
+sudo tailscale cert your-vps-name.your-tailnet.ts.net
+```
+
+Then access apps directly via the Tailscale IP:
+
+```
+https://your-vps-name.your-tailnet.ts.net:3002   → Admin
+https://your-vps-name.your-tailnet.ts.net:7777   → OS Desktop
+```
+
+<Tip>
+For cleaner URLs, use Tailscale's `serve` command to map paths to ports, or set up a second Caddy instance listening only on the Tailscale interface.
+</Tip>
+
+## Firewall Rules
+
+Ensure the VPS firewall only allows public traffic on ports 80 and 443. All private app ports should be blocked from the public internet:
+
+```bash
+# UFW example
+sudo ufw allow 22/tcp       # SSH
+sudo ufw allow 80/tcp       # HTTP (Caddy)
+sudo ufw allow 443/tcp      # HTTPS (Caddy)
+sudo ufw allow in on tailscale0  # Allow all Tailscale traffic
+sudo ufw enable
+```
+
+<Warning>
+Do **not** add firewall rules for ports 3002, 7777, or 3004 on the public interface. These should only be accessible through Tailscale.
+</Warning>
+
+## Verify Private Access
+
+From your laptop (connected to the same Tailscale network):
+
+```bash
+# Should work (over Tailscale)
+curl -I https://your-vps-name.your-tailnet.ts.net:3002
+
+# Should NOT work (from public internet)
+curl -I http://YOUR_PUBLIC_IP:3002
+# Connection refused or timeout
+```
+
+## Next Step
+
+Install and configure the AI agent gateway.
+
+[OpenClaw Setup →](/deployment/openclaw-setup)

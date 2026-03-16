@@ -13,7 +13,6 @@ mastermind/
 │   ├── react-native/   → Mobile app (Expo + Expo Router + NativeWind)
 │   ├── remotion/       → Video generation (Remotion, port 3004)
 │   ├── os/             → Desktop environment (Next.js 15 + shadcn/ui + Tailwind CSS v4, port 7777)
-│   ├── clawdash/       → OpenClaw diagnostics dashboard (Next.js 15 + shadcn/ui, port 7778)
 │   └── server/         → API server (Fastify + Swagger, port 3001)
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
@@ -33,7 +32,6 @@ pnpm dev:web          # Start web only
 pnpm dev:admin        # Start admin only
 pnpm dev:server       # Start server only
 pnpm dev:os           # Start OS desktop only
-pnpm dev:clawdash     # Start ClawDash dashboard only
 pnpm build            # Build all apps
 pnpm lint             # Lint all
 pnpm check-types      # Type check all

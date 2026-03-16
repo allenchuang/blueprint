@@ -1,0 +1,150 @@
+---
+title: "Caddy Reverse Proxy"
+description: "Auto-HTTPS with Caddy for public apps"
+---
+
+## What Is Caddy?
+
+[Caddy](https://caddyserver.com) is a web server that **automatically provisions and renews HTTPS certificates** via Let's Encrypt. No manual cert management, no cron jobs, no certbot. Point a domain at your VPS, add a Caddy config block, and you have production HTTPS in seconds.
+
+## DNS Setup
+
+Before Caddy can issue certificates, your domain's DNS must point to the VPS.
+
+Create **A records** for each public subdomain. These go in your DNS provider (Cloudflare, Namecheap, Route 53, etc.):
+
+| Record Type | Name | Value | TTL |
+|-------------|------|-------|-----|
+| A | `app` | `YOUR_VPS_IP` | 300 |
+| A | `api` | `YOUR_VPS_IP` | 300 |
+| A | `docs` | `YOUR_VPS_IP` | 300 |
+
+<Warning>
+If you use Cloudflare, set the proxy status to **DNS only** (grey cloud) for initial setup. Cloudflare's proxy can interfere with Caddy's ACME challenge. You can enable Cloudflare proxy later if needed.
+</Warning>
+
+Wait for DNS propagation (usually 1–5 minutes). Verify:
+
+```bash
+dig +short app.yourdomain.com
+# Should return YOUR_VPS_IP
+```
+
+## Configure the Caddyfile
+
+Edit the Caddy configuration:
+
+```bash
+sudo nano /etc/caddy/Caddyfile
+```
+
+Replace the contents with:
+
+```
+app.yourdomain.com {
+	reverse_proxy localhost:3000
+}
+
+api.yourdomain.com {
+	reverse_proxy localhost:3001
+}
+
+docs.yourdomain.com {
+	reverse_proxy localhost:3003
+}
+```
+
+Each block maps a public subdomain to the local port of the corresponding app. Caddy handles:
+
+- HTTPS certificate provisioning (ACME / Let's Encrypt)
+- Automatic HTTP → HTTPS redirect
+- Certificate renewal (every ~60 days, automatic)
+- TLS termination
+
+## Reload Caddy
+
+```bash
+sudo systemctl reload caddy
+```
+
+Caddy validates the config, provisions certificates, and starts serving. Check status:
+
+```bash
+sudo systemctl status caddy
+```
+
+## Verify
+
+```bash
+curl -I https://app.yourdomain.com
+# HTTP/2 200
+# server: Caddy
+
+curl -I https://api.yourdomain.com/docs
+# HTTP/2 200
+
+curl -I https://docs.yourdomain.com
+# HTTP/2 200
+```
+
+## Adding More Apps
+
+When you add a new public app (e.g., a blog on port 3005), add a DNS A record and a new Caddy block:
+
+```
+blog.yourdomain.com {
+	reverse_proxy localhost:3005
+}
+```
+
+Then reload:
+
+```bash
+sudo systemctl reload caddy
+```
+
+<Tip>
+The [deploy script](/extending/deploy-pipeline) can generate Caddy blocks automatically from the apps registry.
+</Tip>
+
+## Troubleshooting
+
+### Certificate Issues
+
+```bash
+# Check Caddy logs for ACME errors
+sudo journalctl -u caddy --no-pager -n 50
+```
+
+Common causes:
+- **DNS not propagated** — wait and retry
+- **Port 80/443 blocked** — check firewall / security group
+- **Cloudflare proxy enabled** — set to DNS only during initial cert provisioning
+
+### 502 Bad Gateway
+
+This means Caddy can reach the domain but the backend app isn't responding.
+
+```bash
+# Check if the app is running
+pm2 status
+
+# Check if the port is listening
+ss -tlnp | grep 3000
+
+# Check app logs
+pm2 logs web --lines 50
+```
+
+### Reload vs Restart
+
+- `sudo systemctl reload caddy` — applies config changes, no downtime
+- `sudo systemctl restart caddy` — full restart, brief downtime
+
+Always prefer `reload` for config changes.
+
+## Next Step
+
+Secure admin and OS apps with Tailscale.
+
+[Private Access with Tailscale →](/deployment/tailscale)

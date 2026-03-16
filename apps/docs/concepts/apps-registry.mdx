@@ -1,0 +1,110 @@
+---
+title: "Apps Registry"
+description: "Single source of truth for all app metadata"
+---
+
+## The Problem
+
+Without a registry, adding a new app to the monorepo means editing 6+ files manually:
+
+1. Create the app directory and code
+2. Add a `dev:<name>` script to root `package.json`
+3. Add a PM2 entry to `ecosystem.config.cjs`
+4. Add a Caddy block to `/etc/caddy/Caddyfile`
+5. Add a window definition to the OS desktop config
+6. Update documentation
+
+Each step is error-prone. Miss the PM2 entry and the app won't start. Forget the Caddy block and there's no HTTPS. Skip the OS config and it won't appear in the desktop.
+
+## The Solution
+
+`packages/app-config/src/apps-registry.ts` is the **single source of truth** for all app metadata. Every tool in the stack reads from it.
+
+```typescript
+import { appsRegistry } from "@repo/app-config";
+```
+
+## Registry Schema
+
+Each app is defined by an `AppEntry` object:
+
+```typescript
+interface AppEntry {
+  id: string;           // Unique identifier (e.g., "web", "admin")
+  name: string;         // Display name (e.g., "Web", "Admin")
+  port: number;         // Dev/production port (e.g., 3000)
+  description: string;  // Short description
+  icon: string;         // Icon name for the OS dock
+  color: string;        // Accent color for the OS window chrome
+  subdomain: string;    // Public subdomain (e.g., "app" → app.yourdomain.com)
+  openMaximized?: boolean; // Whether the OS window opens maximized
+  access: "public" | "private"; // Caddy (public) vs Tailscale (private)
+  type: "nextjs" | "fastify" | "mintlify" | "remotion" | "expo";
+}
+```
+
+## Current Registry
+
+| ID | Name | Port | Subdomain | Access | Type |
+|----|------|------|-----------|--------|------|
+| `web` | Web | 3000 | `app` | public | nextjs |
+| `server` | API Server | 3001 | `api` | public | fastify |
+| `admin` | Admin | 3002 | `admin` | private | nextjs |
+| `docs` | Docs | 3003 | `docs` | public | mintlify |
+| `remotion` | Remotion | 3004 | `video` | private | remotion |
+| `os` | OS | 7777 | `os` | private | nextjs |
+
+## Who Reads the Registry
+
+### OS Desktop
+
+The OS desktop reads the registry to populate its dock and window manager. Each entry with a valid port becomes a launchable window:
+
+```typescript
+appsRegistry.forEach((app) => {
+  // Creates a dock icon and window config
+  // URL is derived from port: http://localhost:{app.port}
+});
+```
+
+### Deploy Script
+
+The deploy script (`scripts/deploy-app.sh`) reads the registry to auto-generate PM2 and Caddy configurations:
+
+- **PM2**: Generates the process entry with the correct start command based on `type` (Next.js uses `node_modules/next/dist/bin/next start -p {port}`, Fastify uses `node dist/index.js`)
+- **Caddy**: Generates a reverse proxy block for `{subdomain}.yourdomain.com → localhost:{port}`
+
+### Access Control
+
+The `access` field determines where the app is exposed:
+
+- **`public`** — Caddy creates a public HTTPS reverse proxy with a Let's Encrypt certificate
+- **`private`** — Tailscale serves it over the mesh VPN; no public DNS entry
+
+## Adding an App
+
+Register a new app by adding an entry to the array:
+
+```typescript
+export const appsRegistry: AppEntry[] = [
+  // ... existing entries
+  {
+    id: "blog",
+    name: "Blog",
+    port: 3005,
+    description: "Public blog with MDX content",
+    icon: "newspaper",
+    color: "blue",
+    subdomain: "blog",
+    openMaximized: true,
+    access: "public",
+    type: "nextjs",
+  },
+];
+```
+
+Then run the deploy script or manually update PM2 and Caddy to pick up the new entry.
+
+<Tip>
+See [Adding a New App](/extending/adding-an-app) for the complete pipeline from scaffolding to deployment.
+</Tip>

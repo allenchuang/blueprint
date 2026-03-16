@@ -1,0 +1,143 @@
+---
+title: "File Storage"
+description: "Asset storage for AI agent tasks"
+---
+
+## Overview
+
+AI agents frequently need to download and manage files — images for a blog post, PDFs for processing, video assets for Remotion compositions. The `storage/` directory at the repo root provides a structured location for these files.
+
+## Directory Structure
+
+```
+storage/
+├── images/      → PNG, JPG, SVG, WebP
+├── videos/      → MP4, WebM
+├── documents/   → PDFs, CSVs, text files
+└── temp/        → Temporary files (auto-cleaned weekly)
+```
+
+Each subdirectory has a `.gitkeep` file to preserve the structure in git.
+
+## Git Rules
+
+The `storage/` directory is in `.gitignore`:
+
+```
+storage/images/*
+storage/videos/*
+storage/documents/*
+storage/temp/*
+!storage/**/.gitkeep
+```
+
+This means:
+- The directory structure is committed (via `.gitkeep`)
+- Actual files are **not** committed
+- Files persist on the VPS but are not pushed to GitHub
+
+<Note>
+This is intentional. Agent-downloaded assets can be large and change frequently. Committing them would bloat the repository.
+</Note>
+
+## How Agents Reference Files
+
+Agents use absolute paths when saving and referencing files:
+
+```bash
+# Download an image
+curl -o /home/deploy/your-repo/storage/images/hero-banner.png https://example.com/image.png
+
+# Reference in code
+<img src="/storage/images/hero-banner.png" />
+```
+
+For Remotion compositions, agents save video assets to `storage/videos/` and reference them with `staticFile()` or absolute imports.
+
+## Serving Stored Files
+
+Files in `storage/` are not automatically served by any app. To make them accessible via HTTP:
+
+### Option 1: Symlink to a Public Directory
+
+```bash
+ln -s /home/deploy/your-repo/storage/images /home/deploy/your-repo/apps/web/public/storage
+```
+
+Files become available at `https://app.yourdomain.com/storage/hero-banner.png`.
+
+### Option 2: Caddy File Server
+
+Add a Caddy block to serve the storage directory directly:
+
+```
+storage.yourdomain.com {
+    root * /home/deploy/your-repo/storage
+    file_server browse
+}
+```
+
+### Option 3: API Endpoint
+
+Create a Fastify route that serves files from `storage/`:
+
+```typescript
+app.get("/files/:category/:filename", async (request, reply) => {
+  const { category, filename } = request.params;
+  const filepath = path.join(process.cwd(), "../../storage", category, filename);
+  return reply.sendFile(filepath);
+});
+```
+
+## Optional: S3 or Storage Box
+
+For large-scale storage (hundreds of GBs), offload to external storage:
+
+<Tabs>
+  <Tab title="AWS S3">
+    Use S3 for durable, scalable storage. Configure the agent to upload via the AWS SDK:
+
+    ```bash
+    # Install AWS CLI on the VPS
+    sudo apt install awscli
+    aws configure  # Set access key, secret, region
+    ```
+
+    Agents can upload with:
+
+    ```bash
+    aws s3 cp storage/images/large-file.png s3://your-bucket/images/
+    ```
+  </Tab>
+  <Tab title="Hetzner Storage Box">
+    Hetzner Storage Boxes are cheap (€3.49/mo for 1 TB). Mount via SFTP or CIFS:
+
+    ```bash
+    # Mount as a network drive
+    sudo mount -t cifs //uXXXXXX.your-storagebox.de/backup /mnt/storage \
+      -o user=uXXXXXX,pass=yourpassword
+    ```
+
+    Symlink into the repo:
+
+    ```bash
+    ln -s /mnt/storage /home/deploy/your-repo/storage/external
+    ```
+  </Tab>
+</Tabs>
+
+## Temp Cleanup
+
+The `storage/temp/` directory is for throwaway files. Set up a weekly cron to clean it:
+
+```bash
+crontab -e
+```
+
+Add:
+
+```
+0 3 * * 0 find /home/deploy/your-repo/storage/temp -type f -mtime +7 -delete
+```
+
+This deletes files older than 7 days every Sunday at 3 AM.

@@ -1,0 +1,146 @@
+---
+title: "Connect Telegram"
+description: "Set up a Telegram bot for agent communication"
+---
+
+## Overview
+
+Telegram is the fastest way to start talking to your AI agents. You create a bot via BotFather, paste the token into OpenClaw, and start messaging.
+
+## Create a Telegram Bot
+
+<Steps>
+  <Step title="Open BotFather">
+    In Telegram, search for [@BotFather](https://t.me/BotFather) and start a conversation.
+  </Step>
+  <Step title="Create a new bot">
+    Send the command:
+
+    ```
+    /newbot
+    ```
+  </Step>
+  <Step title="Choose a name">
+    BotFather asks for a display name. Enter something descriptive:
+
+    ```
+    Mastermind Agent
+    ```
+  </Step>
+  <Step title="Choose a username">
+    Must end in `bot`. Example:
+
+    ```
+    mastermind_agent_bot
+    ```
+  </Step>
+  <Step title="Copy the token">
+    BotFather replies with an HTTP API token:
+
+    ```
+    7123456789:AAF1234567890abcdefghijklmnop
+    ```
+
+    Save this — you'll need it in the next step.
+  </Step>
+</Steps>
+
+<Warning>
+Keep the bot token secret. Anyone with the token can control your bot. If compromised, revoke it via BotFather with `/revoke`.
+</Warning>
+
+## Configure in OpenClaw
+
+Add the Telegram channel to your OpenClaw config:
+
+```bash
+openclaw channels add telegram
+```
+
+When prompted, paste the bot token. Alternatively, edit `~/.openclaw/openclaw.json` directly:
+
+```json
+{
+  "channels": [
+    {
+      "type": "telegram",
+      "token": "7123456789:AAF1234567890abcdefghijklmnop"
+    }
+  ]
+}
+```
+
+## Restart the Gateway
+
+```bash
+openclaw restart
+```
+
+Or if running under PM2:
+
+```bash
+pm2 restart openclaw
+```
+
+## Send Your First Message
+
+<Steps>
+  <Step title="Open Telegram">
+    Search for your bot by username (e.g., `@mastermind_agent_bot`) and start a conversation.
+  </Step>
+  <Step title="Send a message">
+    Type anything:
+
+    ```
+    Hello, what can you do?
+    ```
+  </Step>
+  <Step title="Approve the pairing">
+    The first time you message, OpenClaw may ask you to confirm a pairing code. Check the gateway logs:
+
+    ```bash
+    openclaw logs
+    ```
+
+    Approve the pairing when prompted.
+  </Step>
+  <Step title="Get a response">
+    The agent reads `AGENTS.md`, understands the repo context, and replies.
+  </Step>
+</Steps>
+
+## Bind to a Specific Agent
+
+By default, messages go to the first configured agent. To bind a Telegram chat to a specific agent:
+
+```bash
+openclaw bindings add \
+  --channel telegram \
+  --chat-id YOUR_CHAT_ID \
+  --agent os-admin
+```
+
+Find your chat ID in the gateway logs after sending a message, or use the Telegram API.
+
+## Bot Commands (Optional)
+
+Configure BotFather commands for a better UX. Send `/setcommands` to BotFather:
+
+```
+status - Check agent and server status
+help - Show available commands
+logs - View recent agent activity
+```
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Bot doesn't respond | Check `openclaw status` and `pm2 logs openclaw` |
+| "Unauthorized" errors | Verify the token is correct in the config |
+| Messages delayed | Check VPS network connectivity and gateway logs |
+| Pairing not prompted | Restart the gateway: `openclaw restart` |
+
+<Tip>
+For group chats, add the bot to a group and mention it with `@mastermind_agent_bot <instruction>`. Configure group permissions in the OpenClaw bindings.
+</Tip>
