@@ -870,7 +870,7 @@ function BrowserContent({
   colors,
 }: {
   config: BrowserWindowConfig;
-  iframeRef: React.RefObject<HTMLIFrameElement>;
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
   isLoading: boolean;
   error: string | null;
   onLoad: () => void;

@@ -8,11 +8,7 @@ import {
   useImperativeHandle,
   isValidElement,
 } from "react";
-import type { DesktopIconConfig } from "@/types";
-
-export interface DesktopIconRef {
-  getPosition: () => { x: number; y: number };
-}
+import type { DesktopIconConfig, DesktopIconRef } from "@/types";
 
 export interface DesktopIconProps {
   config: DesktopIconConfig;

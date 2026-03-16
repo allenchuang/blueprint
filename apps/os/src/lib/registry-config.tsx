@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import { appsRegistry, type AppEntry } from "@repo/app-config";
 import type { WindowConfig, DesktopIconConfig } from "@/types";
 
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
 
-const SVG_PATHS: Record<string, { desktop: JSX.Element; titleBar: JSX.Element }> = {
+const SVG_PATHS: Record<string, { desktop: ReactNode; titleBar: ReactNode }> = {
   globe: {
     desktop: (
       <>
@@ -90,13 +91,15 @@ const SVG_PATHS: Record<string, { desktop: JSX.Element; titleBar: JSX.Element }>
   },
 };
 
+const DEFAULT_COLORS = { from: "from-zinc-600", to: "to-zinc-800", text: "text-zinc-400" } as const;
+
 const COLOR_MAP: Record<string, { from: string; to: string; text: string }> = {
   cyan: { from: "from-cyan-500", to: "to-blue-600", text: "text-cyan-400" },
   orange: { from: "from-orange-500", to: "to-red-600", text: "text-orange-400" },
   violet: { from: "from-violet-500", to: "to-purple-700", text: "text-violet-400" },
   emerald: { from: "from-emerald-500", to: "to-teal-600", text: "text-emerald-400" },
   pink: { from: "from-pink-500", to: "to-rose-600", text: "text-pink-400" },
-  zinc: { from: "from-zinc-600", to: "to-zinc-800", text: "text-zinc-400" },
+  zinc: DEFAULT_COLORS,
 };
 
 function getAppUrl(app: AppEntry): string {
@@ -110,7 +113,7 @@ function getAppUrl(app: AppEntry): string {
 
 function DesktopAppIcon({ app }: { app: AppEntry }) {
   const paths = SVG_PATHS[app.icon];
-  const colors = COLOR_MAP[app.color] ?? COLOR_MAP.zinc;
+  const colors = COLOR_MAP[app.color] ?? DEFAULT_COLORS;
   if (!paths) return null;
   return (
     <div className={`w-14 h-14 bg-linear-to-br ${colors.from} ${colors.to} rounded-xl flex items-center justify-center shadow-lg`}>
@@ -123,7 +126,7 @@ function DesktopAppIcon({ app }: { app: AppEntry }) {
 
 function TitleBarIcon({ app }: { app: AppEntry }) {
   const paths = SVG_PATHS[app.icon];
-  const colors = COLOR_MAP[app.color] ?? COLOR_MAP.zinc;
+  const colors = COLOR_MAP[app.color] ?? DEFAULT_COLORS;
   if (!paths) return null;
   return (
     <svg className={`w-4 h-4 ${colors.text}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

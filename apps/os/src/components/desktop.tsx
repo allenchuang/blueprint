@@ -10,8 +10,8 @@ import {
 } from "react";
 import type {
   DesktopConfig,
-  DesktopContextValue,
   DesktopIconConfig,
+  DesktopIconRef,
 } from "@/types";
 import { validateDesktopConfig, isWindowOpen, isWindowMinimized } from "@/types";
 import { DesktopProvider } from "@/contexts/desktop-context";
@@ -21,7 +21,7 @@ import {
   useThemeOptional,
 } from "@/contexts/theme-context";
 import { useWindowManager } from "@/hooks/use-window-manager";
-import { DesktopIcon, type DesktopIconRef } from "@/components/desktop-icon";
+import { DesktopIcon } from "@/components/desktop-icon";
 import { Window } from "@/components/window";
 
 export interface DesktopProps {
@@ -70,7 +70,7 @@ function DesktopInner({
   });
   const [showIcons, setShowIcons] = useState(false);
 
-  const iconRefs = useRef<Map<string, RefObject<DesktopIconRef>>>(new Map());
+  const iconRefs = useRef<Map<string, RefObject<DesktopIconRef | null>>>(new Map());
   const cascadeCounter = useRef(0);
   const windowManager = useWindowManager(config.windows);
 
@@ -86,8 +86,8 @@ function DesktopInner({
   }, []);
 
   const registerIconRef = useCallback(
-    (iconId: string, ref: RefObject<DesktopIconRef>) => {
-      iconRefs.current.set(iconId, ref as RefObject<DesktopIconRef>);
+    (iconId: string, ref: RefObject<DesktopIconRef | null>) => {
+      iconRefs.current.set(iconId, ref);
     },
     []
   );
@@ -136,16 +136,11 @@ function DesktopInner({
     windowManager.deactivateAll();
   }, [windowManager]);
 
-  const contextValue: DesktopContextValue = useMemo(
+  const contextValue = useMemo(
     () => ({
       ...windowManager,
-      getIconRef: getIconRef as (
-        iconId: string
-      ) => RefObject<HTMLDivElement> | null,
-      registerIconRef: registerIconRef as (
-        iconId: string,
-        ref: RefObject<HTMLDivElement>
-      ) => void,
+      getIconRef,
+      registerIconRef,
       isMobile,
       getNextCascadeIndex,
     }),
@@ -320,7 +315,7 @@ function DesktopInner({
 interface DesktopIconWrapperProps {
   config: DesktopIconConfig;
   onClick: () => void;
-  onRegisterRef: (iconId: string, ref: RefObject<DesktopIconRef>) => void;
+  onRegisterRef: (iconId: string, ref: RefObject<DesktopIconRef | null>) => void;
   isMobile: boolean;
 }
 

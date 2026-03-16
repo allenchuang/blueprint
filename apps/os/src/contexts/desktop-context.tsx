@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   type ReactNode,
-  type RefObject,
 } from "react";
 import type { DesktopContextValue, WindowInstance } from "@/types";
 

@@ -219,11 +219,15 @@ export interface WindowManagerCore {
   deactivateAll: () => void;
 }
 
+export interface DesktopIconRef {
+  getPosition: () => { x: number; y: number };
+}
+
 export interface DesktopContextValue extends WindowManagerCore {
-  getIconRef: (iconId: string) => RefObject<HTMLDivElement> | null;
+  getIconRef: (iconId: string) => RefObject<DesktopIconRef | null> | null;
   registerIconRef: (
     iconId: string,
-    ref: RefObject<HTMLDivElement>
+    ref: RefObject<DesktopIconRef | null>
   ) => void;
   isMobile: boolean;
   getNextCascadeIndex: () => number;
@@ -290,11 +294,7 @@ export function validateDesktopConfig(
       warnings.push(`Window "${window.id}" is missing a title`);
     }
 
-    if (!window.type) {
-      errors.push(
-        `Window "${window.id}" is missing required "type" field`
-      );
-    } else if (window.type === "app") {
+    if (window.type === "app") {
       if (!window.component) {
         errors.push(
           `App window "${window.id}" is missing required "component" field`
@@ -306,10 +306,6 @@ export function validateDesktopConfig(
           `Browser window "${window.id}" is missing required "url" field`
         );
       }
-    } else {
-      errors.push(
-        `Window "${window.id}" has invalid type: "${(window as WindowConfig).type}"`
-      );
     }
   }
 
