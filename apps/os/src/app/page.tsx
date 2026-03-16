@@ -153,6 +153,53 @@ const SettingsIcon = () => (
   </div>
 );
 
+const ClawDashIcon = () => (
+  <div className="w-14 h-14 bg-linear-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+    <span className="text-2xl">🦞</span>
+  </div>
+);
+
+/* ==========================================================================
+   TITLE BAR ICONS (small, shown in the window chrome)
+   ========================================================================== */
+
+const WebTitleIcon = () => (
+  <svg className="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </svg>
+);
+
+const ServerTitleIcon = () => (
+  <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+    <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+    <line x1="6" y1="6" x2="6.01" y2="6" />
+    <line x1="6" y1="18" x2="6.01" y2="18" />
+  </svg>
+);
+
+const AdminTitleIcon = () => (
+  <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+);
+
+const DocsTitleIcon = () => (
+  <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+
+const RemotionTitleIcon = () => (
+  <svg className="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polygon points="23 7 16 12 23 17 23 7" />
+    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+  </svg>
+);
+
 const TerminalTitleIcon = () => (
   <svg className="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="4 17 10 11 4 5" />
@@ -174,6 +221,11 @@ const SettingsTitleIcon = () => (
   </svg>
 );
 
+const ClawDashTitleIcon = () => (
+  <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+  </svg>
+);
 const OpenClawIcon = () => (
   <div className="w-14 h-14 bg-linear-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
     <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -235,12 +287,22 @@ const desktopConfig: DesktopConfig = {
       component: OpenClawControl,
       dimensions: { responsive: false, width: "480px", height: "520px" },
     },
+    {
+      id: "clawdash",
+      type: "browser",
+      title: "http://localhost:7778",
+      icon: <ClawDashTitleIcon />,
+      url: "http://localhost:7778",
+      showReloadButton: true,
+      openMaximized: true,
+    },
   ],
   icons: [
     ...getRegistryIcons(),
     { id: "terminal-icon", windowId: "terminal", icon: <TerminalIcon />, label: "Terminal" },
     { id: "notes-icon", windowId: "notes", icon: <NotesIcon />, label: "Notes" },
     { id: "settings-icon", windowId: "settings", icon: <SettingsIcon />, label: "Settings" },
+    { id: "clawdash-icon", windowId: "clawdash", icon: <ClawDashIcon />, label: "ClawDash" },
     { id: "openclaw-icon", windowId: "openclaw", icon: <OpenClawIcon />, label: "OpenClaw" },
   ],
   darkBackground: {
