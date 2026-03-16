@@ -8,6 +8,21 @@ todos:
   - id: monorepo-deploy
     content: Clone repo, create .env files, build apps, set up PM2 ecosystem config, configure Caddy reverse proxy
     status: completed
+  - id: os-app-host-env
+    content: Update registry-config.tsx getAppUrl() to support NEXT_PUBLIC_APP_HOST (IP+port) as fallback between BASE_DOMAIN and localhost
+    status: pending
+  - id: tools-md-update
+    content: Update TOOLS.md with known issues section, IP detection, and env var setup for OS app
+    status: pending
+  - id: agents-md-issues
+    content: Add known onboarding issues and solutions to AGENTS.md so OpenClaw can self-diagnose
+    status: pending
+  - id: docs-onboarding-issues
+    content: Create apps/docs/deployment/troubleshooting.mdx with all 10 known issues and fixes, add to mint.json
+    status: pending
+  - id: docs-existing-openclaw-update
+    content: Update existing-openclaw.mdx to use clone-into-workspace pattern instead of symlink
+    status: pending
   - id: openclaw-install
     content: Install OpenClaw, run onboard wizard, symlink workspace to Blueprint repo, configure multi-agent setup in openclaw.json
     status: pending
@@ -1864,6 +1879,214 @@ On the VPS, the OS desktop should use the **public subdomain URLs** (not localho
 - VPS production: `https://app.yourdomain.com`
 
 This can be controlled via an environment variable (`NEXT_PUBLIC_BASE_DOMAIN`) that the OS app reads to construct window URLs. In the registry, only the `subdomain` and `port` are stored -- the OS app resolves the full URL based on the environment.
+
+### URL Resolution Priority
+
+`apps/os/src/lib/registry-config.tsx` resolves app URLs in this order:
+
+1. `NEXT_PUBLIC_BASE_DOMAIN` set → `https://<subdomain>.<domain>` (production with Caddy)
+2. `NEXT_PUBLIC_APP_HOST` set → `http://<ip>:<port>` (EC2/VPS testing without domain)
+3. Neither set → `http://localhost:<port>` (local dev)
+
+**For EC2 without a domain**, auto-detect the IP and write the env file:
+
+```bash
+PUBLIC_IP=$(curl -s ifconfig.me)
+echo "NEXT_PUBLIC_APP_HOST=$PUBLIC_IP" > apps/os/.env.local
+pnpm build --filter=os
+pm2 restart os
+```
+
+**For production with Caddy + domain**:
+
+```bash
+echo "NEXT_PUBLIC_BASE_DOMAIN=aeir.ai" > apps/os/.env.local
+pnpm build --filter=os
+pm2 restart os
+```
+
+The `registry-config.tsx` `getAppUrl()` function must be updated to support `NEXT_PUBLIC_APP_HOST`:
+
+```typescript
+function getAppUrl(app: AppEntry): string {
+  if (process.env.NEXT_PUBLIC_BASE_DOMAIN) {
+    return `https://${app.subdomain}.${process.env.NEXT_PUBLIC_BASE_DOMAIN}`;
+  }
+  if (process.env.NEXT_PUBLIC_APP_HOST) {
+    return `http://${process.env.NEXT_PUBLIC_APP_HOST}:${app.port}`;
+  }
+  const suffix = app.id === "server" ? "/docs" : "";
+  return `http://localhost:${app.port}${suffix}`;
+}
+```
+
+---
+
+## Known Onboarding Issues and Solutions
+
+These are real problems encountered during setup. Documented here so the OpenClaw agent can self-diagnose and fix them.
+
+### 1. `pnpm: command not found` after SSH reconnect
+
+**Cause**: nvm is not loaded in new sessions or when switching users with `su`.
+
+**Fix**:
+
+```bash
+source ~/.nvm/nvm.sh
+# Then verify:
+pnpm --version
+```
+
+**Permanent fix** (if nvm lines are missing from `~/.bashrc`):
+
+```bash
+cat >> ~/.bashrc << 'EOF'
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+EOF
+source ~/.bashrc
+```
+
+### 2. `pnpm build` fails with TypeScript relative import error
+
+**Cause**: `moduleResolution: NodeNext` in `packages/typescript-config/base.json` requires `.js` extensions on relative imports. The DTS build fails without them.
+
+**Fix**: All relative imports in `apps/server/src/` must end in `.js`:
+
+```typescript
+import { buildApp } from "./app.js"; // correct
+import { buildApp } from "./app"; // breaks DTS build
+```
+
+### 3. PM2 app starts but port is unreachable
+
+**Cause**: AWS Security Group doesn't expose the port. PM2 is running fine internally.
+
+**Fix** (temporary for testing):
+
+- EC2 Console → Security Groups → blueprint-sg → Edit inbound rules
+- Add Custom TCP for each port (3000, 3001, 3002, 7777)
+
+**Fix** (production):
+
+- Set up Caddy reverse proxy + DNS instead of opening raw ports
+- Only 80/443 need to be open publicly
+
+### 4. PM2 `script not found` for Next.js apps
+
+**Cause**: `node_modules/.bin/next` is a shell shim. PM2 can't run shell scripts directly.
+
+**Fix**: Use the actual JS entry point:
+
+```javascript
+// Wrong:
+{ script: "node_modules/.bin/next", args: "start -p 3000" }
+
+// Correct:
+{ interpreter: "node", script: "../../node_modules/next/dist/bin/next", args: "start -p 3000" }
+```
+
+### 5. Admin or OS app crashes with `EADDRINUSE`
+
+**Cause**: Old PM2 processes from a previous run are still holding the port.
+
+**Fix**:
+
+```bash
+pm2 delete all
+sudo lsof -ti:3000 | xargs -r sudo kill -9
+sudo lsof -ti:3002 | xargs -r sudo kill -9
+sudo lsof -ti:7777 | xargs -r sudo kill -9
+pm2 start ecosystem.config.cjs
+```
+
+### 6. OS desktop mini-apps show blank / can't reach localhost
+
+**Cause**: When accessing the OS app remotely, `localhost` in iframes refers to the user's browser machine, not the VPS.
+
+**Fix**: Set `NEXT_PUBLIC_APP_HOST` to the server's public IP:
+
+```bash
+PUBLIC_IP=$(curl -s ifconfig.me)
+echo "NEXT_PUBLIC_APP_HOST=$PUBLIC_IP" > apps/os/.env.local
+pnpm build --filter=os && pm2 restart os
+```
+
+Or if using a domain with Caddy, use `NEXT_PUBLIC_BASE_DOMAIN` instead.
+
+### 7. OpenClaw `HTTP 401 authentication_error`
+
+**Cause A**: Wrong key type. `sk-ant-oat01-` is a Claude OAuth token (from Claude.ai/Claude Max). It does NOT work as an API key. API keys start with `sk-ant-api03-`.
+
+**Fix**: Get a proper API key at [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys). Then:
+
+```bash
+openclaw config set env.ANTHROPIC_API_KEY "sk-ant-api03-..."
+# Also fix the auth profile mode:
+openclaw config set auth.profiles.anthropic:default.mode api_key
+openclaw gateway restart
+```
+
+**Cause B**: No billing enabled on Anthropic account.
+
+**Fix**: Go to [console.anthropic.com/settings/billing](https://console.anthropic.com/settings/billing) and add a payment method.
+
+**Verify the key works**:
+
+```bash
+curl https://api.anthropic.com/v1/messages \
+  -H "x-api-key: YOUR_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "content-type: application/json" \
+  -d '{"model":"claude-sonnet-4-20250514","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
+```
+
+### 8. Disk full during `growpart`
+
+**Cause**: AWS default 8 GB root volume fills up during `pnpm install` + build.
+
+**Fix**:
+
+1. Resize in EC2 Console: Volumes → Modify Volume → increase to 30 GB+
+2. Clear space for growpart: `sudo rm -rf /tmp/* && sudo apt clean`
+3. Grow partition: `sudo growpart /dev/nvme0n1 1`
+4. Resize filesystem: `sudo resize2fs /dev/nvme0n1p1`
+
+**Prevention**: Always set root volume to 30 GB when launching the EC2 instance.
+
+### 9. SSH reconnect loses all Node/pnpm/PM2
+
+**Cause**: Tools installed under the `deploy` user. SSHing as `ubuntu` or using `su deploy` without `-` doesn't load the deploy user's environment.
+
+**Fix**:
+
+```bash
+# Always SSH directly as deploy:
+ssh deploy@YOUR_IP
+
+# Or switch correctly:
+sudo su - deploy   # the "-" is required
+```
+
+### 10. OpenClaw workspace doesn't see Blueprint repo
+
+**Cause**: OpenClaw's default workspace is `~/.openclaw/workspace` seeded with generic defaults. Blueprint repo is elsewhere.
+
+**Fix** (clone repo directly into workspace):
+
+```bash
+# Remove default workspace contents
+rm -rf ~/.openclaw/workspace
+
+# Clone Blueprint into workspace
+git clone -b allen/os https://github.com/allenchuang/blueprint.git ~/.openclaw/workspace
+
+openclaw gateway restart
+```
+
+---
 
 ## Summary of VPS Setup Steps
 

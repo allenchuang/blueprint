@@ -3,6 +3,7 @@ import { appsRegistry, type AppEntry } from "@repo/app-config";
 import type { WindowConfig, DesktopIconConfig } from "@/types";
 
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+const APP_HOST = process.env.NEXT_PUBLIC_APP_HOST;
 
 const SVG_PATHS: Record<string, { desktop: ReactNode; titleBar: ReactNode }> = {
   globe: {
@@ -103,11 +104,13 @@ const COLOR_MAP: Record<string, { from: string; to: string; text: string }> = {
 };
 
 function getAppUrl(app: AppEntry): string {
-  if (BASE_DOMAIN) {
-    const protocol = "https";
-    return `${protocol}://${app.subdomain}.${BASE_DOMAIN}`;
-  }
   const suffix = app.id === "server" ? "/docs" : "";
+  if (BASE_DOMAIN) {
+    return `https://${app.subdomain}.${BASE_DOMAIN}${suffix}`;
+  }
+  if (APP_HOST) {
+    return `http://${APP_HOST}:${app.port}${suffix}`;
+  }
   return `http://localhost:${app.port}${suffix}`;
 }
 
