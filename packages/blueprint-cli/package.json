@@ -1,6 +1,6 @@
 {
   "name": "blueprint-stack",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Scaffold and manage a Blueprint monorepo",
   "private": false,
   "type": "module",
