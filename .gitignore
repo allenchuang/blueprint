@@ -52,3 +52,13 @@ drizzle/meta
 .idea/
 *.swp
 *.swo
+
+# Storage (binary assets managed by OpenClaw agents)
+storage/images/*
+storage/videos/*
+storage/documents/*
+storage/temp/*
+!storage/**/.gitkeep
+
+# PM2
+ecosystem.config.cjs

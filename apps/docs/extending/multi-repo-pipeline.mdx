@@ -1,0 +1,181 @@
+---
+title: "Multi-Repo Pipeline"
+description: "Manage multiple repositories from one VPS"
+---
+
+## Overview
+
+A single VPS can manage multiple repositories, each with its own agent, workspace, and deployment. The `dev-ops` agent specializes in this — cloning repos, checking status, running builds, and managing processes across all of them.
+
+## Directory Structure
+
+Each repository lives under `/home/deploy/repos/`:
+
+```
+/home/deploy/
+├── repos/
+│   ├── mastermind/       → This monorepo (primary workspace)
+│   ├── client-site/      → A client's Next.js site
+│   ├── api-service/      → A standalone API
+│   └── landing-page/     → A marketing site
+```
+
+The primary monorepo can also live at `/home/deploy/mastermind/` as the main workspace, with additional repos in `/home/deploy/repos/`.
+
+## SSH Deploy Keys Per Repo
+
+Each GitHub repository needs its own deploy key (GitHub enforces one key per repo). Use SSH host aliases to manage multiple keys.
+
+### Generate Keys
+
+```bash
+ssh-keygen -t ed25519 -C "deploy@client-site" -f ~/.ssh/github_client_site
+ssh-keygen -t ed25519 -C "deploy@api-service" -f ~/.ssh/github_api_service
+ssh-keygen -t ed25519 -C "deploy@landing-page" -f ~/.ssh/github_landing_page
+```
+
+### Configure Host Aliases
+
+Edit `~/.ssh/config`:
+
+```
+Host github-client-site
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github_client_site
+  IdentitiesOnly yes
+
+Host github-api-service
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github_api_service
+  IdentitiesOnly yes
+
+Host github-landing-page
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github_landing_page
+  IdentitiesOnly yes
+```
+
+### Clone Using Aliases
+
+```bash
+git clone git@github-client-site:org/client-site.git /home/deploy/repos/client-site
+git clone git@github-api-service:org/api-service.git /home/deploy/repos/api-service
+git clone git@github-landing-page:org/landing-page.git /home/deploy/repos/landing-page
+```
+
+Add each public key to the corresponding GitHub repo under **Settings → Deploy keys**.
+
+## OpenClaw Multi-Workspace Setup
+
+Register each repo as a workspace in OpenClaw:
+
+```bash
+ln -s /home/deploy/repos/client-site ~/.openclaw/workspaces/client-site
+ln -s /home/deploy/repos/api-service ~/.openclaw/workspaces/api-service
+ln -s /home/deploy/repos/landing-page ~/.openclaw/workspaces/landing-page
+```
+
+Create agents with specific workspace assignments:
+
+```json
+{
+  "agents": [
+    {
+      "id": "os-admin",
+      "workspace": "main",
+      "description": "Manages the primary monorepo"
+    },
+    {
+      "id": "dev-ops",
+      "workspace": "main",
+      "description": "Infrastructure and deployments across all repos",
+      "tools": ["shell", "file", "git"]
+    },
+    {
+      "id": "client-dev",
+      "workspace": "client-site",
+      "description": "Develops the client site"
+    }
+  ]
+}
+```
+
+## Routing Channels to Agents
+
+Bind specific messaging channels to specific agents:
+
+```json
+{
+  "bindings": [
+    {
+      "channel_type": "telegram",
+      "channel_id": "chat-123",
+      "agent": "os-admin"
+    },
+    {
+      "channel_type": "slack",
+      "channel_id": "C-infra",
+      "agent": "dev-ops"
+    },
+    {
+      "channel_type": "slack",
+      "channel_id": "C-client",
+      "agent": "client-dev"
+    }
+  ]
+}
+```
+
+## Example Commands
+
+Once configured, you can message agents from your chat apps:
+
+| Message | Agent | Action |
+|---------|-------|--------|
+| "Clone `org/new-project`" | `dev-ops` | Clones into `/home/deploy/repos/`, sets up deploy key |
+| "Show status of all repos" | `dev-ops` | Runs `git status` in each repo directory |
+| "Deploy client-site" | `dev-ops` | Pulls latest, builds, restarts PM2 process |
+| "Add a contact form" | `client-dev` | Edits code in the client-site workspace |
+| "Update the landing page hero" | `os-admin` | Routes to the correct workspace based on context |
+
+## PM2 Process Management
+
+Each repo's apps get their own PM2 entries:
+
+```bash
+pm2 status
+```
+
+```
+┌──────────────────┬────┬─────────┬──────┬────────┐
+│ name             │ id │ mode    │ ↺    │ status │
+├──────────────────┼────┼─────────┼──────┼────────┤
+│ web              │ 0  │ fork    │ 0    │ online │
+│ server           │ 1  │ fork    │ 0    │ online │
+│ admin            │ 2  │ fork    │ 0    │ online │
+│ client-site      │ 5  │ fork    │ 0    │ online │
+│ api-service      │ 6  │ fork    │ 0    │ online │
+│ landing-page     │ 7  │ fork    │ 0    │ online │
+└──────────────────┴────┴─────────┴──────┴────────┘
+```
+
+Caddy routes each repo's subdomain:
+
+```
+client.yourdomain.com {
+    reverse_proxy localhost:4000
+}
+api-service.yourdomain.com {
+    reverse_proxy localhost:4001
+}
+landing.yourdomain.com {
+    reverse_proxy localhost:4002
+}
+```
+
+<Tip>
+Keep port ranges organized: monorepo apps use 3000–3999, external repos use 4000+.
+</Tip>

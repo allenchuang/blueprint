@@ -1,0 +1,113 @@
+---
+title: "Agent Governance"
+description: "Rules and boundaries for AI agents operating in the codebase"
+---
+
+## Why Governance Matters
+
+An AI agent with access to your codebase can create files, run commands, push to git, and restart services. Without boundaries, a single bad instruction could delete an app, expose secrets, or break production.
+
+**Agent governance** is the set of rules that constrain what an AI agent can and cannot do inside the repo. These rules are not suggestions — they are hard-coded into the agent's context before every task.
+
+## AGENTS.md: The Contract
+
+The file `AGENTS.md` at the repo root is the **governance contract**. Every agent reads it before performing any action. It contains:
+
+- The repository map (structure, apps, packages)
+- Build and dev commands
+- Core development rules (config, API patterns, database conventions)
+- **Hard boundaries** — what agents must never do
+- **Allowed actions** — what agents can do freely
+- Git workflow requirements
+- Production infrastructure details
+
+<Note>
+`AGENTS.md` is mirrored in three locations to support different agent runtimes: `.cursor/rules/`, `.agents/rules/`, and `.claude/rules/`. Keep all three in sync.
+</Note>
+
+## Hard Rules
+
+These are non-negotiable boundaries. An agent that violates them is malfunctioning.
+
+| Rule | Reason |
+|------|--------|
+| **Never delete or restructure existing apps** | Protects the workspace integrity |
+| **Never delete or restructure existing packages** | Same as above |
+| **Never modify `turbo.json`, `pnpm-workspace.yaml`, or root `package.json` structure** | Infrastructure config requires human approval |
+| **Never modify `.env` files or commit secrets** | Security |
+| **Never force-push to `main`** | Protects production branch history |
+| **Never run `rm -rf`, `drop table`, or destructive commands on production data** | Irreversible damage prevention |
+| **Never change OpenClaw gateway config** without user approval | Gateway misconfiguration can break all agent communication |
+
+## Allowed Actions
+
+Within the hard boundaries, agents have broad autonomy:
+
+<CardGroup cols={2}>
+  <Card title="Add New Apps" icon="plus">
+    Create a directory under `apps/`, register it in the apps registry, and add a dev script to root `package.json`.
+  </Card>
+  <Card title="Edit Existing Code" icon="pen">
+    Fix bugs, add features, update components — always on a feature branch, never directly on `main`.
+  </Card>
+  <Card title="Run Commands" icon="terminal">
+    `pnpm install`, `pnpm build`, `pnpm dev:*`, `pnpm db:push`, `pnpm db:generate` — standard dev operations.
+  </Card>
+  <Card title="Git Operations" icon="code-branch">
+    Create branches, commit with conventional commits, push to feature branches, create pull requests.
+  </Card>
+  <Card title="Download Assets" icon="download">
+    Save images, videos, and documents to the `storage/` directory.
+  </Card>
+  <Card title="Rebuild & Restart" icon="rotate">
+    `pnpm build --filter=app` then `pm2 restart app` after code changes.
+  </Card>
+</CardGroup>
+
+## Git Workflow
+
+Agents follow a strict git workflow:
+
+<Steps>
+  <Step title="Create a feature branch">
+    Branch naming: `feat/openclaw-<description>` (e.g., `feat/openclaw-add-contact-form`)
+  </Step>
+  <Step title="Make changes and commit">
+    Use conventional commits: `feat(web): add contact form component`
+  </Step>
+  <Step title="Push to the feature branch">
+    Never push directly to `main`.
+  </Step>
+  <Step title="Notify the user">
+    The agent messages you via the same chat channel to say a PR is ready for review.
+  </Step>
+</Steps>
+
+## Personality Files
+
+Beyond `AGENTS.md`, several companion files shape agent behavior:
+
+| File | Purpose |
+|------|---------|
+| **`SOUL.md`** | Defines the agent's personality, tone, and communication style |
+| **`USER.md`** | Context about the user — preferences, timezone, tech background |
+| **`TOOLS.md`** | Lists available tools and how the agent should use them |
+| **`HEARTBEAT.md`** | Status and health information the agent can reference |
+
+These files live at the repo root and are optional. If present, agents incorporate them into their context alongside `AGENTS.md`.
+
+## Asset Storage
+
+Agents can download and store files in the `storage/` directory:
+
+```
+storage/
+├── images/     → PNG, JPG, SVG, WebP
+├── videos/     → MP4, WebM
+├── documents/  → PDFs, CSVs, text files
+└── temp/       → Temporary files (auto-cleaned weekly)
+```
+
+<Warning>
+The `storage/` directory is `.gitignore`-d. Files saved here persist on the VPS but are not committed to the repository.
+</Warning>

@@ -1,0 +1,91 @@
+---
+title: "The Desktop Environment"
+description: "A browser-based desktop that serves as your command center"
+---
+
+## Overview
+
+`apps/os/` renders a **macOS-style desktop environment** in the browser. It runs on port 7777 and serves as the visual command center for the entire monorepo. Each app in your workspace appears as a draggable, resizable window — just like a real operating system.
+
+<Note>
+The OS app is a Next.js 15 application with shadcn/ui and Tailwind CSS v4. It is typically accessed privately via Tailscale at `https://os.your-tailnet-name.ts.net`.
+</Note>
+
+## What You See
+
+When you open the OS desktop, you get:
+
+- A **dock** at the bottom with icons for each registered app
+- **Draggable windows** that can be moved, resized, minimized, and maximized
+- Each window loads its app in an **iframe** (the web app at `:3000`, admin at `:3002`, API docs at `:3001/docs`, etc.)
+- **System apps** like Terminal, Notes, Settings, and the OpenClaw Control panel
+
+## Architecture
+
+The desktop is driven by a configuration object that defines which windows exist, their default sizes, icons, and behavior.
+
+```typescript
+interface DesktopWindow {
+  id: string;
+  title: string;
+  icon: string;
+  color: string;
+  url: string;
+  defaultSize: { width: number; height: number };
+  openMaximized?: boolean;
+}
+```
+
+Each window maps to either:
+- A **monorepo app** rendered via iframe (web, admin, docs, API server swagger)
+- A **system app** built directly into the OS (Terminal, Notes, Settings)
+
+## App Auto-Registration
+
+Windows are not hardcoded. The OS reads from the **apps registry** (`packages/app-config/src/apps-registry.ts`), which is the single source of truth for all app metadata:
+
+```typescript
+import { appsRegistry } from "@repo/app-config";
+
+// Each registry entry becomes a launchable window
+// { id: "web", name: "Web", port: 3000, icon: "globe", ... }
+```
+
+When you add a new app to the registry, it automatically appears in the OS dock — no manual wiring needed.
+
+<Tip>
+See [Apps Registry](/concepts/apps-registry) for the full schema and how to register new apps.
+</Tip>
+
+## System Apps
+
+Beyond the monorepo apps rendered in iframes, the OS includes built-in system apps:
+
+| App | Purpose |
+|-----|---------|
+| **Terminal** | Embedded terminal for running commands on the VPS |
+| **Notes** | Scratchpad for quick notes and drafts |
+| **Settings** | View and manage OS desktop configuration |
+| **OpenClaw Control** | Monitor agent status, view logs, manage channels |
+
+## Window Management
+
+Windows support standard desktop behaviors:
+
+- **Drag** — click and drag the title bar
+- **Resize** — drag window edges or corners
+- **Minimize** — collapses to the dock
+- **Maximize** — fills the viewport
+- **Close** — removes from the workspace (re-open from the dock)
+- **Focus** — clicking a window brings it to the front (z-index management)
+
+## Access
+
+The OS desktop is a **private** app by default. It is not exposed to the public internet through Caddy. Instead, access it via:
+
+- **Tailscale** — the recommended approach for production VPS deployments
+- **localhost:7777** — during local development (`pnpm dev:os`)
+
+<Warning>
+The OS desktop provides access to system tools like Terminal. Never expose it on the public internet without authentication.
+</Warning>

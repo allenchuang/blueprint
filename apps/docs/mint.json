@@ -27,6 +27,18 @@
   },
   "tabs": [
     {
+      "name": "Concepts",
+      "url": "concepts"
+    },
+    {
+      "name": "Deployment",
+      "url": "deployment"
+    },
+    {
+      "name": "Extending",
+      "url": "extending"
+    },
+    {
       "name": "API Reference",
       "url": "api-reference"
     }
@@ -36,6 +48,11 @@
       "name": "GitHub",
       "icon": "github",
       "url": "https://github.com"
+    },
+    {
+      "name": "OpenClaw",
+      "icon": "robot",
+      "url": "https://docs.openclaw.ai/"
     }
   ],
   "navigation": [
@@ -45,6 +62,47 @@
         "introduction",
         "quickstart",
         "architecture"
+      ]
+    },
+    {
+      "group": "Concepts",
+      "pages": [
+        "concepts/how-it-works",
+        "concepts/the-os",
+        "concepts/agent-governance",
+        "concepts/bidirectional-loop",
+        "concepts/apps-registry"
+      ]
+    },
+    {
+      "group": "Deployment",
+      "pages": [
+        "deployment/overview",
+        "deployment/existing-openclaw",
+        "deployment/vps-setup",
+        "deployment/github-deploy-keys",
+        "deployment/monorepo-on-vps",
+        "deployment/caddy-reverse-proxy",
+        "deployment/tailscale",
+        "deployment/openclaw-setup"
+      ]
+    },
+    {
+      "group": "Connect Channels",
+      "pages": [
+        "deployment/connect-telegram",
+        "deployment/connect-whatsapp",
+        "deployment/connect-slack"
+      ]
+    },
+    {
+      "group": "Extending",
+      "pages": [
+        "extending/adding-an-app",
+        "extending/deploy-pipeline",
+        "extending/multi-repo-pipeline",
+        "extending/file-storage",
+        "extending/custom-agents"
       ]
     },
     {
