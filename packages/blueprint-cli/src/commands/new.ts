@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { execa } from "execa";
 import kleur from "kleur";
@@ -43,6 +43,134 @@ export async function newCommand(projectName: string): Promise<void> {
     gitSpinner.succeed("Git history removed");
   } catch {
     gitSpinner.warn("Could not remove .git directory — remove it manually");
+  }
+
+  // Prompt for app config branding
+  console.log();
+  console.log(kleur.bold("  App Config"));
+  console.log(
+    kleur.dim("  These values populate packages/app-config/src/config.ts\n"),
+  );
+
+  const { configureAppConfig } = await prompts({
+    type: "confirm",
+    name: "configureAppConfig",
+    message: "Configure app branding now? (you can edit config.ts later)",
+    initial: true,
+  });
+
+  interface AppConfigAnswers {
+    name?: string;
+    slug?: string;
+    description?: string;
+    slogan?: string;
+    primaryColor?: string;
+    website?: string;
+    supportEmail?: string;
+    github?: string;
+  }
+
+  const appConfigAnswers: AppConfigAnswers = configureAppConfig
+    ? await prompts([
+        {
+          type: "text",
+          name: "name",
+          message: "App name:",
+          initial: "Mastermind",
+        },
+        {
+          type: "text",
+          name: "slug",
+          message: "App slug (lowercase, no spaces):",
+          initial: (prev: string) =>
+            prev.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        },
+        {
+          type: "text",
+          name: "description",
+          message: "Short description:",
+          initial: "Build your next big thing",
+        },
+        {
+          type: "text",
+          name: "slogan",
+          message: "Tagline / slogan:",
+          initial: "Ship ideas at the speed of thought",
+        },
+        {
+          type: "text",
+          name: "primaryColor",
+          message: "Primary brand color (hex):",
+          initial: "#0D9373",
+        },
+        {
+          type: "text",
+          name: "website",
+          message: "Website URL:",
+          initial: "https://example.com",
+        },
+        {
+          type: "text",
+          name: "supportEmail",
+          message: "Support email:",
+          initial: "support@example.com",
+        },
+        {
+          type: "text",
+          name: "github",
+          message: "GitHub URL (optional):",
+          initial: "",
+        },
+      ])
+    : {};
+
+  if (configureAppConfig && appConfigAnswers.name) {
+    const slug =
+      appConfigAnswers.slug ||
+      appConfigAnswers.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const configPath = join(
+      targetDir,
+      "packages/app-config/src/config.ts",
+    );
+    const configContent = `import type { AppConfig } from "./types";
+
+export const appConfig = {
+  name: ${JSON.stringify(appConfigAnswers.name)},
+  slug: ${JSON.stringify(slug)},
+  description: ${JSON.stringify(appConfigAnswers.description || "Build your next big thing")},
+  slogan: ${JSON.stringify(appConfigAnswers.slogan || "Ship ideas at the speed of thought")},
+  version: "0.1.0",
+
+  colors: {
+    primary: ${JSON.stringify(appConfigAnswers.primaryColor || "#0D9373")},
+  },
+
+  urls: {
+    website: ${JSON.stringify(appConfigAnswers.website || "https://example.com")},
+    api: "http://localhost:3001",
+    docs: ${JSON.stringify(`https://docs.${(appConfigAnswers.website || "example.com").replace(/^https?:\/\//, "")}`)},
+    supportEmail: ${JSON.stringify(appConfigAnswers.supportEmail || "support@example.com")},
+  },
+
+  mobile: {
+    bundleId: ${JSON.stringify(`com.${slug}.app`)},
+    scheme: ${JSON.stringify(slug)},
+  },
+
+  socials: {
+    github: ${JSON.stringify(appConfigAnswers.github || "https://github.com")},
+  },
+} satisfies AppConfig;
+`;
+    writeFileSync(configPath, configContent);
+    console.log(kleur.green("  ✔ App config written"));
+  } else if (!configureAppConfig) {
+    console.log(
+      kleur.dim("  Skipped — edit ") +
+        kleur.bold("packages/app-config/src/config.ts") +
+        kleur.dim(" then run ") +
+        kleur.bold("pnpm sync-config"),
+    );
   }
 
   // Prompt for environment variables
@@ -108,14 +236,13 @@ export async function newCommand(projectName: string): Promise<void> {
   console.log(kleur.green().bold("  ✔ Project ready!"));
   console.log();
   console.log(
-    kleur.dim(
-      `  Edit your app config: ${kleur.bold("packages/app-config/src/config.ts")}`,
-    ),
+    kleur.dim("  To update branding, edit: ") +
+      kleur.bold("packages/app-config/src/config.ts"),
   );
   console.log(
-    kleur.dim(
-      `  Then run: ${kleur.bold("pnpm sync-config")} to apply branding everywhere.`,
-    ),
+    kleur.dim("  Then run: ") +
+      kleur.bold("pnpm sync-config") +
+      kleur.dim(" to apply branding everywhere."),
   );
   console.log();
 

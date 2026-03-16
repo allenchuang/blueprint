@@ -22,13 +22,69 @@ Scaffolds a new Blueprint monorepo project:
 
 1. Clones the [Blueprint repo](https://github.com/allenchuang/blueprint) into `./<project-name>`
 2. Removes git history (clean start)
-3. Prompts for `DATABASE_URL` and writes `.env`
-4. Runs `pnpm install`
-5. Initializes a fresh git repo with an initial commit
+3. **Prompts for app config** — prefills `packages/app-config/src/config.ts` with your branding
+4. Prompts for `DATABASE_URL` and writes `.env`
+5. Runs `pnpm install`
+6. Initializes a fresh git repo with an initial commit
 
 ```bash
 npx blueprint-stack new my-saas
 ```
+
+#### App Config Setup
+
+During `blueprint-stack new`, the CLI prompts for the following branding fields and writes them directly to `packages/app-config/src/config.ts`:
+
+| Prompt | Field | Example |
+|---|---|---|
+| App name | `name` | `"Acme"` |
+| App slug | `slug` | `"acme"` |
+| Short description | `description` | `"Build your next big thing"` |
+| Tagline / slogan | `slogan` | `"Ship ideas at the speed of thought"` |
+| Primary brand color | `colors.primary` | `"#0D9373"` |
+| Website URL | `urls.website` | `"https://acme.com"` |
+| Support email | `urls.supportEmail` | `"support@acme.com"` |
+| GitHub URL | `socials.github` | `"https://github.com/acme"` |
+
+The resulting `config.ts` structure:
+
+```ts
+export const appConfig = {
+  name: "Acme",
+  slug: "acme",
+  description: "Build your next big thing",
+  slogan: "Ship ideas at the speed of thought",
+  version: "0.1.0",
+
+  colors: {
+    primary: "#0D9373",
+  },
+
+  urls: {
+    website: "https://acme.com",
+    api: "http://localhost:3001",
+    docs: "https://docs.acme.com",
+    supportEmail: "support@acme.com",
+  },
+
+  mobile: {
+    bundleId: "com.acme.app",
+    scheme: "acme",
+  },
+
+  socials: {
+    github: "https://github.com/acme",
+  },
+};
+```
+
+After scaffolding (or any time you edit the config), run:
+
+```bash
+pnpm sync-config
+```
+
+This propagates branding everywhere: generates Tailwind theme CSS, patches `app.json` for React Native, updates `mint.json` for docs, and copies logo/icon assets to all apps.
 
 ### Workspace Commands
 
