@@ -1,9 +1,18 @@
+  ██████╗ ██╗     ██╗   ██╗███████╗██████╗ ██████╗ ██╗███╗   ██╗████████╗
+  ██╔══██╗██║     ██║   ██║██╔════╝██╔══██╗██╔══██╗██║████╗  ██║╚══██╔══╝
+  ██████╔╝██║     ██║   ██║█████╗  ██████╔╝██████╔╝██║██╔██╗ ██║   ██║   
+  ██╔══██╗██║     ██║   ██║██╔══╝  ██╔═══╝ ██╔══██╗██║██║╚██╗██║   ██║   
+  ██████╔╝███████╗╚██████╔╝███████╗██║     ██║  ██║██║██║ ╚████║   ██║   
+  ╚═════╝ ╚══════╝ ╚═════╝ ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝   ╚═╝   
+                                                                        
+  =================== IDEATION OPERATING SYSTEM ======================== 
+
 # blueprint-stack
 
 CLI to scaffold and manage [Blueprint](https://github.com/allenchuang/blueprint) monorepo projects.
 
 ```bash
-npx blueprint-stack new my-app
+npx blueprint-stack
 ```
 
 ## Install
@@ -35,16 +44,16 @@ npx blueprint-stack new my-saas
 
 During `blueprint-stack new`, the CLI prompts for the following branding fields and writes them directly to `packages/app-config/src/config.ts`:
 
-| Prompt | Field | Example |
-|---|---|---|
-| App name | `name` | `"Acme"` |
-| App slug | `slug` | `"acme"` |
-| Short description | `description` | `"Build your next big thing"` |
-| Tagline / slogan | `slogan` | `"Ship ideas at the speed of thought"` |
-| Primary brand color | `colors.primary` | `"#0D9373"` |
-| Website URL | `urls.website` | `"https://acme.com"` |
-| Support email | `urls.supportEmail` | `"support@acme.com"` |
-| GitHub URL | `socials.github` | `"https://github.com/acme"` |
+| Prompt              | Field               | Example                                |
+| ------------------- | ------------------- | -------------------------------------- |
+| App name            | `name`              | `"Acme"`                               |
+| App slug            | `slug`              | `"acme"`                               |
+| Short description   | `description`       | `"Build your next big thing"`          |
+| Tagline / slogan    | `slogan`            | `"Ship ideas at the speed of thought"` |
+| Primary brand color | `colors.primary`    | `"#0D9373"`                            |
+| Website URL         | `urls.website`      | `"https://acme.com"`                   |
+| Support email       | `urls.supportEmail` | `"support@acme.com"`                   |
+| GitHub URL          | `socials.github`    | `"https://github.com/acme"`            |
 
 The resulting `config.ts` structure:
 
@@ -90,22 +99,22 @@ This propagates branding everywhere: generates Tailwind theme CSS, patches `app.
 
 When inside an existing Blueprint project, the CLI proxies to root-level pnpm scripts. It auto-detects the monorepo root by walking up directories looking for `pnpm-workspace.yaml` + `turbo.json`.
 
-| Command | Proxies to |
-|---------|------------|
-| `blueprint-stack dev` | `pnpm dev` |
-| `blueprint-stack dev:web` | `pnpm dev:web` |
-| `blueprint-stack dev:admin` | `pnpm dev:admin` |
-| `blueprint-stack dev:server` | `pnpm dev:server` |
-| `blueprint-stack dev:docs` | `pnpm dev:docs` |
+| Command                        | Proxies to          |
+| ------------------------------ | ------------------- |
+| `blueprint-stack dev`          | `pnpm dev`          |
+| `blueprint-stack dev:web`      | `pnpm dev:web`      |
+| `blueprint-stack dev:admin`    | `pnpm dev:admin`    |
+| `blueprint-stack dev:server`   | `pnpm dev:server`   |
+| `blueprint-stack dev:docs`     | `pnpm dev:docs`     |
 | `blueprint-stack dev:remotion` | `pnpm dev:remotion` |
-| `blueprint-stack build` | `pnpm build` |
-| `blueprint-stack lint` | `pnpm lint` |
-| `blueprint-stack check-types` | `pnpm check-types` |
-| `blueprint-stack sync-config` | `pnpm sync-config` |
-| `blueprint-stack db:generate` | `pnpm db:generate` |
-| `blueprint-stack db:migrate` | `pnpm db:migrate` |
-| `blueprint-stack db:push` | `pnpm db:push` |
-| `blueprint-stack db:studio` | `pnpm db:studio` |
+| `blueprint-stack build`        | `pnpm build`        |
+| `blueprint-stack lint`         | `pnpm lint`         |
+| `blueprint-stack check-types`  | `pnpm check-types`  |
+| `blueprint-stack sync-config`  | `pnpm sync-config`  |
+| `blueprint-stack db:generate`  | `pnpm db:generate`  |
+| `blueprint-stack db:migrate`   | `pnpm db:migrate`   |
+| `blueprint-stack db:push`      | `pnpm db:push`      |
+| `blueprint-stack db:studio`    | `pnpm db:studio`    |
 
 ## Development
 
@@ -140,11 +149,11 @@ pnpm dev         # watch mode
 
 From the repo root:
 
-| Command | Version bump | Example |
-|---------|-------------|---------|
-| `npm run release:cli` | Patch | `0.1.12` -> `0.1.13` |
-| `npm run release:cli:minor` | Minor | `0.1.13` -> `0.2.0` |
-| `npm run release:cli:major` | Major | `0.2.0` -> `1.0.0` |
+| Command                     | Version bump | Example              |
+| --------------------------- | ------------ | -------------------- |
+| `npm run release:cli`       | Patch        | `0.1.12` -> `0.1.13` |
+| `npm run release:cli:minor` | Minor        | `0.1.13` -> `0.2.0`  |
+| `npm run release:cli:major` | Major        | `0.2.0` -> `1.0.0`   |
 
 Or from `packages/blueprint-cli` directly:
 
