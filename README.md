@@ -121,7 +121,7 @@ This single command:
 - Generates a full OKLCH light/dark **theme.css** from your primary color → `apps/web` and `apps/admin`
 - Copies **logos, favicons, and icons** to all web apps
 - Patches **React Native** `app.json` (name, slug, bundle ID, splash colors)
-- Patches **Mintlify** `mint.json` (name, colors, socials, links)
+- Patches **Mintlify** `docs.json` (name, colors, and supported links)
 - Generates an **OpenGraph image** (`og.png`) from your banner + slogan → `apps/web` and `apps/admin`
 
 ### 4. Use in code

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "theme": "mint",
+  "name": "Mastermind",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#52c2a0",
+    "dark": "#0D9373"
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com"
+        }
+      ]
+    },
+    "tabs": [
+      {
+        "tab": "Introduction",
+        "icon": "hand",
+        "groups": [
+          {
+            "group": "Getting started",
+            "icon": "play",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "architecture"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "icon": "square-terminal",
+        "pages": [
+          "api-reference/endpoint/get",
+          "api-reference/endpoint/create"
+        ]
+      }
+    ]
+  }
+}

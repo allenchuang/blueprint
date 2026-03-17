@@ -117,7 +117,7 @@ Conventions:
 
 ### 6. Documentation Updates
 
-When adding user-facing features or API changes, update `apps/docs/`. Keep docs concise — no filler content. Update `mint.json` navigation when adding new pages. Use Mintlify components where they add clarity.
+When adding user-facing features or API changes, update `apps/docs/`. Keep docs concise — no filler content. Update `docs.json` navigation when adding new pages. Use Mintlify components where they add clarity.
 
 ### 7. shadcn/ui Components
 

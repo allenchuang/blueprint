@@ -23,7 +23,7 @@ Do NOT update docs for:
 ## How to Update
 
 1. Edit or create `.mdx` files in the appropriate directory
-2. **Update `mint.json` navigation** if you added a new page
+2. **Update `docs.json` navigation** if you added a new page
 3. Keep content **concise and actionable** — no filler paragraphs
 
 ## Writing Style

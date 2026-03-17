@@ -38,7 +38,7 @@ import { appConfig } from "@repo/app-config";
 Run `pnpm sync-config` after editing the config. This:
 
 - Patches `apps/react-native/app.json` (name, slug, scheme, bundleId, colors)
-- Patches `apps/docs/mint.json` (name, colors, URLs, socials)
+- Patches `apps/docs/docs.json` (name, colors, and supported links)
 - Generates `theme.css` for web and admin (full OKLCH light/dark palette from primary color)
 - Copies logo/favicon/icon assets from `packages/app-config/assets/` to all apps
 
