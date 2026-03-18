@@ -14,6 +14,8 @@
     "@repo/app-config": "workspace:*",
     "@repo/db": "workspace:*",
     "@tanstack/react-query": "^5.75.0",
+    "@worldcoin/minikit-js": "^1.11.0",
+    "@worldcoin/minikit-react": "^1.9.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "^25.8.0",

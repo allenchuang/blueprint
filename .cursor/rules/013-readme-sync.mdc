@@ -5,9 +5,11 @@ alwaysApply: true
 
 # README Sync
 
-When the repository structure changes, update the relevant README files to reflect those changes.
+When the repository structure or feature set changes, update the relevant README files to reflect those changes.
 
-## What counts as a structure change
+## What triggers a README update
+
+### Structure changes
 
 - Adding, removing, or renaming an app in `apps/`
 - Adding, removing, or renaming a package in `packages/`
@@ -15,13 +17,31 @@ When the repository structure changes, update the relevant README files to refle
 - Adding new shared packages or changing package dependencies
 - Changing ports, tech stack, or core tooling
 
+### Feature changes
+
+- Adding a new core feature to any app (e.g., SDK integration, auth provider, new API routes, new provider wrapper)
+- Adding or removing a significant dependency that changes what the app can do
+- Adding new scaffolding (hooks, API routes, components) that future developers should know about
+- Wiring a new external service or platform integration (e.g., World MiniKit, analytics, payments)
+
 ## Which READMEs to update
 
-1. **Root `README.md`** — always update the Architecture tree, Tech Stack table, Scripts table, and Shared Packages section as needed
-2. **App/package READMEs** (`apps/*/README.md`, `packages/*/README.md`) — update if the change directly affects that app or package (e.g., new dependencies, renamed exports, changed ports)
+1. **Root `README.md`** — update the "Built-in Features" section, Architecture tree, Tech Stack table, Scripts table, and Shared Packages section as needed
+2. **App/package READMEs** (`apps/*/README.md`, `packages/*/README.md`) — update if the change directly affects that app or package (e.g., new dependencies, renamed exports, changed ports, new features)
+3. **App AGENTS.md** (`apps/*/AGENTS.md`) — update Key Directories if new directories were added, and update Rules if new conventions apply
+
+## Built-in Features format (root README)
+
+The "Built-in Features" section in `README.md` has two parts that must stay in sync:
+
+1. **Quick-glance list** — a bullet list at the top with an emoji and feature name (no descriptions). Each feature gets a single emoji to the left of its name that visually represents it. When adding a new feature, add it to this list and pick an appropriate emoji.
+2. **Detailed subsections** — an `### Emoji Feature Name` heading with a description for each feature, in the same order as the quick-glance list.
+
+When adding or removing a feature, update both the quick-glance list and the corresponding detailed subsection.
 
 ## What to keep consistent
 
 - The ASCII directory tree in root `README.md` must match the actual file structure
 - The same tree in `.cursor/rules/000-project-overview.mdc` and `AGENTS.md` must also be updated
 - Port numbers, package names, and tech descriptions should match across all READMEs
+- The "Built-in Features" quick-glance list and detailed subsections must list the same features in the same order

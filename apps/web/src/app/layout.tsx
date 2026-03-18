@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { appConfig } from "@repo/app-config";
+import { WorldMiniKitProvider } from "@/components/minikit-provider";
 import { I18nProvider } from "@/components/i18n-provider";
 import "./globals.css";
 
@@ -44,7 +45,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <I18nProvider>{children}</I18nProvider>
+        <WorldMiniKitProvider>
+          <I18nProvider>{children}</I18nProvider>
+        </WorldMiniKitProvider>
       </body>
       {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
