@@ -4,9 +4,9 @@ import { getLocales } from "expo-localization";
 
 import languages from "@repo/app-config/languages";
 
-import enCommon from "./locales/en/common.json";
-import zhCommon from "./locales/zh/common.json";
-import esCommon from "./locales/es/common.json";
+import en from "./locales/en.json";
+import zh from "./locales/zh.json";
+import es from "./locales/es.json";
 
 const supportedLngs = languages.locales.map((l) => l.code);
 
@@ -20,12 +20,10 @@ i18n.use(initReactI18next).init({
   lng: getDeviceLanguage(),
   supportedLngs,
   fallbackLng: languages.defaultLocale,
-  defaultNS: "common",
-  ns: ["common"],
   resources: {
-    en: { common: enCommon },
-    zh: { common: zhCommon },
-    es: { common: esCommon },
+    en: { translation: en },
+    zh: { translation: zh },
+    es: { translation: es },
   },
   interpolation: {
     escapeValue: false,

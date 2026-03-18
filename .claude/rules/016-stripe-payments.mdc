@@ -1,0 +1,60 @@
+---
+description: Stripe payment integration conventions — API selection, env vars, webhooks, and graceful fallback
+globs:
+alwaysApply: true
+---
+
+# Stripe Payments
+
+## API Selection
+
+- **Web**: Use the **Checkout Sessions API** with Stripe-hosted Checkout for subscriptions. Use `@stripe/react-stripe-js` and `@stripe/stripe-js` for embedded payment forms.
+- **React Native**: Use `@stripe/stripe-react-native` with **PaymentSheet** for native payment collection.
+- **Server**: Use the `stripe` Node SDK. All secret-key operations go through `apps/server/src/routes/stripe.ts`.
+
+## Environment Variables
+
+Server-only (never expose to clients):
+- `STRIPE_SECRET_KEY` — Stripe secret API key
+- `STRIPE_WEBHOOK_SECRET` — webhook signing secret
+- `STRIPE_PRICE_PRO_MONTHLY` / `STRIPE_PRICE_PRO_YEARLY` — Price IDs
+
+Client-side (public):
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — web publishable key
+- `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` — React Native publishable key
+
+## Graceful Fallback
+
+All Stripe features must degrade gracefully when env vars are missing. Follow the same pattern as Google Analytics and MiniKit.
+
+- Export `stripeEnabled` from `src/lib/stripe.ts` — check before rendering any Stripe UI
+- Server routes return `503 { error: "stripe_not_configured" }` when `STRIPE_SECRET_KEY` is absent
+- `useSubscription()` returns a default free tier with all features unlocked when Stripe is unconfigured
+- Never call `loadStripe` with an empty or undefined key
+
+## Webhook Handling
+
+- Always verify signatures using `stripe.webhooks.constructEvent()` with `STRIPE_WEBHOOK_SECRET`
+- Required events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`
+- Webhook handlers must be idempotent
+
+## Database Sync
+
+- `users.stripe_customer_id` links a user to their Stripe Customer
+- `subscriptions` table mirrors Stripe subscription state via webhooks
+- Never trust client-side subscription status for access control — always verify server-side
+
+## Customer Portal
+
+Use Stripe's hosted Customer Portal for subscription management. Create portal sessions via `POST /api/stripe/create-portal-session`. Do not rebuild billing management UI.
+
+## Rules
+
+- **DO** check `stripeEnabled` before rendering Stripe UI components
+- **DO** route all Stripe API calls through the Fastify server
+- **DO** verify webhook signatures in production
+- **DO** use test mode keys and card `4242 4242 4242 4242` for development
+- **DO NOT** expose `STRIPE_SECRET_KEY` to client-side code
+- **DO NOT** call `loadStripe()` with an empty or undefined key
+- **DO NOT** store raw card numbers — Stripe handles PCI compliance
+- **DO NOT** rely solely on client-side subscription checks for access control

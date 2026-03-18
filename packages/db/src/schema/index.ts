@@ -6,3 +6,8 @@ export {
   walletsRelations,
   subaccountsRelations,
 } from "./wallets";
+export {
+  subscriptions,
+  subscriptionStatusEnum,
+  subscriptionsRelations,
+} from "./subscriptions";

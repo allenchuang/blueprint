@@ -196,15 +196,14 @@ All user-facing strings in `apps/web` and `apps/react-native` must use i18next. 
 
 Supported languages are defined in `packages/app-config/src/languages.json` (currently: `en`, `zh`, `es`).
 
-Translation files live at:
-- `apps/web/src/i18n/locales/{locale}/{namespace}.json`
-- `apps/react-native/i18n/locales/{locale}/{namespace}.json`
+Translation files are one flat JSON file per locale (no namespaces):
+- `apps/web/src/i18n/locales/{locale}.json`
+- `apps/react-native/i18n/locales/{locale}.json`
 
-When creating a new feature:
-1. Create a `{feature}.json` namespace file in every locale directory
-2. Register the namespace in the i18n config files
-3. Use `useTranslation("feature")` in components
-4. Add keys to all locales (use English as placeholder if translation is unavailable)
+When adding strings for a new feature:
+1. Add keys to every locale file (`en.json`, `zh.json`, `es.json`)
+2. Use `useTranslation()` (no namespace argument) in components
+3. Add translations to all locales (use English as placeholder if unavailable)
 
 Key naming: flat camelCase (`"welcomeMessage"`, not `"welcome.message"`).
 

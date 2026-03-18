@@ -1,5 +1,5 @@
 ---
-description: Internationalization (i18n) — all user-facing strings must be translated via i18next
+description: Internationalization (i18n) — single-file-per-locale approach with no namespaces
 globs:
 alwaysApply: true
 ---
@@ -16,24 +16,27 @@ Defined in `packages/app-config/src/languages.json` (single source of truth). Cu
 
 ## Translation File Structure
 
-Each app stores translations under its own `i18n/locales/` directory, organized by locale and namespace:
+Each app stores one flat JSON file per locale — no namespaces, no folder-per-locale:
 
 ```
-apps/web/src/i18n/locales/{locale}/{namespace}.json
-apps/react-native/i18n/locales/{locale}/{namespace}.json
+apps/web/src/i18n/locales/en.json
+apps/web/src/i18n/locales/zh.json
+apps/web/src/i18n/locales/es.json
+
+apps/react-native/i18n/locales/en.json
+apps/react-native/i18n/locales/zh.json
+apps/react-native/i18n/locales/es.json
 ```
 
-- `common.json` — shared strings (app name, navigation labels, generic UI text)
-- Feature-specific namespaces — one file per feature (e.g., `auth.json`, `dashboard.json`, `profile.json`)
+All keys for all features live in a single file per locale.
 
-## Adding Strings to a New Feature
+## Adding Strings
 
-When creating a new feature or screen:
+When adding a new feature or screen:
 
-1. Create a new namespace file `{feature}.json` in every locale directory (e.g., `en/auth.json`, `zh/auth.json`, `es/auth.json`)
-2. Add all user-facing strings as translation keys
-3. Register the new namespace in the i18n config (`apps/web/src/i18n/index.ts` and `apps/react-native/i18n/index.ts`) by importing the JSON files and adding them to the `resources` and `ns` array
-4. Use `useTranslation("feature")` in components to scope to that namespace
+1. Add all user-facing strings as keys to every locale file (`en.json`, `zh.json`, `es.json`)
+2. Use `useTranslation()` (no namespace argument) in components
+3. No need to register namespaces — there are none
 
 ## Usage
 
@@ -46,7 +49,7 @@ Components using translations must be client components:
 import { useTranslation } from "react-i18next";
 
 export function MyComponent() {
-  const { t } = useTranslation("feature");
+  const { t } = useTranslation();
   return <h1>{t("pageTitle")}</h1>;
 }
 ```
@@ -57,29 +60,30 @@ export function MyComponent() {
 import { useTranslation } from "react-i18next";
 
 export default function MyScreen() {
-  const { t } = useTranslation("feature");
+  const { t } = useTranslation();
   return <Text>{t("pageTitle")}</Text>;
 }
 ```
 
 ## Key Naming
 
-- Use flat camelCase keys within each namespace: `"welcomeMessage"`, `"submitButton"`, `"errorNotFound"`
+- Use flat camelCase keys: `"welcomeMessage"`, `"submitButton"`, `"errorNotFound"`
 - Do NOT use nested dot notation: avoid `"welcome.message"` or `"error.notFound"`
 - Keys should be descriptive: prefer `"userProfileTitle"` over `"title"`
 
 ## Rules
 
 - **DO** wrap every user-facing string with `t()` from `useTranslation()`
-- **DO** create a new namespace file for each new feature in all locale directories
-- **DO** add translations to all supported locales when adding a new key (use English as placeholder if the translation is not yet available)
+- **DO** add new keys to all locale files when adding a translation
 - **DO** import the language list from `@repo/app-config/languages` — never hardcode the list of locales
 - **DO NOT** hardcode display text in JSX or component files
 - **DO NOT** add a translation key to one locale without adding it to all locales
+- **DO NOT** use namespaces — all keys go in a single file per locale
+- **DO NOT** create subdirectories per locale — use flat `{code}.json` files
 - **DO NOT** install `i18next-browser-languagedetector` in React Native — use `expo-localization` instead
 
 ## Adding a New Language
 
 1. Add the locale entry to `packages/app-config/src/languages.json`
-2. Create the new locale folder with all namespace files in both `apps/web/src/i18n/locales/{code}/` and `apps/react-native/i18n/locales/{code}/`
-3. Import and register the new locale resources in both i18n config files (`apps/web/src/i18n/index.ts` and `apps/react-native/i18n/index.ts`)
+2. Create a new `{code}.json` file in both `apps/web/src/i18n/locales/` and `apps/react-native/i18n/locales/` with all existing keys
+3. Import and register the new locale in both i18n config files (`apps/web/src/i18n/index.ts` and `apps/react-native/i18n/index.ts`)
