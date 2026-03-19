@@ -11,8 +11,9 @@ Next.js 15 app with App Router, shadcn/ui, and Tailwind CSS v4. Pre-configured a
 - `src/components/mobile/` — Mobile interaction components (bottom-sheet, slide-in-sheet)
 - `src/components/minikit-provider.tsx` — MiniKitProvider wrapper
 - `src/components/` — Composed feature components
-- `src/hooks/` — React Query hooks + utility hooks (e.g., `use-mobile.ts`, `use-minikit.ts`)
+- `src/hooks/` — React Query hooks + utility hooks (e.g., `use-mobile.ts`, `use-minikit.ts`, `use-voice-agent.ts`)
 - `src/lib/utils.ts` — `cn()` utility for Tailwind class merging
+- `src/lib/elevenlabs.ts` — ElevenLabs feature flag and agent ID
 - `src/lib/mobile-animations.ts` — Shared animation presets for native-like mobile UX
 - `src/i18n/` — i18next config and locale files
 
@@ -25,6 +26,7 @@ Next.js 15 app with App Router, shadcn/ui, and Tailwind CSS v4. Pre-configured a
 - Uses `@repo/db` for database access.
 - Guard all MiniKit commands with `MiniKit.isInstalled()`.
 - Verify all proofs and payments server-side in `src/app/api/minikit/` routes.
+- Check `elevenlabsEnabled` before rendering voice agent UI.
 - All user-facing strings must use i18next `useTranslation()` — never hardcode text.
 
 ## Commands

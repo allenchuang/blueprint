@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@elevenlabs/react": "^0.14.3",
     "@next/third-parties": "^16.1.6",
     "@repo/app-config": "workspace:*",
     "@repo/db": "workspace:*",

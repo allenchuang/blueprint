@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nextProvider } from "react-i18next";
 import i18n from "../i18n";
 import { useScreenTracking } from "@/hooks/use-screen-tracking";
+import { elevenlabsEnabled } from "@/lib/elevenlabs";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,13 @@ function StripeWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ElevenLabsWrapper({ children }: { children: React.ReactNode }) {
+  if (!elevenlabsEnabled) return <>{children}</>;
+
+  const { ElevenLabsProvider } = require("@elevenlabs/react-native");
+  return <ElevenLabsProvider>{children}</ElevenLabsProvider>;
+}
+
 function AppLayout() {
   useScreenTracking();
 
@@ -40,7 +48,9 @@ export default function RootLayout() {
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <StripeWrapper>
-          <AppLayout />
+          <ElevenLabsWrapper>
+            <AppLayout />
+          </ElevenLabsWrapper>
         </StripeWrapper>
       </QueryClientProvider>
     </I18nextProvider>

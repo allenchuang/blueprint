@@ -26,5 +26,18 @@
   "customBranding": "自定义品牌",
   "included": "已包含",
   "proOnly": "仅限专业版",
-  "upgradeRequired": "升级到专业版"
+  "upgradeRequired": "升级到专业版",
+  "voiceAgent": "语音助手",
+  "voiceAgentDescription": "与 AI 助手对话",
+  "voiceAgentStart": "开始对话",
+  "voiceAgentStop": "结束对话",
+  "voiceAgentListening": "聆听中...",
+  "voiceAgentSpeaking": "说话中...",
+  "voiceAgentConnecting": "连接中...",
+  "voiceAgentDisconnected": "未连接",
+  "voiceAgentNotConfigured": "语音助手未配置",
+  "voiceAgentNotConfiguredHint": "请在环境变量中设置 EXPO_PUBLIC_ELEVENLABS_AGENT_ID 以启用语音助手。",
+  "voiceAgentFeedbackPositive": "回答不错",
+  "voiceAgentFeedbackNegative": "回答不好",
+  "voiceAgentTranscript": "对话记录"
 }

@@ -26,5 +26,18 @@
   "customBranding": "Marca Personalizada",
   "included": "Incluido",
   "proOnly": "Solo Pro",
-  "upgradeRequired": "Actualizar a Pro"
+  "upgradeRequired": "Actualizar a Pro",
+  "voiceAgent": "Agente de Voz",
+  "voiceAgentDescription": "Habla con un asistente de IA",
+  "voiceAgentStart": "Iniciar Conversación",
+  "voiceAgentStop": "Detener Conversación",
+  "voiceAgentListening": "Escuchando...",
+  "voiceAgentSpeaking": "Hablando...",
+  "voiceAgentConnecting": "Conectando...",
+  "voiceAgentDisconnected": "Desconectado",
+  "voiceAgentNotConfigured": "Agente de Voz No Configurado",
+  "voiceAgentNotConfiguredHint": "Establece EXPO_PUBLIC_ELEVENLABS_AGENT_ID en tu entorno para habilitar el agente de voz.",
+  "voiceAgentFeedbackPositive": "Buena respuesta",
+  "voiceAgentFeedbackNegative": "Mala respuesta",
+  "voiceAgentTranscript": "Transcripción"
 }

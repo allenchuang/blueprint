@@ -209,6 +209,19 @@ Key naming: flat camelCase (`"welcomeMessage"`, not `"welcome.message"`).
 
 Web uses `i18next-browser-languagedetector`; React Native uses `expo-localization`. Do NOT mix them.
 
+### 14. ElevenLabs Voice Agent
+
+Real-time voice conversations with AI agents via ElevenLabs Conversational AI (ElevenAgents).
+
+- **Web**: `@elevenlabs/react` — `useConversation` hook, browser-native WebRTC/WebSocket
+- **React Native**: `@elevenlabs/react-native` — `ElevenLabsProvider` + `useConversation`, WebRTC via LiveKit
+
+Feature flag: `elevenlabsEnabled` in `lib/elevenlabs.ts` (both apps). Gated on:
+- Web: `NEXT_PUBLIC_ELEVENLABS_AGENT_ID`
+- RN: `EXPO_PUBLIC_ELEVENLABS_AGENT_ID`
+
+Use the `useVoiceAgent()` wrapper hook for consistent patterns. Check `elevenlabsEnabled` before rendering voice UI. Shows "not configured" fallback when env var is missing.
+
 ## Environment Variables
 
 Required: `DATABASE_URL` (Neon PostgreSQL connection string)

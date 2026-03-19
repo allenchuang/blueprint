@@ -72,6 +72,7 @@ Blueprint ships with production-ready scaffolding out of the box. Every feature 
 - 🎬 Video Generation (Remotion)
 - 📖 Documentation (Mintlify)
 - 📊 Google Analytics
+- 🎙️ ElevenLabs Voice Agent
 - 🔀 Co-Development (Web + Mobile)
 
 ### Centralized App Config
@@ -146,6 +147,18 @@ Schema-first database access via Drizzle ORM with Neon serverless PostgreSQL. Sc
 ### Google Analytics
 
 Optional GA4 integration via `@next/third-parties`. Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env` to enable.
+
+### ElevenLabs Voice Agent
+
+Real-time voice conversations with AI agents powered by [ElevenLabs Conversational AI](https://elevenlabs.io/docs/eleven-agents/overview).
+
+- **Web** (`@elevenlabs/react`): `useConversation` hook with browser-native WebRTC/WebSocket — no additional native dependencies
+- **React Native** (`@elevenlabs/react-native`): `ElevenLabsProvider` + `useConversation` hook with WebRTC via LiveKit
+- **Wrapper hook**: `useVoiceAgent()` in both apps provides a consistent interface with graceful fallback, microphone permission handling, and message history
+- **Feature flag**: `elevenlabsEnabled` in `lib/elevenlabs.ts` — gated on `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` (web) / `EXPO_PUBLIC_ELEVENLABS_AGENT_ID` (mobile)
+- **Demo pages**: `/voice-agent` (web) and Voice Agent tab (mobile) with start/stop controls, real-time status, transcript, and feedback
+
+Create an agent at https://elevenlabs.io/app/conversational-ai and set the agent ID in `.env` to enable.
 
 ### Co-Development (Web + Mobile)
 

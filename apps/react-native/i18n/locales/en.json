@@ -26,5 +26,18 @@
   "customBranding": "Custom Branding",
   "included": "Included",
   "proOnly": "Pro only",
-  "upgradeRequired": "Upgrade to Pro"
+  "upgradeRequired": "Upgrade to Pro",
+  "voiceAgent": "Voice Agent",
+  "voiceAgentDescription": "Talk to an AI assistant",
+  "voiceAgentStart": "Start Conversation",
+  "voiceAgentStop": "Stop Conversation",
+  "voiceAgentListening": "Listening...",
+  "voiceAgentSpeaking": "Speaking...",
+  "voiceAgentConnecting": "Connecting...",
+  "voiceAgentDisconnected": "Disconnected",
+  "voiceAgentNotConfigured": "Voice Agent Not Configured",
+  "voiceAgentNotConfiguredHint": "Set EXPO_PUBLIC_ELEVENLABS_AGENT_ID in your environment to enable the voice agent.",
+  "voiceAgentFeedbackPositive": "Good response",
+  "voiceAgentFeedbackNegative": "Bad response",
+  "voiceAgentTranscript": "Transcript"
 }

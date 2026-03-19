@@ -35,5 +35,22 @@
   "premiumFeatureLocked": "This feature requires a Pro subscription",
   "yearly": "Yearly",
   "monthly": "Monthly",
-  "savePercent": "Save 20%"
+  "savePercent": "Save 20%",
+  "voiceAgent": "Voice Agent",
+  "voiceAgentDescription": "Talk to an AI assistant",
+  "voiceAgentStart": "Start Conversation",
+  "voiceAgentStop": "Stop Conversation",
+  "voiceAgentListening": "Listening...",
+  "voiceAgentSpeaking": "Speaking...",
+  "voiceAgentConnecting": "Connecting...",
+  "voiceAgentDisconnected": "Disconnected",
+  "voiceAgentMicPermission": "Microphone access is required for voice conversations",
+  "voiceAgentMicBlocked": "Microphone access was denied. Please enable it in your browser settings.",
+  "voiceAgentNotConfigured": "Voice Agent Not Configured",
+  "voiceAgentNotConfiguredHint": "Set NEXT_PUBLIC_ELEVENLABS_AGENT_ID in your environment to enable the voice agent.",
+  "voiceAgentFeedbackPositive": "Good response",
+  "voiceAgentFeedbackNegative": "Bad response",
+  "voiceAgentMute": "Mute",
+  "voiceAgentUnmute": "Unmute",
+  "voiceAgentTranscript": "Transcript"
 }

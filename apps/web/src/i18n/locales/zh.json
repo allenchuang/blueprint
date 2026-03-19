@@ -35,5 +35,22 @@
   "premiumFeatureLocked": "此功能需要专业版订阅",
   "yearly": "年付",
   "monthly": "月付",
-  "savePercent": "节省 20%"
+  "savePercent": "节省 20%",
+  "voiceAgent": "语音助手",
+  "voiceAgentDescription": "与 AI 助手对话",
+  "voiceAgentStart": "开始对话",
+  "voiceAgentStop": "结束对话",
+  "voiceAgentListening": "聆听中...",
+  "voiceAgentSpeaking": "说话中...",
+  "voiceAgentConnecting": "连接中...",
+  "voiceAgentDisconnected": "未连接",
+  "voiceAgentMicPermission": "语音对话需要麦克风权限",
+  "voiceAgentMicBlocked": "麦克风权限被拒绝，请在浏览器设置中启用。",
+  "voiceAgentNotConfigured": "语音助手未配置",
+  "voiceAgentNotConfiguredHint": "请在环境变量中设置 NEXT_PUBLIC_ELEVENLABS_AGENT_ID 以启用语音助手。",
+  "voiceAgentFeedbackPositive": "回答不错",
+  "voiceAgentFeedbackNegative": "回答不好",
+  "voiceAgentMute": "静音",
+  "voiceAgentUnmute": "取消静音",
+  "voiceAgentTranscript": "对话记录"
 }
