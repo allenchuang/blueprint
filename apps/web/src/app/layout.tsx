@@ -4,6 +4,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { appConfig } from "@repo/app-config";
 import { WorldMiniKitProvider } from "@/components/minikit-provider";
 import { DynamicAuthProvider } from "@/components/dynamic-provider";
+import { PrivyAuthProvider } from "@/components/privy-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { I18nProvider } from "@/components/i18n-provider";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -54,12 +55,14 @@ export default function RootLayout({
           <TooltipProvider>
             <WorldMiniKitProvider>
               <DynamicAuthProvider>
-                <QueryProvider>
-                  <I18nProvider>
-                    <NavBar />
-                    <main className="flex-1">{children}</main>
-                  </I18nProvider>
-                </QueryProvider>
+                <PrivyAuthProvider>
+                  <QueryProvider>
+                    <I18nProvider>
+                      <NavBar />
+                      <main className="flex-1">{children}</main>
+                    </I18nProvider>
+                  </QueryProvider>
+                </PrivyAuthProvider>
               </DynamicAuthProvider>
             </WorldMiniKitProvider>
           </TooltipProvider>

@@ -13,6 +13,7 @@
     "@dynamic-labs/sdk-react-core": "^4.68.0",
     "@elevenlabs/react": "^0.14.3",
     "@next/third-parties": "^16.1.6",
+    "@privy-io/react-auth": "^3.18.0",
     "@repo/app-config": "workspace:*",
     "@repo/db": "workspace:*",
     "@stripe/react-stripe-js": "^5.6.1",

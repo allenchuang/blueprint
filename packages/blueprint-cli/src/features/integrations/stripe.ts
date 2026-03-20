@@ -30,17 +30,22 @@ export const stripeManifest: FeatureManifest = {
   },
   layoutPatches: [
     {
-      file: "apps/web/src/app/page.tsx",
-      type: "remove-block",
-      match: 'href="/pricing"',
-    },
-    {
       file: "apps/web/src/components/nav-bar.tsx",
       type: "remove-line",
       match: 'href: "/pricing"',
     },
     {
       file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-line",
+      match: "stripe-nav-icon",
+    },
+    {
+      file: "apps/web/src/components/nav-sidebar.tsx",
+      type: "remove-block",
+      match: 'href: "/pricing"',
+    },
+    {
+      file: "apps/web/src/components/nav-sidebar.tsx",
       type: "remove-line",
       match: "stripe-nav-icon",
     },

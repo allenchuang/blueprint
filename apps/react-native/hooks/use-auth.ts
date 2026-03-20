@@ -1,4 +1,5 @@
 import { dynamicEnabled } from "@/lib/dynamic";
+import { privyEnabled } from "@/lib/privy";
 
 interface AuthUser {
   id: string;
@@ -8,13 +9,13 @@ interface AuthUser {
 interface AuthState {
   user: AuthUser | null;
   isLoggedIn: boolean;
-  getToken: () => string | undefined;
+  getToken: () => Promise<string | null | undefined>;
 }
 
 const unauthenticatedState: AuthState = {
   user: null,
   isLoggedIn: false,
-  getToken: () => undefined,
+  getToken: async () => undefined,
 };
 
 function useDynamicAuth(): AuthState {
@@ -33,11 +34,37 @@ function useDynamicAuth(): AuthState {
       email: user.email,
     },
     isLoggedIn: true,
-    getToken: () => auth.token,
+    getToken: async () => auth.token,
+  };
+}
+
+function usePrivyAuth(): AuthState {
+  const { usePrivy } = require("@privy-io/expo");
+  const { user, isReady } = usePrivy();
+
+  if (!isReady || !user) {
+    return unauthenticatedState;
+  }
+
+  const email = user.linked_accounts?.find(
+    (a: { type: string; address?: string }) => a.type === "email",
+  )?.address;
+
+  return {
+    user: {
+      id: user.id,
+      email,
+    },
+    isLoggedIn: true,
+    getToken: async () => {
+      const { getAccessToken } = require("@privy-io/expo");
+      return getAccessToken();
+    },
   };
 }
 
 export function useAuth(): AuthState {
-  if (!dynamicEnabled) return unauthenticatedState;
-  return useDynamicAuth();
+  if (dynamicEnabled) return useDynamicAuth(); // dynamic-auth-hook
+  if (privyEnabled) return usePrivyAuth(); // privy-auth-hook
+  return unauthenticatedState;
 }

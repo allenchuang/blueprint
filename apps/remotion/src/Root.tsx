@@ -1,6 +1,7 @@
 import { Composition, Folder } from "remotion";
 
 import { HelloWorld } from "./HelloWorld";
+import { IntroVideo, INTRO_DURATION } from "./IntroVideo";
 import { AeirDataViz } from "./AeirDataViz";
 import { SpringPhysics } from "./SpringPhysics";
 import { EasingCurves } from "./EasingCurves";
@@ -24,6 +25,14 @@ export const RemotionRoot: React.FC = () => {
         id="HelloWorld"
         component={HelloWorld}
         durationInFrames={150}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+      />
+      <Composition
+        id="IntroVideo"
+        component={IntroVideo}
+        durationInFrames={INTRO_DURATION}
         fps={FPS}
         width={WIDTH}
         height={HEIGHT}

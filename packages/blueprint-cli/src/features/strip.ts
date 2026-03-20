@@ -55,6 +55,17 @@ export function stripFeatures(
     allI18nKeys.push(...manifest.i18nKeysToRemove);
   }
 
+  // Shared auth i18n keys — only remove when NO auth provider is selected
+  if (selections.auth === "none") {
+    allI18nKeys.push(
+      "login",
+      "logout",
+      "loggedInAs",
+      "authNotConfigured",
+      "authNotConfiguredHint",
+    );
+  }
+
   // Batch-clean env example files
   if (allEnvKeys.length > 0) {
     for (const envFile of ENV_EXAMPLE_FILES) {

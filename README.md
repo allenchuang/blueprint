@@ -94,7 +94,7 @@ Blueprint ships with production-ready scaffolding out of the box. Every feature 
 - 🎬 Video Generation (Remotion)
 - 📖 Documentation (Mintlify)
 - 📊 Google Analytics
-- 🔐 Dynamic Auth (Email OTP)
+- 🔐 Authentication (Dynamic or Privy)
 - 🎙️ ElevenLabs Voice Agent
 - 🔀 Co-Development (Web + Mobile)
 
@@ -171,15 +171,21 @@ Schema-first database access via Drizzle ORM with Neon serverless PostgreSQL. Sc
 
 Optional GA4 integration via `@next/third-parties`. Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env` to enable.
 
-### Dynamic Auth (Email OTP)
+### Authentication (Dynamic or Privy)
 
-Authentication powered by [Dynamic](https://www.dynamic.xyz/) with email-only OTP — no wallets, no social logins.
+Two mutually exclusive auth providers, selected during CLI scaffolding:
 
-- **Web** (`@dynamic-labs/sdk-react-core`): `DynamicContextProvider` wraps the app, `useAuth()` hook for auth state, `getAuthToken()` for JWT
-- **React Native** (`@dynamic-labs/client` + `@dynamic-labs/react-native-extension`): `dynamicClient` with `useAuth()` hook and `DynamicWebView` for SDK UI
-- **Server** (`jsonwebtoken` + `jwks-rsa`): `authenticate` preHandler verifies Dynamic JWTs via JWKS endpoint, upserts users in local DB
-- **Feature flag**: `dynamicEnabled` in `lib/dynamic.ts` — gated on `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` (web) / `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID` (mobile)
-- **Gateway**: `apps/server` proxies authenticated requests to an external infra backend via `INFRA_API_URL` — clients never call infra directly
+**Dynamic Auth** — email OTP via [Dynamic](https://www.dynamic.xyz/):
+- Web: `DynamicContextProvider`, `useAuth()`, `getAuthToken()` | RN: `dynamicClient` + `DynamicWebView`
+- Server: JWKS RS256 verification via `jsonwebtoken` + `jwks-rsa`
+- Feature flag: `dynamicEnabled` in `lib/dynamic.ts`
+
+**Privy Auth** — email OTP, social logins, wallets, embedded wallets via [Privy](https://www.privy.io/):
+- Web: `PrivyProvider`, `useAuth()`, `useLogin()` modal | RN: `PrivyProvider` from `@privy-io/expo`
+- Server: ES256 verification via `@privy-io/node`
+- Feature flag: `privyEnabled` in `lib/privy.ts`
+
+Both expose the same `useAuth()` hook interface. Server uses `authenticate` preHandler and upserts users in local DB.
 
 Create a project at https://app.dynamic.xyz, enable Email auth in dashboard, and set the Environment ID in `.env` to enable.
 

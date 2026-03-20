@@ -7,6 +7,7 @@ import prompts from "prompts";
 import type { FeatureSelections, DatabaseProvider } from "../features/index.js";
 import {
   APP_MANIFESTS,
+  AUTH_MANIFESTS,
   INTEGRATION_MANIFESTS,
   WEB_FEATURE_MANIFESTS,
   LANGUAGE_OPTIONS,
@@ -23,7 +24,7 @@ const DATABASE_OPTIONS: { value: DatabaseProvider; title: string; description: s
   { value: "none", title: "None", description: "No database" },
 ];
 
-const DB_REQUIRED_FEATURES = new Set(["stripe", "dynamic"]);
+const DB_REQUIRED_FEATURES = new Set(["stripe", "dynamic", "privy"]);
 
 export interface NewCommandOptions {
   withAdmin?: boolean;
@@ -31,6 +32,7 @@ export interface NewCommandOptions {
   withDocs?: boolean;
   withRemotion?: boolean;
   withDynamic?: boolean;
+  withPrivy?: boolean;
   withStripe?: boolean;
   withElevenlabs?: boolean;
   withMinikit?: boolean;
@@ -109,6 +111,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
     opts.withDocs ||
     opts.withRemotion ||
     opts.withDynamic ||
+    opts.withPrivy ||
     opts.withStripe ||
     opts.withElevenlabs ||
     opts.withMinikit ||
@@ -122,6 +125,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
   if (opts.all) {
     return {
       apps: APP_MANIFESTS.map((m) => m.id),
+      auth: "dynamic",
       integrations: INTEGRATION_MANIFESTS.map((m) => m.id),
       webFeatures: WEB_FEATURE_MANIFESTS.map((m) => m.id),
       database: (opts.db as DatabaseProvider) || "neon",
@@ -132,6 +136,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
   if (opts.minimal) {
     return {
       apps: [],
+      auth: "none",
       integrations: [],
       webFeatures: [],
       database: (opts.db as DatabaseProvider) || "neon",
@@ -145,8 +150,11 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
   if (opts.withDocs) apps.push("docs");
   if (opts.withRemotion) apps.push("remotion");
 
+  let auth = "none";
+  if (opts.withDynamic) auth = "dynamic";
+  if (opts.withPrivy) auth = "privy";
+
   const integrations: string[] = [];
-  if (opts.withDynamic) integrations.push("dynamic");
   if (opts.withStripe) integrations.push("stripe");
   if (opts.withElevenlabs) integrations.push("elevenlabs");
   if (opts.withMinikit) integrations.push("minikit");
@@ -158,6 +166,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
 
   return {
     apps,
+    auth,
     integrations,
     webFeatures,
     database: (opts.db as DatabaseProvider) || "neon",
@@ -184,6 +193,28 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
   });
 
   if (!apps) {
+    console.log(kleur.dim("\n  Cancelled.\n"));
+    process.exit(0);
+  }
+
+  const AUTH_OPTIONS = [
+    { title: "None", value: "none", description: "No authentication" },
+    ...AUTH_MANIFESTS.map((m) => ({
+      title: m.name,
+      value: m.id,
+      description: m.description,
+    })),
+  ];
+
+  const { auth } = await prompts({
+    type: "select",
+    name: "auth",
+    message: "Auth provider:",
+    choices: AUTH_OPTIONS,
+    initial: 0,
+  });
+
+  if (auth === undefined) {
     console.log(kleur.dim("\n  Cancelled.\n"));
     process.exit(0);
   }
@@ -268,12 +299,15 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
     process.exit(0);
   }
 
-  return { apps, integrations, webFeatures, database, languages };
+  return { apps, auth, integrations, webFeatures, database, languages };
 }
 
 function validateSelections(selections: FeatureSelections): FeatureSelections {
   if (selections.database === "none") {
     const conflicting = selections.integrations.filter((id) => DB_REQUIRED_FEATURES.has(id));
+    if (selections.auth !== "none" && DB_REQUIRED_FEATURES.has(selections.auth)) {
+      conflicting.push(selections.auth);
+    }
     if (conflicting.length > 0) {
       const names = conflicting.join(", ");
       console.log(
@@ -282,6 +316,9 @@ function validateSelections(selections: FeatureSelections): FeatureSelections {
       selections.integrations = selections.integrations.filter(
         (id) => !DB_REQUIRED_FEATURES.has(id),
       );
+      if (DB_REQUIRED_FEATURES.has(selections.auth)) {
+        selections.auth = "none";
+      }
     }
   }
 
@@ -630,6 +667,10 @@ export const appConfig = {
   console.log(
     kleur.dim("  Apps: ") + kleur.bold(includedApps.join(", ")),
   );
+  if (selections.auth !== "none") {
+    const authManifest = AUTH_MANIFESTS.find((m) => m.id === selections.auth);
+    console.log(kleur.dim("  Auth: ") + kleur.bold(authManifest?.name ?? selections.auth));
+  }
   if (selections.integrations.length > 0) {
     const names = selections.integrations.map((id) => {
       const m = INTEGRATION_MANIFESTS.find((m) => m.id === id);

@@ -21,17 +21,22 @@ export const elevenlabsManifest: FeatureManifest = {
   },
   layoutPatches: [
     {
-      file: "apps/web/src/app/page.tsx",
-      type: "remove-block",
-      match: 'href="/voice-agent"',
-    },
-    {
       file: "apps/web/src/components/nav-bar.tsx",
       type: "remove-line",
       match: 'href: "/voice-agent"',
     },
     {
       file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-line",
+      match: "elevenlabs-nav-icon",
+    },
+    {
+      file: "apps/web/src/components/nav-sidebar.tsx",
+      type: "remove-block",
+      match: 'href: "/voice-agent"',
+    },
+    {
+      file: "apps/web/src/components/nav-sidebar.tsx",
       type: "remove-line",
       match: "elevenlabs-nav-icon",
     },

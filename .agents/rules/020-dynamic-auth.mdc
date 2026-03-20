@@ -2,7 +2,7 @@
 
 ## Overview
 
-Dynamic is the **sole authentication provider** for this project. Email-only authentication via OTP. Never use NextAuth, Clerk, Auth.js, Lucia, or other auth libraries.
+Dynamic is an **authentication provider** for this project (alternative: Privy — see `022-privy-auth.mdc`). Email-only authentication via OTP. Choose between Dynamic and Privy during CLI scaffolding — they are mutually exclusive.
 
 ## Architecture
 
@@ -70,7 +70,7 @@ The `users` table has a `dynamic_user_id` column (text, unique) that maps Dynami
 
 ## Rules
 
-- **DO** use Dynamic for all authentication — never add another auth provider
+- **DO** use Dynamic for all authentication when selected — never add another auth provider alongside it
 - **DO** enable email-only in the Dynamic dashboard — no wallets, no social, no SMS
 - **DO** check `dynamicEnabled` before rendering any auth UI
 - **DO** verify `scope` includes `user:basic` on the server before trusting the JWT
