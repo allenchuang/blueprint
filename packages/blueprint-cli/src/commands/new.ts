@@ -4,13 +4,47 @@ import { execa } from "execa";
 import kleur from "kleur";
 import ora from "ora";
 import prompts from "prompts";
+import type { FeatureSelections, DatabaseProvider } from "../features/index.js";
+import {
+  APP_MANIFESTS,
+  INTEGRATION_MANIFESTS,
+  WEB_FEATURE_MANIFESTS,
+  LANGUAGE_OPTIONS,
+} from "../features/index.js";
+import { stripFeatures } from "../features/strip.js";
 
 const REPO_URL = "https://github.com/allenchuang/blueprint.git";
 const REQUIRED_NODE_MAJOR = 23;
 
+const DATABASE_OPTIONS: { value: DatabaseProvider; title: string; description: string }[] = [
+  { value: "neon", title: "Neon PostgreSQL", description: "Serverless (current default)" },
+  { value: "supabase", title: "Supabase", description: "Supabase-hosted PostgreSQL" },
+  { value: "pg", title: "Standard PostgreSQL", description: "postgres.js driver" },
+  { value: "none", title: "None", description: "No database" },
+];
+
+const DB_REQUIRED_FEATURES = new Set(["stripe", "dynamic"]);
+
+export interface NewCommandOptions {
+  withAdmin?: boolean;
+  withMobile?: boolean;
+  withDocs?: boolean;
+  withRemotion?: boolean;
+  withDynamic?: boolean;
+  withStripe?: boolean;
+  withElevenlabs?: boolean;
+  withMinikit?: boolean;
+  withAnalytics?: boolean;
+  withI18n?: boolean;
+  withPwa?: boolean;
+  db?: string;
+  all?: boolean;
+  minimal?: boolean;
+}
+
 async function hasNvm(): Promise<boolean> {
   try {
-    await execa("bash", ["-c", "command -v nvm || [ -s \"$NVM_DIR/nvm.sh\" ]"], {
+    await execa("bash", ["-c", 'command -v nvm || [ -s "$NVM_DIR/nvm.sh" ]'], {
       stdio: "pipe",
       shell: true,
     });
@@ -26,7 +60,7 @@ async function installNodeWithNvm(version: string): Promise<boolean> {
     const nvmScript = `
       export NVM_DIR="$HOME/.nvm"
       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-      nvm install ${version} && nvm use ${version}
+      nvm install ${version} && nvm alias default ${version}
     `;
     await execa("bash", ["-c", nvmScript], { stdio: "pipe" });
     spinner.succeed(`Node.js ${version} installed`);
@@ -37,13 +71,227 @@ async function installNodeWithNvm(version: string): Promise<boolean> {
   }
 }
 
+async function getNvmNodePath(version: string): Promise<string | null> {
+  try {
+    const nvmScript = `
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+      nvm which ${version}
+    `;
+    const { stdout } = await execa("bash", ["-c", nvmScript], { stdio: "pipe" });
+    return stdout.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+async function reExecWithNode(nodePath: string, args: string[]): Promise<never> {
+  const cliEntry = new URL("../index.js", import.meta.url).pathname;
+  const { exitCode } = await execa(nodePath, [cliEntry, ...args], {
+    stdio: "inherit",
+    reject: false,
+  });
+  process.exit(exitCode ?? 0);
+}
+
 function checkNodeVersion(): { ok: boolean; current: string; required: number } {
   const current = process.version;
   const major = Number.parseInt(current.slice(1).split(".")[0]!, 10);
   return { ok: major >= REQUIRED_NODE_MAJOR, current, required: REQUIRED_NODE_MAJOR };
 }
 
-export async function newCommand(projectName: string): Promise<void> {
+function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections | null {
+  const hasAnyFlag =
+    opts.all ||
+    opts.minimal ||
+    opts.withAdmin ||
+    opts.withMobile ||
+    opts.withDocs ||
+    opts.withRemotion ||
+    opts.withDynamic ||
+    opts.withStripe ||
+    opts.withElevenlabs ||
+    opts.withMinikit ||
+    opts.withAnalytics ||
+    opts.withI18n ||
+    opts.withPwa ||
+    opts.db;
+
+  if (!hasAnyFlag) return null;
+
+  if (opts.all) {
+    return {
+      apps: APP_MANIFESTS.map((m) => m.id),
+      integrations: INTEGRATION_MANIFESTS.map((m) => m.id),
+      webFeatures: WEB_FEATURE_MANIFESTS.map((m) => m.id),
+      database: (opts.db as DatabaseProvider) || "neon",
+      languages: LANGUAGE_OPTIONS.slice(0, 3).map((l) => l.code),
+    };
+  }
+
+  if (opts.minimal) {
+    return {
+      apps: [],
+      integrations: [],
+      webFeatures: [],
+      database: (opts.db as DatabaseProvider) || "neon",
+      languages: [],
+    };
+  }
+
+  const apps: string[] = [];
+  if (opts.withAdmin) apps.push("admin");
+  if (opts.withMobile) apps.push("mobile");
+  if (opts.withDocs) apps.push("docs");
+  if (opts.withRemotion) apps.push("remotion");
+
+  const integrations: string[] = [];
+  if (opts.withDynamic) integrations.push("dynamic");
+  if (opts.withStripe) integrations.push("stripe");
+  if (opts.withElevenlabs) integrations.push("elevenlabs");
+  if (opts.withMinikit) integrations.push("minikit");
+  if (opts.withAnalytics) integrations.push("analytics");
+
+  const webFeatures: string[] = [];
+  if (opts.withI18n) webFeatures.push("i18n");
+  if (opts.withPwa) webFeatures.push("pwa");
+
+  return {
+    apps,
+    integrations,
+    webFeatures,
+    database: (opts.db as DatabaseProvider) || "neon",
+    languages: webFeatures.includes("i18n") ? ["en"] : [],
+  };
+}
+
+async function promptFeatureSelections(): Promise<FeatureSelections> {
+  console.log();
+  console.log(kleur.bold("  Feature Selection"));
+  console.log(kleur.dim("  Choose which optional features to include\n"));
+
+  const { apps } = await prompts({
+    type: "multiselect",
+    name: "apps",
+    message: "Which apps to include? (Web + Server always included)",
+    choices: APP_MANIFESTS.map((m) => ({
+      title: m.name,
+      value: m.id,
+      description: m.description,
+    })),
+    instructions: false,
+    hint: "- Space to toggle. Enter to skip (default: none)",
+  });
+
+  if (!apps) {
+    console.log(kleur.dim("\n  Cancelled.\n"));
+    process.exit(0);
+  }
+
+  const { integrations } = await prompts({
+    type: "multiselect",
+    name: "integrations",
+    message: "Which integrations to include?",
+    choices: INTEGRATION_MANIFESTS.map((m) => ({
+      title: m.name,
+      value: m.id,
+      description: m.description,
+    })),
+    instructions: false,
+    hint: "- Space to toggle. Enter to skip (default: none)",
+  });
+
+  if (!integrations) {
+    console.log(kleur.dim("\n  Cancelled.\n"));
+    process.exit(0);
+  }
+
+  const { webFeatures } = await prompts({
+    type: "multiselect",
+    name: "webFeatures",
+    message: "Which web features to include?",
+    choices: WEB_FEATURE_MANIFESTS.map((m) => ({
+      title: m.name,
+      value: m.id,
+      description: m.description,
+    })),
+    instructions: false,
+    hint: "- Space to toggle. Enter to skip (default: none)",
+  });
+
+  if (!webFeatures) {
+    console.log(kleur.dim("\n  Cancelled.\n"));
+    process.exit(0);
+  }
+
+  // If i18n selected, prompt for languages
+  let languages: string[] = [];
+  if ((webFeatures as string[]).includes("i18n")) {
+    const { selectedLangs } = await prompts({
+      type: "multiselect",
+      name: "selectedLangs",
+      message: "Which languages to support?",
+      choices: LANGUAGE_OPTIONS.map((l) => ({
+        title: `${l.name} (${l.nativeName})`,
+        value: l.code,
+        selected: l.code === "en",
+      })),
+      instructions: false,
+      hint: "- Space to toggle. Enter to confirm (default: English only)",
+    });
+
+    if (!selectedLangs) {
+      console.log(kleur.dim("\n  Cancelled.\n"));
+      process.exit(0);
+    }
+
+    languages = selectedLangs as string[];
+    if (!languages.includes("en")) {
+      languages.unshift("en");
+    }
+  }
+
+  const { database } = await prompts({
+    type: "select",
+    name: "database",
+    message: "Database provider:",
+    choices: DATABASE_OPTIONS.map((o) => ({
+      title: o.title,
+      value: o.value,
+      description: o.description,
+    })),
+    initial: 0,
+  });
+
+  if (!database && database !== 0) {
+    console.log(kleur.dim("\n  Cancelled.\n"));
+    process.exit(0);
+  }
+
+  return { apps, integrations, webFeatures, database, languages };
+}
+
+function validateSelections(selections: FeatureSelections): FeatureSelections {
+  if (selections.database === "none") {
+    const conflicting = selections.integrations.filter((id) => DB_REQUIRED_FEATURES.has(id));
+    if (conflicting.length > 0) {
+      const names = conflicting.join(", ");
+      console.log(
+        kleur.yellow(`\n  ⚠ ${names} require a database — removing them since --db=none was selected.`),
+      );
+      selections.integrations = selections.integrations.filter(
+        (id) => !DB_REQUIRED_FEATURES.has(id),
+      );
+    }
+  }
+
+  return selections;
+}
+
+export async function newCommand(
+  projectName: string,
+  opts: NewCommandOptions = {},
+): Promise<void> {
   const targetDir = resolve(process.cwd(), projectName);
 
   if (existsSync(targetDir)) {
@@ -57,7 +305,9 @@ export async function newCommand(projectName: string): Promise<void> {
   const nodeCheck = checkNodeVersion();
   if (!nodeCheck.ok) {
     console.log(
-      kleur.yellow(`  ⚠ Node.js ${kleur.bold(nodeCheck.current)} detected — Blueprint requires ${kleur.bold(`v${nodeCheck.required}+`)}.`),
+      kleur.yellow(
+        `  ⚠ Node.js ${kleur.bold(nodeCheck.current)} detected — Blueprint requires ${kleur.bold(`v${nodeCheck.required}+`)}.`,
+      ),
     );
 
     const nvmAvailable = await hasNvm();
@@ -73,15 +323,18 @@ export async function newCommand(projectName: string): Promise<void> {
       if (installNode) {
         const installed = await installNodeWithNvm(String(nodeCheck.required));
         if (installed) {
-          console.log(
-            kleur.green(`  ✔ Node.js ${nodeCheck.required} is now active.\n`),
-          );
-          console.log(
-            kleur.dim("  Re-run the command to scaffold with the new version:\n"),
-          );
-          console.log(
-            kleur.bold(`    npx blueprint-stack new ${projectName}\n`),
-          );
+          console.log(kleur.green(`  ✔ Node.js ${nodeCheck.required} is now active.\n`));
+          const nodePath = await getNvmNodePath(String(nodeCheck.required));
+          if (nodePath) {
+            console.log(
+              kleur.dim("  Restarting with Node.js ") +
+                kleur.bold(`${nodeCheck.required}`) +
+                kleur.dim("...\n"),
+            );
+            await reExecWithNode(nodePath, ["new", projectName]);
+          }
+          console.log(kleur.dim("  Could not auto-restart. Re-run manually:\n"));
+          console.log(kleur.bold(`    npx blueprint-stack new ${projectName}\n`));
           process.exit(0);
         }
       }
@@ -91,12 +344,8 @@ export async function newCommand(projectName: string): Promise<void> {
           kleur.bold("https://github.com/nvm-sh/nvm") +
           kleur.dim(" then run:"),
       );
-      console.log(
-        kleur.bold(`    nvm install ${nodeCheck.required}`),
-      );
-      console.log(
-        kleur.bold(`    nvm use ${nodeCheck.required}\n`),
-      );
+      console.log(kleur.bold(`    nvm install ${nodeCheck.required}`));
+      console.log(kleur.bold(`    nvm use ${nodeCheck.required}\n`));
     }
 
     const { continueAnyway } = await prompts({
@@ -141,12 +390,28 @@ export async function newCommand(projectName: string): Promise<void> {
     gitSpinner.warn("Could not remove .git directory — remove it manually");
   }
 
+  // Feature selection
+  let selections = resolveSelectionsFromFlags(opts);
+  if (!selections) {
+    selections = await promptFeatureSelections();
+  }
+  selections = validateSelections(selections);
+
+  // Strip deselected features
+  const stripSpinner = ora("Customizing project...").start();
+  try {
+    stripFeatures(targetDir, selections);
+    stripSpinner.succeed("Project customized");
+  } catch (err) {
+    stripSpinner.fail("Feature customization had issues");
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(kleur.dim(message));
+  }
+
   // Prompt for app config branding
   console.log();
   console.log(kleur.bold("  App Config"));
-  console.log(
-    kleur.dim("  These values populate packages/app-config/src/config.ts\n"),
-  );
+  console.log(kleur.dim("  These values populate packages/app-config/src/config.ts\n"));
 
   const { configureAppConfig } = await prompts({
     type: "confirm",
@@ -178,8 +443,7 @@ export async function newCommand(projectName: string): Promise<void> {
           type: "text",
           name: "slug",
           message: "App slug (lowercase, no spaces):",
-          initial: (prev: string) =>
-            prev.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          initial: (prev: string) => prev.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
         },
         {
           type: "text",
@@ -224,10 +488,7 @@ export async function newCommand(projectName: string): Promise<void> {
     const slug =
       appConfigAnswers.slug ||
       appConfigAnswers.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const configPath = join(
-      targetDir,
-      "packages/app-config/src/config.ts",
-    );
+    const configPath = join(targetDir, "packages/app-config/src/config.ts");
     const configContent = `import type { AppConfig } from "./types";
 
 export const appConfig = {
@@ -279,16 +540,37 @@ export const appConfig = {
   });
 
   if (configureDotenv) {
-    const { databaseUrl } = await prompts({
-      type: "text",
-      name: "databaseUrl",
-      message: "DATABASE_URL (Neon PostgreSQL connection string):",
-      initial: "postgresql://user:password@host/database?sslmode=require",
-    });
+    const envLines: string[] = [];
 
-    if (databaseUrl) {
-      const envContent = `DATABASE_URL=${databaseUrl}\n`;
-      writeFileSync(join(targetDir, ".env"), envContent);
+    if (selections.database !== "none") {
+      const dbLabel =
+        selections.database === "supabase"
+          ? "DATABASE_URL (Supabase connection string):"
+          : selections.database === "pg"
+            ? "DATABASE_URL (PostgreSQL connection string):"
+            : "DATABASE_URL (Neon PostgreSQL connection string):";
+
+      const dbPlaceholder =
+        selections.database === "supabase"
+          ? "postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres"
+          : selections.database === "pg"
+            ? "postgresql://user:password@localhost:5432/mydb"
+            : "postgresql://user:password@host/database?sslmode=require";
+
+      const { databaseUrl } = await prompts({
+        type: "text",
+        name: "databaseUrl",
+        message: dbLabel,
+        initial: dbPlaceholder,
+      });
+
+      if (databaseUrl) {
+        envLines.push(`DATABASE_URL=${databaseUrl}`);
+      }
+    }
+
+    if (envLines.length > 0) {
+      writeFileSync(join(targetDir, ".env"), envLines.join("\n") + "\n");
       console.log(kleur.green("  ✔ .env created"));
     }
   }
@@ -340,28 +622,45 @@ export const appConfig = {
   console.log(kleur.green().bold("  ✔ Project ready!"));
   console.log();
 
+  // Print summary
+  const includedApps = ["Web", ...selections.apps.map((id) => {
+    const m = APP_MANIFESTS.find((m) => m.id === id);
+    return m?.name ?? id;
+  })];
+  console.log(
+    kleur.dim("  Apps: ") + kleur.bold(includedApps.join(", ")),
+  );
+  if (selections.integrations.length > 0) {
+    const names = selections.integrations.map((id) => {
+      const m = INTEGRATION_MANIFESTS.find((m) => m.id === id);
+      return m?.name ?? id;
+    });
+    console.log(kleur.dim("  Integrations: ") + kleur.bold(names.join(", ")));
+  }
+  if (selections.webFeatures.length > 0) {
+    const names = selections.webFeatures.map((id) => {
+      const m = WEB_FEATURE_MANIFESTS.find((m) => m.id === id);
+      return m?.name ?? id;
+    });
+    console.log(kleur.dim("  Web features: ") + kleur.bold(names.join(", ")));
+  }
+  const dbOption = DATABASE_OPTIONS.find((o) => o.value === selections.database);
+  console.log(kleur.dim("  Database: ") + kleur.bold(dbOption?.title ?? selections.database));
+  console.log();
+
   if (!nodeCheck.ok) {
     console.log(
       kleur.yellow(`  ⚠ Remember: this project requires Node.js ${kleur.bold(`v${nvmrcVersion}+`)}.\n`),
     );
-    console.log(
-      kleur.dim("  Switch to the correct version before developing:\n"),
-    );
-    console.log(
-      kleur.bold(`    cd ${projectName}`),
-    );
-    console.log(
-      kleur.bold(`    nvm install ${nvmrcVersion}  ${kleur.dim("# first time only")}`),
-    );
-    console.log(
-      kleur.bold(`    nvm use`),
-    );
+    console.log(kleur.dim("  Switch to the correct version before developing:\n"));
+    console.log(kleur.bold(`    cd ${projectName}`));
+    console.log(kleur.bold(`    nvm install ${nvmrcVersion}  ${kleur.dim("# first time only")}`));
+    console.log(kleur.bold("    nvm use"));
     console.log();
   }
 
   console.log(
-    kleur.dim("  To update branding, edit: ") +
-      kleur.bold("packages/app-config/src/config.ts"),
+    kleur.dim("  To update branding, edit: ") + kleur.bold("packages/app-config/src/config.ts"),
   );
   console.log(
     kleur.dim("  Then run: ") +
@@ -399,20 +698,12 @@ export const appConfig = {
     }
   } else {
     console.log();
-    console.log(
-      kleur.dim("  To start developing, run:\n"),
-    );
-    console.log(
-      kleur.bold(`    cd ${projectName}`),
-    );
+    console.log(kleur.dim("  To start developing, run:\n"));
+    console.log(kleur.bold(`    cd ${projectName}`));
     if (!nodeCheck.ok) {
-      console.log(
-        kleur.bold("    nvm use"),
-      );
+      console.log(kleur.bold("    nvm use"));
     }
-    console.log(
-      kleur.bold("    pnpm dev"),
-    );
+    console.log(kleur.bold("    pnpm dev"));
   }
 
   console.log();

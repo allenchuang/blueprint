@@ -1,0 +1,137 @@
+import type { FeatureManifest } from "../index.js";
+
+export const stripeManifest: FeatureManifest = {
+  id: "stripe",
+  name: "Stripe Payments",
+  description: "Subscriptions, checkout, feature gating",
+  category: "integration",
+  cliFlag: "--with-stripe",
+  filesToRemove: [
+    "apps/web/src/lib/stripe.ts",
+    "apps/web/src/lib/features.ts",
+    "apps/web/src/components/stripe-provider.tsx",
+    "apps/web/src/hooks/use-subscription.ts",
+    "apps/server/src/routes/stripe.ts",
+    // DB schema
+    "packages/db/src/schema/subscriptions.ts",
+    // RN files
+    "apps/react-native/lib/features.ts",
+    "apps/react-native/hooks/use-subscription.ts",
+    "apps/react-native/hooks/use-stripe-checkout.ts",
+    "apps/react-native/app/(tabs)/pricing.tsx",
+  ],
+  dirsToRemove: [
+    "apps/web/src/app/pricing",
+  ],
+  depsToRemove: {
+    "apps/web": ["@stripe/react-stripe-js", "@stripe/stripe-js"],
+    "apps/server": ["stripe"],
+    "apps/react-native": ["@stripe/stripe-react-native"],
+  },
+  layoutPatches: [
+    {
+      file: "apps/web/src/app/page.tsx",
+      type: "remove-block",
+      match: 'href="/pricing"',
+    },
+    {
+      file: "apps/server/src/app.ts",
+      type: "remove-import",
+      match: "stripeRoutes",
+    },
+    {
+      file: "apps/server/src/app.ts",
+      type: "remove-line",
+      match: "stripeRoutes",
+    },
+    // Remove stripeCustomerId column from users schema
+    {
+      file: "packages/db/src/schema/users.ts",
+      type: "remove-line",
+      match: "stripeCustomerId",
+    },
+    // Remove subscriptions exports from schema barrel
+    {
+      file: "packages/db/src/schema/index.ts",
+      type: "remove-block",
+      match: '"./subscriptions"',
+    },
+    // RN layout patches
+    {
+      file: "apps/react-native/app/_layout.tsx",
+      type: "remove-block",
+      match: "function StripeWrapper",
+    },
+    {
+      file: "apps/react-native/app/_layout.tsx",
+      type: "remove-wrapper",
+      match: "StripeWrapper",
+    },
+    {
+      file: "apps/react-native/app/_layout.tsx",
+      type: "remove-line",
+      match: "stripeKey",
+    },
+    {
+      file: "apps/react-native/app/_layout.tsx",
+      type: "remove-line",
+      match: "merchantId",
+    },
+    {
+      file: "apps/react-native/app/(tabs)/_layout.tsx",
+      type: "remove-block",
+      match: 'name="pricing"',
+    },
+  ],
+  envKeysToRemove: [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PRICE_PRO_MONTHLY",
+    "STRIPE_PRICE_PRO_YEARLY",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY",
+    "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "EXPO_PUBLIC_MERCHANT_IDENTIFIER",
+  ],
+  i18nKeysToRemove: [
+    "pricing",
+    "pageTitle",
+    "pageSubtitle",
+    "freeTier",
+    "proTier",
+    "freeTierDescription",
+    "proTierDescription",
+    "freePrice",
+    "proMonthlyPrice",
+    "perMonth",
+    "currentPlan",
+    "subscribe",
+    "manageBilling",
+    "successTitle",
+    "successMessage",
+    "notConfiguredTitle",
+    "notConfiguredMessage",
+    "features",
+    "basicAnalytics",
+    "advancedAnalytics",
+    "exportData",
+    "prioritySupport",
+    "customBranding",
+    "included",
+    "proOnly",
+    "upgradeRequired",
+    "premiumFeatureDemo",
+    "premiumFeatureLocked",
+    "yearly",
+    "monthly",
+    "savePercent",
+  ],
+  ruleFilesToRemove: [
+    "016-stripe-payments.mdc",
+    "017-feature-gating.mdc",
+  ],
+  skillDirsToRemove: ["stripe-integration", "feature-gating"],
+  rootScriptsToRemove: [],
+  turboTasksToRemove: [],
+  dependsOnRN: true,
+};
