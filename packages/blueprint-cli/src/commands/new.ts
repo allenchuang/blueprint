@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { execa } from "execa";
 import kleur from "kleur";
@@ -6,6 +6,42 @@ import ora from "ora";
 import prompts from "prompts";
 
 const REPO_URL = "https://github.com/allenchuang/blueprint.git";
+const REQUIRED_NODE_MAJOR = 23;
+
+async function hasNvm(): Promise<boolean> {
+  try {
+    await execa("bash", ["-c", "command -v nvm || [ -s \"$NVM_DIR/nvm.sh\" ]"], {
+      stdio: "pipe",
+      shell: true,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function installNodeWithNvm(version: string): Promise<boolean> {
+  const spinner = ora(`Installing Node.js ${version} via nvm...`).start();
+  try {
+    const nvmScript = `
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+      nvm install ${version} && nvm use ${version}
+    `;
+    await execa("bash", ["-c", nvmScript], { stdio: "pipe" });
+    spinner.succeed(`Node.js ${version} installed`);
+    return true;
+  } catch {
+    spinner.fail(`Could not install Node.js ${version} via nvm`);
+    return false;
+  }
+}
+
+function checkNodeVersion(): { ok: boolean; current: string; required: number } {
+  const current = process.version;
+  const major = Number.parseInt(current.slice(1).split(".")[0]!, 10);
+  return { ok: major >= REQUIRED_NODE_MAJOR, current, required: REQUIRED_NODE_MAJOR };
+}
 
 export async function newCommand(projectName: string): Promise<void> {
   const targetDir = resolve(process.cwd(), projectName);
@@ -15,6 +51,66 @@ export async function newCommand(projectName: string): Promise<void> {
       kleur.red(`✖ Directory already exists: ${kleur.bold(projectName)}`),
     );
     process.exit(1);
+  }
+
+  // Check Node.js version early
+  const nodeCheck = checkNodeVersion();
+  if (!nodeCheck.ok) {
+    console.log(
+      kleur.yellow(`  ⚠ Node.js ${kleur.bold(nodeCheck.current)} detected — Blueprint requires ${kleur.bold(`v${nodeCheck.required}+`)}.`),
+    );
+
+    const nvmAvailable = await hasNvm();
+
+    if (nvmAvailable) {
+      const { installNode } = await prompts({
+        type: "confirm",
+        name: "installNode",
+        message: `Install Node.js ${nodeCheck.required} via nvm now?`,
+        initial: true,
+      });
+
+      if (installNode) {
+        const installed = await installNodeWithNvm(String(nodeCheck.required));
+        if (installed) {
+          console.log(
+            kleur.green(`  ✔ Node.js ${nodeCheck.required} is now active.\n`),
+          );
+          console.log(
+            kleur.dim("  Re-run the command to scaffold with the new version:\n"),
+          );
+          console.log(
+            kleur.bold(`    npx blueprint-stack new ${projectName}\n`),
+          );
+          process.exit(0);
+        }
+      }
+    } else {
+      console.log(
+        kleur.dim("  nvm not found. Install it from ") +
+          kleur.bold("https://github.com/nvm-sh/nvm") +
+          kleur.dim(" then run:"),
+      );
+      console.log(
+        kleur.bold(`    nvm install ${nodeCheck.required}`),
+      );
+      console.log(
+        kleur.bold(`    nvm use ${nodeCheck.required}\n`),
+      );
+    }
+
+    const { continueAnyway } = await prompts({
+      type: "confirm",
+      name: "continueAnyway",
+      message: `Continue with Node.js ${nodeCheck.current}? (some apps may not work)`,
+      initial: false,
+    });
+
+    if (!continueAnyway) {
+      process.exit(0);
+    }
+
+    console.log();
   }
 
   console.log(
@@ -76,7 +172,7 @@ export async function newCommand(projectName: string): Promise<void> {
           type: "text",
           name: "name",
           message: "App name:",
-          initial: "Mastermind",
+          initial: "Blueprint",
         },
         {
           type: "text",
@@ -231,10 +327,38 @@ export const appConfig = {
     gitInitSpinner.warn("Could not initialize git — run git init manually");
   }
 
-  // Done — cd into project and start dev server
+  // Read the .nvmrc from the scaffolded project
+  let nvmrcVersion = String(REQUIRED_NODE_MAJOR);
+  try {
+    nvmrcVersion = readFileSync(join(targetDir, ".nvmrc"), "utf-8").trim();
+  } catch {
+    // fall back to REQUIRED_NODE_MAJOR
+  }
+
+  // Done
   console.log();
   console.log(kleur.green().bold("  ✔ Project ready!"));
   console.log();
+
+  if (!nodeCheck.ok) {
+    console.log(
+      kleur.yellow(`  ⚠ Remember: this project requires Node.js ${kleur.bold(`v${nvmrcVersion}+`)}.\n`),
+    );
+    console.log(
+      kleur.dim("  Switch to the correct version before developing:\n"),
+    );
+    console.log(
+      kleur.bold(`    cd ${projectName}`),
+    );
+    console.log(
+      kleur.bold(`    nvm install ${nvmrcVersion}  ${kleur.dim("# first time only")}`),
+    );
+    console.log(
+      kleur.bold(`    nvm use`),
+    );
+    console.log();
+  }
+
   console.log(
     kleur.dim("  To update branding, edit: ") +
       kleur.bold("packages/app-config/src/config.ts"),
@@ -246,9 +370,50 @@ export const appConfig = {
   );
   console.log();
 
-  console.log(kleur.cyan("  Starting dev server...\n"));
-  await execa("pnpm", ["dev"], {
-    cwd: targetDir,
-    stdio: "inherit",
+  const { startDev } = await prompts({
+    type: "confirm",
+    name: "startDev",
+    message: "Start the dev server now?",
+    initial: true,
   });
+
+  if (startDev) {
+    console.log(kleur.cyan("  Starting dev server...\n"));
+    try {
+      await execa("pnpm", ["dev"], {
+        cwd: targetDir,
+        stdio: "inherit",
+      });
+    } catch {
+      console.log();
+      console.log(
+        kleur.yellow("  ⚠ Dev server exited with errors (some apps may require a newer Node.js version)."),
+      );
+      console.log(
+        kleur.dim("  You can restart individual apps with: ") +
+          kleur.bold("pnpm dev:web") +
+          kleur.dim(", ") +
+          kleur.bold("pnpm dev:server") +
+          kleur.dim(", etc."),
+      );
+    }
+  } else {
+    console.log();
+    console.log(
+      kleur.dim("  To start developing, run:\n"),
+    );
+    console.log(
+      kleur.bold(`    cd ${projectName}`),
+    );
+    if (!nodeCheck.ok) {
+      console.log(
+        kleur.bold("    nvm use"),
+      );
+    }
+    console.log(
+      kleur.bold("    pnpm dev"),
+    );
+  }
+
+  console.log();
 }

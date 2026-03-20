@@ -3,7 +3,7 @@ name: stripe-integration
 description: Stripe payment integration patterns for this monorepo. Use when building, modifying, or reviewing any Stripe integration — including checkout flows, subscriptions, webhooks, PaymentSheet, or Customer Portal. Covers web (Next.js), React Native (Expo), and server (Fastify).
 ---
 
-This skill guides Stripe integration in the Mastermind monorepo. It covers API selection, integration patterns for web and mobile, server routes, webhook handling, and testing.
+This skill guides Stripe integration in the Blueprint monorepo. It covers API selection, integration patterns for web and mobile, server routes, webhook handling, and testing.
 
 ## Integration Routing
 

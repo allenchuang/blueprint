@@ -31,8 +31,8 @@ export function useStripeCheckout() {
         const { error: initError } = await initPaymentSheet({
           paymentIntentClientSecret: clientSecret,
           customerId: customer,
-          merchantDisplayName: "Mastermind",
-          returnURL: "mastermind://stripe-redirect",
+          merchantDisplayName: "Blueprint",
+          returnURL: "blueprint://stripe-redirect",
         });
 
         if (initError) {

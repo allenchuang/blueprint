@@ -1,14 +1,14 @@
 import type { AppConfig } from "./types";
 
 export const appConfig = {
-  name: "Mastermind",
-  slug: "mastermind",
+  name: "Blueprint",
+  slug: "blueprint",
   description: "Build your next big thing",
   slogan: "Ship ideas at the speed of thought",
   version: "0.1.0",
 
   colors: {
-    primary: "#0D9373",
+    primary: "#38BDF8",
   },
 
   urls: {
@@ -19,8 +19,8 @@ export const appConfig = {
   },
 
   mobile: {
-    bundleId: "com.mastermind.app",
-    scheme: "mastermind",
+    bundleId: "com.blueprint.app",
+    scheme: "blueprint",
   },
 
   socials: {

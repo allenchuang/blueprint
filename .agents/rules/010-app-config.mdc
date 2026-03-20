@@ -55,6 +55,6 @@ All logos, favicons, and icons live in `packages/app-config/assets/`:
 
 - **DO** import `appConfig` from `@repo/app-config` for any app identity reference
 - **DO** run `pnpm sync-config` after changing config or assets
-- **DO NOT** hardcode "Mastermind" or any app name in component files
+- **DO NOT** hardcode "Blueprint" or any app name in component files
 - **DO NOT** manually edit `apps/web/src/app/theme.css` or `apps/admin/src/app/theme.css` — they are generated
 - **DO NOT** manually edit brand assets in `apps/*/public/` or `apps/docs/logo/` — they are copied from the config package

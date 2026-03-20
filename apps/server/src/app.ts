@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import { appConfig } from "@repo/app-config";
+import authPlugin from "./plugins/auth.js";
 import { healthRoutes } from "./routes/health.js";
 import { exampleRoutes } from "./routes/example.js";
 import { stripeRoutes } from "./routes/stripe.js";
@@ -34,6 +35,8 @@ export async function buildApp() {
   await app.register(swaggerUi, {
     routePrefix: "/docs",
   });
+
+  await app.register(authPlugin);
 
   await app.register(healthRoutes, { prefix: "/api" });
   await app.register(exampleRoutes, { prefix: "/api" });

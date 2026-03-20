@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@dynamic-labs/sdk-react-core": "^4.68.0",
     "@elevenlabs/react": "^0.14.3",
     "@next/third-parties": "^16.1.6",
     "@repo/app-config": "workspace:*",

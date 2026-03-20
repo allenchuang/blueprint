@@ -5,6 +5,7 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "../i18n";
 import { useScreenTracking } from "@/hooks/use-screen-tracking";
 import { elevenlabsEnabled } from "@/lib/elevenlabs";
+import { dynamicEnabled } from "@/lib/dynamic";
 
 const queryClient = new QueryClient();
 
@@ -19,10 +20,24 @@ function StripeWrapper({ children }: { children: React.ReactNode }) {
     <StripeProvider
       publishableKey={stripeKey}
       merchantIdentifier={merchantId}
-      urlScheme="mastermind"
+      urlScheme="blueprint"
     >
       {children}
     </StripeProvider>
+  );
+}
+
+function DynamicWrapper({ children }: { children: React.ReactNode }) {
+  if (!dynamicEnabled) return <>{children}</>;
+
+  const { DynamicWebView } = require("@dynamic-labs/react-native-extension");
+  const { getDynamicClient } = require("@/lib/dynamic-client");
+  const dynamicClient = getDynamicClient();
+  return (
+    <>
+      {children}
+      <DynamicWebView client={dynamicClient} />
+    </>
   );
 }
 
@@ -47,11 +62,13 @@ export default function RootLayout() {
   return (
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
-        <StripeWrapper>
-          <ElevenLabsWrapper>
-            <AppLayout />
-          </ElevenLabsWrapper>
-        </StripeWrapper>
+        <DynamicWrapper>
+          <StripeWrapper>
+            <ElevenLabsWrapper>
+              <AppLayout />
+            </ElevenLabsWrapper>
+          </StripeWrapper>
+        </DynamicWrapper>
       </QueryClientProvider>
     </I18nextProvider>
   );

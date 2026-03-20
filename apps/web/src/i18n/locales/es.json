@@ -1,5 +1,5 @@
 {
-  "appName": "Mastermind",
+  "appName": "Blueprint",
   "welcome": "Bienvenido",
   "settings": "Configuración",
   "home": "Inicio",
@@ -52,5 +52,10 @@
   "voiceAgentFeedbackNegative": "Mala respuesta",
   "voiceAgentMute": "Silenciar",
   "voiceAgentUnmute": "Activar sonido",
-  "voiceAgentTranscript": "Transcripción"
+  "voiceAgentTranscript": "Transcripción",
+  "login": "Iniciar Sesión",
+  "logout": "Cerrar Sesión",
+  "loggedInAs": "Conectado como",
+  "authNotConfigured": "Autenticación No Configurada",
+  "authNotConfiguredHint": "Establece NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID en tu entorno para habilitar la autenticación."
 }

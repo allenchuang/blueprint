@@ -1,6 +1,6 @@
 # API Server
 
-Lightweight REST API server for Mastermind built with Fastify. Includes auto-generated Swagger/OpenAPI documentation.
+Lightweight REST API server for Blueprint built with Fastify. Includes auto-generated Swagger/OpenAPI documentation.
 
 ## Tech Stack
 

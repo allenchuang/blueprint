@@ -1,5 +1,5 @@
 {
-  "appName": "Mastermind",
+  "appName": "Blueprint",
   "welcome": "Welcome",
   "settings": "Settings",
   "home": "Home",
@@ -39,5 +39,10 @@
   "voiceAgentNotConfiguredHint": "Set EXPO_PUBLIC_ELEVENLABS_AGENT_ID in your environment to enable the voice agent.",
   "voiceAgentFeedbackPositive": "Good response",
   "voiceAgentFeedbackNegative": "Bad response",
-  "voiceAgentTranscript": "Transcript"
+  "voiceAgentTranscript": "Transcript",
+  "login": "Log In",
+  "logout": "Log Out",
+  "loggedInAs": "Logged in as",
+  "authNotConfigured": "Auth Not Configured",
+  "authNotConfiguredHint": "Set EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID in your environment to enable authentication."
 }

@@ -18,7 +18,7 @@ export async function exampleRoutes(app: FastifyInstance) {
       },
     },
     async () => {
-      return { message: "Hello from Mastermind API" };
+      return { message: "Hello from Blueprint API" };
     }
   );
 

@@ -1,5 +1,5 @@
 {
-  "appName": "Mastermind",
+  "appName": "Blueprint",
   "welcome": "欢迎",
   "settings": "设置",
   "home": "首页",
@@ -52,5 +52,10 @@
   "voiceAgentFeedbackNegative": "回答不好",
   "voiceAgentMute": "静音",
   "voiceAgentUnmute": "取消静音",
-  "voiceAgentTranscript": "对话记录"
+  "voiceAgentTranscript": "对话记录",
+  "login": "登录",
+  "logout": "退出登录",
+  "loggedInAs": "已登录为",
+  "authNotConfigured": "认证未配置",
+  "authNotConfiguredHint": "请在环境变量中设置 NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID 以启用认证。"
 }

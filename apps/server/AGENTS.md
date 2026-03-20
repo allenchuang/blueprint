@@ -17,6 +17,9 @@ Fastify 5 REST API server with auto-generated Swagger documentation.
 - Use `@repo/db` for database queries (import `createDb` and schema)
 - Schema tags group endpoints in Swagger UI
 - When adding/changing endpoints, update `apps/docs/api-reference/`
+- Use `app.authenticate` preHandler on protected routes (verifies Dynamic JWT)
+- Authenticated user is available via `request.dynamicUser` (`sub`, `email`, `scope`)
+- Proxy external infra requests through `INFRA_API_URL` — clients should never call infra directly
 
 ## Swagger
 

@@ -217,10 +217,13 @@ export async function stripeRoutes(app: FastifyInstance) {
         },
       },
     },
-    async (_request, reply) => {
+    async (request, reply) => {
       if (!stripe) return reply.status(503).send(notConfiguredResponse);
 
-      // TODO: Look up userId from auth, query subscriptions table
+      await app.authenticate(request, reply);
+      if (reply.sent) return;
+
+      // TODO: Query subscriptions table using request.dynamicUser?.sub
       return {
         tier: "free",
         status: null,

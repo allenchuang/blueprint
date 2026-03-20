@@ -5,7 +5,7 @@ Full-stack monorepo for rapidly building and shipping app ideas. Built with Turb
 ## Architecture
 
 ```
-mastermind/
+blueprint/
 ├── apps/
 │   ├── web/            → Main web app (Next.js + shadcn/ui + Tailwind)         :3000
 │   ├── admin/          → Admin panel (Next.js + shadcn/ui + Tailwind)          :3002
@@ -26,9 +26,31 @@ mastermind/
 
 ## Prerequisites
 
-- **Node.js** >= 23 (use `nvm use` — the repo includes an `.nvmrc`)
+- **Node.js** >= 23 — the repo includes an `.nvmrc` (see setup below)
+- **nvm** (recommended) — [install nvm](https://github.com/nvm-sh/nvm#installing-and-updating) to manage Node versions
 - **pnpm** >= 10 (`corepack enable && corepack prepare pnpm@latest --activate`)
 - **Neon** PostgreSQL database (or any PostgreSQL instance)
+
+### Node.js Setup
+
+Blueprint requires Node.js **v23 or higher**. The easiest way to manage this is with [nvm](https://github.com/nvm-sh/nvm):
+
+```bash
+# Install nvm (if you don't have it)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+# Install and use the required Node version (reads .nvmrc automatically)
+nvm install
+nvm use
+```
+
+To verify you're on the right version:
+
+```bash
+node -v   # Should print v23.x.x or higher
+```
+
+> **Tip:** Add `nvm use` to your shell profile or enable nvm's [auto-use](https://github.com/nvm-sh/nvm#deeper-shell-integration) so the correct version activates automatically when you `cd` into the project.
 
 ## Getting Started
 
@@ -72,6 +94,7 @@ Blueprint ships with production-ready scaffolding out of the box. Every feature 
 - 🎬 Video Generation (Remotion)
 - 📖 Documentation (Mintlify)
 - 📊 Google Analytics
+- 🔐 Dynamic Auth (Email OTP)
 - 🎙️ ElevenLabs Voice Agent
 - 🔀 Co-Development (Web + Mobile)
 
@@ -147,6 +170,18 @@ Schema-first database access via Drizzle ORM with Neon serverless PostgreSQL. Sc
 ### Google Analytics
 
 Optional GA4 integration via `@next/third-parties`. Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env` to enable.
+
+### Dynamic Auth (Email OTP)
+
+Authentication powered by [Dynamic](https://www.dynamic.xyz/) with email-only OTP — no wallets, no social logins.
+
+- **Web** (`@dynamic-labs/sdk-react-core`): `DynamicContextProvider` wraps the app, `useAuth()` hook for auth state, `getAuthToken()` for JWT
+- **React Native** (`@dynamic-labs/client` + `@dynamic-labs/react-native-extension`): `dynamicClient` with `useAuth()` hook and `DynamicWebView` for SDK UI
+- **Server** (`jsonwebtoken` + `jwks-rsa`): `authenticate` preHandler verifies Dynamic JWTs via JWKS endpoint, upserts users in local DB
+- **Feature flag**: `dynamicEnabled` in `lib/dynamic.ts` — gated on `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` (web) / `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID` (mobile)
+- **Gateway**: `apps/server` proxies authenticated requests to an external infra backend via `INFRA_API_URL` — clients never call infra directly
+
+Create a project at https://app.dynamic.xyz, enable Email auth in dashboard, and set the Environment ID in `.env` to enable.
 
 ### ElevenLabs Voice Agent
 

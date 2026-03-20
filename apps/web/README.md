@@ -1,6 +1,6 @@
 # Web App
 
-Main web application for Mastermind. Built with Next.js 15, shadcn/ui, and Tailwind CSS v4.
+Main web application for Blueprint. Built with Next.js 15, shadcn/ui, and Tailwind CSS v4.
 
 ## Tech Stack
 

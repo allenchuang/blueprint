@@ -1,11 +1,11 @@
-# Mastermind - Agent Instructions
+# Blueprint - Agent Instructions
 
 ## Repository Map
 
 This is a Turborepo monorepo with the following structure:
 
 ```
-mastermind/
+blueprint/
 ├── apps/
 │   ├── web/            → Main web app (Next.js 15 + shadcn/ui + Tailwind CSS v4, port 3000)
 │   ├── admin/          → Admin panel (Next.js 15 + shadcn/ui + Tailwind CSS v4, port 3002)
@@ -209,7 +209,23 @@ Key naming: flat camelCase (`"welcomeMessage"`, not `"welcome.message"`).
 
 Web uses `i18next-browser-languagedetector`; React Native uses `expo-localization`. Do NOT mix them.
 
-### 14. ElevenLabs Voice Agent
+### 14. Dynamic Auth (Email OTP)
+
+Authentication via [Dynamic](https://www.dynamic.xyz/) — email-only OTP, no wallets or social providers.
+
+- **Web**: `DynamicContextProvider` from `@dynamic-labs/sdk-react-core` wraps the app. `useAuth()` hook in `src/hooks/use-auth.ts`.
+- **React Native**: `createClient` from `@dynamic-labs/client` + `ReactNativeExtension`. `useAuth()` hook in `hooks/use-auth.ts`.
+- **Server**: `authenticate` preHandler in `src/plugins/auth.ts` verifies JWTs via Dynamic JWKS. Upserts user in local DB (`dynamic_user_id`).
+- **Gateway**: Server proxies to `INFRA_API_URL` for external infra backend calls.
+
+Feature flag: `dynamicEnabled` in `lib/dynamic.ts` (both apps). Gated on:
+- Web: `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
+- RN: `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
+- Server: `DYNAMIC_ENVIRONMENT_ID`
+
+Use `useAuth()` for auth state. Send JWT as `Authorization: Bearer <token>` to `apps/server`. Never use NextAuth, Clerk, or other auth libraries.
+
+### 15. ElevenLabs Voice Agent
 
 Real-time voice conversations with AI agents via ElevenLabs Conversational AI (ElevenAgents).
 

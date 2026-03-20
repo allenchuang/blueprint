@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { appConfig } from "@repo/app-config";
 import { WorldMiniKitProvider } from "@/components/minikit-provider";
+import { DynamicAuthProvider } from "@/components/dynamic-provider";
+import { QueryProvider } from "@/components/query-provider";
 import { I18nProvider } from "@/components/i18n-provider";
 import "./globals.css";
 
@@ -46,7 +48,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <WorldMiniKitProvider>
-          <I18nProvider>{children}</I18nProvider>
+          <DynamicAuthProvider>
+            <QueryProvider>
+              <I18nProvider>{children}</I18nProvider>
+            </QueryProvider>
+          </DynamicAuthProvider>
         </WorldMiniKitProvider>
       </body>
       {gaId && <GoogleAnalytics gaId={gaId} />}

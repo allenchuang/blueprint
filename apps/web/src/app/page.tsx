@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { AuthDemo } from "@/components/auth-demo";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -18,6 +19,9 @@ export default function Home() {
         <Link href="/voice-agent">
           <Button variant="outline">{t("voiceAgent")}</Button>
         </Link>
+      </div>
+      <div className="mt-8 w-full max-w-sm">
+        <AuthDemo />
       </div>
     </main>
   );
