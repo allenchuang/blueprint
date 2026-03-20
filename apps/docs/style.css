@@ -1,0 +1,64 @@
+/* ─────────────────────────────────────────────────────────────────
+   Blueprint Docs — custom styling to match apps/web aesthetic
+   ───────────────────────────────────────────────────────────────── */
+
+/* Load Instrument Serif from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
+
+/* ── Logo / wordmark ──────────────────────────────────────────── */
+
+/* The name "Blueprint" is rendered as HTML text when no logo image
+   is configured — Instrument Serif applies here correctly */
+.nav-logo {
+  font-family: "Instrument Serif", Georgia, serif !important;
+  font-size: 2rem !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.02em;
+}
+
+/* ── Navbar ───────────────────────────────────────────────────── */
+
+#navbar {
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+}
+
+/* ── Side gradient accents ────────────────────────────────────── */
+
+/* Left blob */
+body::before {
+  content: '';
+  position: fixed;
+  left: -180px;
+  top: 15%;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, rgba(14, 165, 233, 0.08) 45%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Right blob */
+body::after {
+  content: '';
+  position: fixed;
+  right: -180px;
+  top: 45%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.16) 0%, rgba(56, 189, 248, 0.07) 45%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Dark mode: match apps/web page.tsx gradient (blue-950 → gray-900 → gray-950) */
+
+.dark body::before {
+  background: radial-gradient(circle, rgba(23, 37, 84, 0.7) 0%, rgba(17, 24, 39, 0.4) 45%, transparent 70%);
+}
+
+.dark body::after {
+  background: radial-gradient(circle, rgba(23, 37, 84, 0.5) 0%, rgba(17, 24, 39, 0.25) 45%, transparent 70%);
+}

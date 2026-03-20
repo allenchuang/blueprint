@@ -1,0 +1,110 @@
+---
+title: Authentication
+description: "Email OTP authentication via Dynamic — no passwords, no wallets."
+---
+
+## Overview
+
+Blueprint uses [Dynamic](https://www.dynamic.xyz/) for authentication. Users sign in with their email address and receive a one-time passcode — no passwords, no wallet connections, no social OAuth required.
+
+Dynamic issues a JWT on successful authentication. The Blueprint server verifies that JWT on every protected request using Dynamic's JWKS endpoint, then upserts the user into your local database.
+
+## Environment variables
+
+```bash
+# apps/web
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID="your-dynamic-env-id"
+
+# apps/react-native
+EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID="your-dynamic-env-id"
+
+# apps/server
+DYNAMIC_ENVIRONMENT_ID="your-dynamic-env-id"
+```
+
+Get your environment ID from the [Dynamic dashboard](https://app.dynamic.xyz). When these variables are absent, authentication is disabled and the app still loads.
+
+## Web setup
+
+The `DynamicContextProvider` wraps `apps/web` in the root layout. The `useAuth()` hook gives you auth state anywhere in the app:
+
+```typescript
+// apps/web/src/hooks/use-auth.ts
+import { useAuth } from "@/hooks/use-auth";
+
+const { user, isAuthenticated, token, signOut } = useAuth();
+```
+
+The `dynamicEnabled` flag in `src/lib/dynamic.ts` controls whether Dynamic UI is rendered:
+
+```typescript
+import { dynamicEnabled } from "@/lib/dynamic";
+
+if (!dynamicEnabled) {
+  // Show fallback / skip auth UI
+}
+```
+
+## React Native setup
+
+Uses `@dynamic-labs/client` with `ReactNativeExtension`:
+
+```typescript
+import { useAuth } from "@/hooks/use-auth";
+
+const { user, isAuthenticated, token } = useAuth();
+```
+
+Same hook name as web — identical interface.
+
+## Server verification
+
+Every protected API route uses the `authenticate` preHandler plugin from `apps/server/src/plugins/auth.ts`:
+
+```typescript
+app.get("/api/profile", {
+  preHandler: [authenticate],
+  schema: { /* ... */ },
+}, async (request, reply) => {
+  const user = request.user; // typed, verified from JWT
+  return user;
+});
+```
+
+The plugin:
+1. Reads the `Authorization: Bearer <token>` header
+2. Verifies the JWT signature via Dynamic's JWKS endpoint
+3. Upserts the user into your `users` table (keyed on `dynamic_user_id`)
+4. Attaches `request.user` for use in the route handler
+
+## Sending authenticated requests
+
+Include the JWT as a Bearer token on every request to the server:
+
+```typescript
+const { token } = useAuth();
+
+const res = await fetch("/api/profile", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+```
+
+## Database columns
+
+The `users` table in `packages/db/src/schema/users.ts` includes:
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | uuid | Internal user ID |
+| `dynamicUserId` | text | Dynamic user identifier (unique) |
+| `email` | text | User email |
+| `createdAt` | timestamp | Account creation time |
+| `updatedAt` | timestamp | Last updated |
+
+## Rules
+
+- **DO** use `useAuth()` for all auth state in components — never read JWTs directly
+- **DO** protect server routes with the `authenticate` preHandler
+- **DO** check `dynamicEnabled` before rendering any auth UI
+- **DO NOT** use NextAuth, Clerk, or any other auth library alongside Dynamic
+- **DO NOT** trust client-side auth state for data access — always verify on the server

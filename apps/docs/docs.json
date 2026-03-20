@@ -1,48 +1,120 @@
 {
   "$schema": "https://mintlify.com/schema.json",
   "theme": "mint",
-  "name": "Blueprint",
-  "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
-  },
+  "name": "Blueprint 🧢 ",
   "favicon": "/favicon.svg",
   "colors": {
     "primary": "#38BDF8",
-    "light": "#72efff",
-    "dark": "#38BDF8"
+    "light": "#7DD3FC",
+    "dark": "#0EA5E9"
+  },
+  "background": {
+    "decoration": "grid",
+    "color": {
+      "light": "#FFFFFF",
+      "dark": "#0D1117"
+    }
+  },
+  "appearance": {
+    "default": "system"
   },
   "navigation": {
     "global": {
       "anchors": [
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com"
-        }
+        { "anchor": "GitHub", "href": "https://github.com", "icon": "github" }
       ]
     },
     "tabs": [
       {
-        "tab": "Introduction",
-        "icon": "hand",
+        "tab": "Getting Started",
+        "icon": "rocket",
         "groups": [
           {
-            "group": "Getting started",
-            "icon": "play",
+            "group": "Overview",
+            "pages": ["introduction", "quickstart", "get-started"]
+          },
+          {
+            "group": "Project",
+            "pages": ["architecture"]
+          }
+        ]
+      },
+      {
+        "tab": "Features",
+        "icon": "sparkles",
+        "groups": [
+          {
+            "group": "Foundation",
             "pages": [
-              "introduction",
-              "quickstart",
-              "architecture"
+              "features/app-config",
+              "features/database",
+              "features/api-server"
+            ]
+          },
+          {
+            "group": "Auth & Payments",
+            "pages": ["features/authentication", "features/payments"]
+          },
+          {
+            "group": "Frontend",
+            "pages": [
+              "features/co-development",
+              "features/mobile-patterns",
+              "features/i18n"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": ["features/voice-agent", "features/video-generation"]
+          }
+        ]
+      },
+      {
+        "tab": "Conventions",
+        "icon": "book",
+        "groups": [
+          {
+            "group": "Code",
+            "pages": [
+              "conventions/code-style",
+              "conventions/component-patterns",
+              "conventions/api-patterns",
+              "conventions/database-patterns"
+            ]
+          },
+          {
+            "group": "Process",
+            "pages": ["conventions/testing", "conventions/git"]
+          }
+        ]
+      },
+      {
+        "tab": "Extending",
+        "icon": "wrench",
+        "groups": [
+          {
+            "group": "Extend Blueprint",
+            "pages": [
+              "extending/overview",
+              "extending/cli",
+              "extending/skills-rules",
+              "extending/new-language"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "icon": "square-terminal",
-        "pages": [
-          "api-reference/endpoint/get",
-          "api-reference/endpoint/create"
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create"
+            ]
+          }
         ]
       }
     ]

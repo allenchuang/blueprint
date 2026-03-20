@@ -44,5 +44,9 @@
   "logout": "Cerrar Sesión",
   "loggedInAs": "Conectado como",
   "authNotConfigured": "Autenticación No Configurada",
-  "authNotConfiguredHint": "Establece EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID en tu entorno para habilitar la autenticación."
+  "authNotConfiguredHint": "Establece EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID en tu entorno para habilitar la autenticación.",
+  "switchToLight": "Cambiar a modo claro",
+  "switchToDark": "Cambiar a modo oscuro",
+  "openMenu": "Abrir menú",
+  "switchLanguage": "Cambiar idioma"
 }

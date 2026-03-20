@@ -6,6 +6,9 @@ import { WorldMiniKitProvider } from "@/components/minikit-provider";
 import { DynamicAuthProvider } from "@/components/dynamic-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { I18nProvider } from "@/components/i18n-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { NavBar } from "@/components/nav-bar";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -47,13 +50,20 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <WorldMiniKitProvider>
-          <DynamicAuthProvider>
-            <QueryProvider>
-              <I18nProvider>{children}</I18nProvider>
-            </QueryProvider>
-          </DynamicAuthProvider>
-        </WorldMiniKitProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            <WorldMiniKitProvider>
+              <DynamicAuthProvider>
+                <QueryProvider>
+                  <I18nProvider>
+                    <NavBar />
+                    <main className="flex-1">{children}</main>
+                  </I18nProvider>
+                </QueryProvider>
+              </DynamicAuthProvider>
+            </WorldMiniKitProvider>
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
       {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>

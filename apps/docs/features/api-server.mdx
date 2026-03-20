@@ -1,0 +1,153 @@
+---
+title: API Server
+description: "Fastify + Swagger — schema-first endpoints with auto-generated OpenAPI docs."
+---
+
+## Overview
+
+`apps/server` is a [Fastify](https://fastify.dev/) server that powers all backend API logic. Every endpoint is defined with a schema, which Fastify uses to automatically generate an OpenAPI/Swagger spec. The interactive Swagger UI is available at `http://localhost:3001/docs` whenever the server is running.
+
+## Running the server
+
+```bash
+pnpm dev:server    # development with hot reload
+```
+
+The server starts on **port 3001** by default.
+
+## Directory structure
+
+```
+apps/server/src/
+├── app.ts              → Fastify app factory, plugin registration, route registration
+├── index.ts            → Entry point (starts the server)
+├── routes/
+│   ├── users.ts        → User-related endpoints
+│   ├── stripe.ts       → Stripe/payment endpoints
+│   └── ...             → One file per resource
+└── plugins/
+    ├── auth.ts         → JWT authentication preHandler
+    ├── db.ts           → Drizzle database client
+    └── ...
+```
+
+## Defining an endpoint
+
+All routes must include a `schema` property for Swagger generation:
+
+```typescript
+// apps/server/src/routes/posts.ts
+import type { FastifyPluginAsync } from "fastify";
+
+const postsRoutes: FastifyPluginAsync = async (app) => {
+  app.get("/posts", {
+    schema: {
+      description: "List all posts",
+      tags: ["posts"],
+      response: {
+        200: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              title: { type: "string" },
+              createdAt: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    const posts = await db.select().from(postsTable);
+    return posts;
+  });
+
+  app.post("/posts", {
+    schema: {
+      description: "Create a post",
+      tags: ["posts"],
+      body: {
+        type: "object",
+        required: ["title"],
+        properties: {
+          title: { type: "string" },
+          content: { type: "string" },
+        },
+      },
+      response: {
+        201: { /* ... */ },
+      },
+    },
+    preHandler: [authenticate], // protect the route
+  }, async (request, reply) => {
+    const { title, content } = request.body as { title: string; content?: string };
+    const [post] = await db.insert(postsTable).values({ title, content }).returning();
+    return reply.status(201).send(post);
+  });
+};
+
+export default postsRoutes;
+```
+
+## Registering routes
+
+Register route plugins in `apps/server/src/app.ts`:
+
+```typescript
+import postsRoutes from "./routes/posts";
+
+await app.register(postsRoutes, { prefix: "/api" });
+```
+
+After registering, verify the endpoint appears in the Swagger UI at `http://localhost:3001/docs`.
+
+## Authentication
+
+Use the `authenticate` preHandler from `src/plugins/auth.ts` to protect routes:
+
+```typescript
+import { authenticate } from "@/plugins/auth";
+
+app.get("/api/profile", {
+  preHandler: [authenticate],
+  schema: { /* ... */ },
+}, async (request, reply) => {
+  return request.user; // verified user from JWT
+});
+```
+
+## Error handling
+
+Use Fastify's built-in HTTP errors — never throw generic `Error`:
+
+```typescript
+throw app.httpErrors.notFound("User not found");
+throw app.httpErrors.unauthorized("Invalid token");
+throw app.httpErrors.badRequest("Email is required");
+```
+
+## Swagger UI
+
+Visit `http://localhost:3001/docs` to:
+- Browse all endpoints organized by tag
+- Try requests directly in the browser
+- Copy `curl` commands
+- View request/response schemas
+
+## Environment variables
+
+```bash
+DATABASE_URL="..."          # required
+DYNAMIC_ENVIRONMENT_ID="..."  # for auth (optional)
+STRIPE_SECRET_KEY="..."     # for payments (optional)
+STRIPE_WEBHOOK_SECRET="..."
+```
+
+## Rules
+
+- **DO** define a `schema` on every endpoint — no schema means no Swagger entry
+- **DO** use `authenticate` preHandler for any route that requires a logged-in user
+- **DO** use `app.httpErrors.*` for error responses
+- **DO NOT** put route logic in `app.ts` — keep routes in `src/routes/`
+- **DO NOT** expose `STRIPE_SECRET_KEY` or other server secrets to clients

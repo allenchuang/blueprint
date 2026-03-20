@@ -1,0 +1,90 @@
+---
+title: Voice Agent
+description: "Real-time AI voice conversations via ElevenLabs Conversational AI."
+---
+
+## Overview
+
+Blueprint integrates [ElevenLabs Conversational AI](https://elevenlabs.io/conversational-ai) for real-time voice conversations. Users can speak to an AI agent and receive spoken responses — all in-browser via WebRTC. Both web and React Native are supported.
+
+## Environment variables
+
+```bash
+# apps/web
+NEXT_PUBLIC_ELEVENLABS_AGENT_ID="your-agent-id"
+
+# apps/react-native
+EXPO_PUBLIC_ELEVENLABS_AGENT_ID="your-agent-id"
+```
+
+Get your agent ID from the [ElevenLabs dashboard](https://elevenlabs.io). When the env var is absent, the voice agent UI shows a "not configured" fallback — the rest of the app is unaffected.
+
+## Web usage
+
+The web app uses `@elevenlabs/react` with browser-native WebRTC/WebSocket:
+
+```typescript
+import { useVoiceAgent } from "@/hooks/use-voice-agent";
+
+export function VoiceAgentButton() {
+  const { status, startConversation, endConversation, isSpeaking } = useVoiceAgent();
+
+  return (
+    <button onClick={status === "idle" ? startConversation : endConversation}>
+      {status === "idle" ? "Start Voice Chat" : "End Chat"}
+    </button>
+  );
+}
+```
+
+## React Native usage
+
+The mobile app uses `@elevenlabs/react-native` with the `ElevenLabsProvider` wrapper and LiveKit-powered WebRTC:
+
+```typescript
+import { useVoiceAgent } from "@/hooks/use-voice-agent";
+
+export default function VoiceScreen() {
+  const { status, startConversation, endConversation } = useVoiceAgent();
+
+  return (
+    <TouchableOpacity onPress={status === "idle" ? startConversation : endConversation}>
+      <Text>{status === "idle" ? "Start" : "Stop"}</Text>
+    </TouchableOpacity>
+  );
+}
+```
+
+Same hook name (`useVoiceAgent`) and same interface on both platforms.
+
+## Feature flag
+
+Check `elevenlabsEnabled` before rendering any voice UI:
+
+```typescript
+import { elevenlabsEnabled } from "@/lib/elevenlabs";
+
+if (!elevenlabsEnabled) {
+  return <p>Voice agent not configured.</p>;
+}
+```
+
+## Microphone permissions
+
+The web SDK requests microphone access when `startConversation()` is called. On React Native, `expo-av` mic permissions must be requested before starting a session — the `useVoiceAgent` hook handles this automatically.
+
+## Status values
+
+| Status | Description |
+|---|---|
+| `idle` | No active session |
+| `connecting` | Establishing WebRTC connection |
+| `active` | Conversation in progress |
+| `error` | Connection or permission failure |
+
+## Rules
+
+- **DO** check `elevenlabsEnabled` before rendering voice UI
+- **DO** use `useVoiceAgent()` for consistent state management across platforms
+- **DO** handle microphone permission denial gracefully
+- **DO NOT** create a new ElevenLabs client outside of the hook

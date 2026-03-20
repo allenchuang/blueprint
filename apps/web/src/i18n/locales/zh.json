@@ -4,6 +4,8 @@
   "settings": "设置",
   "home": "首页",
   "mainWebApplication": "主要网页应用",
+  "stripeIntegration": "Stripe 集成",
+  "elevenlabsVoice": "ElevenLabs 语音",
   "pricing": "定价",
   "pageTitle": "定价",
   "pageSubtitle": "选择适合您的计划",
@@ -57,5 +59,9 @@
   "logout": "退出登录",
   "loggedInAs": "已登录为",
   "authNotConfigured": "认证未配置",
-  "authNotConfiguredHint": "请在环境变量中设置 NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID 以启用认证。"
+  "authNotConfiguredHint": "请在环境变量中设置 NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID 以启用认证。",
+  "switchToLight": "切换到浅色模式",
+  "switchToDark": "切换到深色模式",
+  "openMenu": "打开菜单",
+  "switchLanguage": "切换语言"
 }

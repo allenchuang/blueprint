@@ -18,16 +18,42 @@ src/components/
 └── [feature]/       → Feature-specific composed components
 ```
 
-## shadcn/ui
+## shadcn/ui — Always Use First
 
 Each Next.js app (web, admin) has its own independent shadcn/ui installation.
+
+**Before building any UI element, check if shadcn/ui has a component for it.** If a shadcn component exists (or a close equivalent), install and use it. Never hand-roll dropdowns, dialogs, popovers, tooltips, selects, tabs, accordions, or other standard UI patterns when shadcn provides them.
+
+### Decision Flow
+
+1. Need a UI pattern (dropdown, popover, dialog, sheet, etc.)?
+2. Check the shadcn/ui registry: https://ui.shadcn.com/docs/components
+3. If it exists → install with `npx shadcn@latest add <component>` from the app directory
+4. Compose the shadcn primitive into your feature component
+5. Only build custom UI when no shadcn equivalent exists
+
+### Common Mappings
+
+| UI Pattern | shadcn Component |
+|---|---|
+| Dropdown / context menu | `DropdownMenu` |
+| Modal / confirmation | `Dialog` |
+| Side panel / drawer | `Sheet` |
+| Tooltip | `Tooltip` |
+| Popover | `Popover` |
+| Tabs | `Tabs` |
+| Select / combobox | `Select` or `Command` |
+| Accordion / collapsible | `Accordion` or `Collapsible` |
+| Toast / notification | `Sonner` or `Toast` |
+| Data table | `Table` + `DataTable` |
+| Form inputs | `Input`, `Textarea`, `Checkbox`, `Switch`, `RadioGroup` |
 
 ### Adding Components
 
 ```bash
 # From the app directory
 cd apps/web
-npx shadcn@latest add button card dialog
+npx shadcn@latest add button card dialog dropdown-menu
 
 cd apps/admin
 npx shadcn@latest add button data-table
@@ -38,6 +64,8 @@ npx shadcn@latest add button data-table
 - Manually edit files in `components/ui/` — they are managed by shadcn CLI
 - Copy shadcn components between apps — install independently per app
 - Import shadcn components from one app into another
+- Hand-roll UI patterns that shadcn already provides (dropdowns, popovers, dialogs, etc.)
+- Use raw Radix primitives directly — use the shadcn wrapper which applies consistent styling
 
 ## Component Conventions
 

@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Instrument_Serif } from "next/font/google";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { stripeEnabled } from "@/lib/stripe";
 import { useSubscription } from "@/hooks/use-subscription";
 import { FEATURES, type FeatureKey } from "@/lib/features";
+
+const instrumentSerif = Instrument_Serif({ weight: "400", subsets: ["latin"] });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -35,6 +38,52 @@ function LockIcon() {
   );
 }
 
+function PerspectiveGrid() {
+  const cols = 20;
+  const rows = 12;
+  const cellSize = 120;
+  const w = cols * cellSize;
+  const h = rows * cellSize;
+  const hLines = Array.from({ length: rows + 1 }, (_, i) => i * cellSize);
+  const vLines = Array.from({ length: cols + 1 }, (_, i) => i * cellSize);
+
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-0 bottom-0 h-[40%] overflow-hidden"
+      style={{ perspective: "800px" }}
+    >
+      <div className="absolute inset-0 origin-bottom" style={{ transform: "rotateX(55deg)" }}>
+        <svg
+          viewBox={`0 0 ${w} ${h}`}
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          className="absolute -inset-x-[20%] bottom-0 h-full w-[140%]"
+        >
+          <defs>
+            <linearGradient id="gridFadeV2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="white" stopOpacity="1" />
+              <stop offset="35%" stopColor="white" stopOpacity="0" />
+            </linearGradient>
+            <mask id="gridMask2">
+              <rect width={w} height={h} fill="white" />
+              <rect width={w} height={h} fill="url(#gridFadeV2)" />
+            </mask>
+          </defs>
+          <g mask="url(#gridMask2)">
+            {hLines.map((y, i) => (
+              <line key={`h-${i}`} x1={0} y1={y} x2={w} y2={y} stroke="#3b82f6" strokeWidth="1.2" opacity={0.2} />
+            ))}
+            {vLines.map((x, i) => (
+              <line key={`v-${i}`} x1={x} y1={0} x2={x} y2={h} stroke="#3b82f6" strokeWidth="1.2" opacity={0.2} />
+            ))}
+          </g>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export default function PricingPage() {
   const { t } = useTranslation();
   const { tier, isLoading } = useSubscription();
@@ -42,22 +91,19 @@ export default function PricingPage() {
 
   if (!stripeEnabled) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-8">
-        <div className="mx-auto max-w-md text-center">
-          <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-muted">
-            <svg className="size-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="relative flex min-h-screen flex-col items-center justify-center p-8 bg-linear-to-b from-blue-300 via-blue-50/50 to-white dark:from-blue-950 dark:via-gray-900/50 dark:to-gray-950">
+        <div className="relative z-10 mx-auto max-w-md text-center">
+          <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-black/8 dark:border-white/8">
+            <svg className="size-8 text-blue-500 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("notConfiguredTitle")}</h1>
+          <h1 className={`text-3xl ${instrumentSerif.className}`}>{t("notConfiguredTitle")}</h1>
           <p className="mt-3 text-muted-foreground">{t("notConfiguredMessage")}</p>
-          <Link href="/">
-            <Button variant="outline" className="mt-6">
-              {t("backToHome")}
-            </Button>
-          </Link>
+          <Link href="/"><Button variant="outline" className="mt-6">{t("backToHome")}</Button></Link>
         </div>
-      </main>
+        <PerspectiveGrid />
+      </div>
     );
   }
 
@@ -74,41 +120,35 @@ export default function PricingPage() {
         }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      if (data.url) window.location.href = data.url;
     } finally {
       setLoadingCheckout(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-4 py-16 sm:px-8">
-      <div className="mx-auto w-full max-w-4xl">
+    <div className="relative min-h-screen bg-linear-to-b from-blue-300 via-blue-50/50 to-white dark:from-blue-950 dark:via-gray-900/50 dark:to-gray-950">
+      <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-20 sm:px-8">
+        {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{t("pageTitle")}</h1>
-          <p className="mt-4 text-lg text-muted-foreground">{t("pageSubtitle")}</p>
+          <h1 className={`text-5xl sm:text-6xl ${instrumentSerif.className}`}>{t("pageTitle")}</h1>
+          <p className={`mt-4 text-xl text-gray-500 dark:text-gray-400 ${instrumentSerif.className}`}>{t("pageSubtitle")}</p>
         </div>
 
-        <div className="mt-12 grid gap-8 sm:grid-cols-2">
+        {/* Pricing cards */}
+        <div className="mt-12 grid gap-6 sm:grid-cols-2">
           {/* Free Tier */}
-          <div className="relative rounded-2xl border bg-card p-8 shadow-sm">
-            <h2 className="text-xl font-semibold">{t("freeTier")}</h2>
+          <div className="relative rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-black/8 dark:border-white/8 p-8 shadow-sm">
+            <h2 className={`text-2xl ${instrumentSerif.className}`}>{t("freeTier")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{t("freeTierDescription")}</p>
             <div className="mt-6">
-              <span className="text-4xl font-bold tracking-tight">{t("freePrice")}</span>
-              <span className="text-muted-foreground">{t("perMonth")}</span>
+              <span className={`text-4xl ${instrumentSerif.className}`}>{t("freePrice")}</span>
+              <span className="ml-1 text-sm text-muted-foreground">{t("perMonth")}</span>
             </div>
             <div className="mt-8">
-              {tier === "free" ? (
-                <Button variant="outline" className="w-full" disabled>
-                  {t("currentPlan")}
-                </Button>
-              ) : (
-                <Button variant="outline" className="w-full" disabled>
-                  {t("freeTier")}
-                </Button>
-              )}
+              <Button variant="outline" className="w-full" disabled>
+                {tier === "free" ? t("currentPlan") : t("freeTier")}
+              </Button>
             </div>
             <ul className="mt-8 space-y-3">
               {FEATURE_KEYS.map((feature) => {
@@ -116,9 +156,7 @@ export default function PricingPage() {
                 return (
                   <li key={feature} className="flex items-center gap-3 text-sm">
                     {included ? <CheckIcon /> : <LockIcon />}
-                    <span className={included ? "" : "text-muted-foreground/60"}>
-                      {t(feature)}
-                    </span>
+                    <span className={included ? "" : "text-muted-foreground/60"}>{t(feature)}</span>
                   </li>
                 );
               })}
@@ -126,28 +164,24 @@ export default function PricingPage() {
           </div>
 
           {/* Pro Tier */}
-          <div className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-md">
+          <div className="relative rounded-2xl bg-white/70 dark:bg-white/8 backdrop-blur-sm border-2 border-primary p-8 shadow-md">
             <div className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-primary-foreground">
               {t("proTier")}
             </div>
-            <h2 className="text-xl font-semibold">{t("proTier")}</h2>
+            <h2 className={`text-2xl ${instrumentSerif.className}`}>{t("proTier")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{t("proTierDescription")}</p>
             <div className="mt-6">
-              <span className="text-4xl font-bold tracking-tight">{t("proMonthlyPrice")}</span>
-              <span className="text-muted-foreground">{t("perMonth")}</span>
+              <span className={`text-4xl ${instrumentSerif.className}`}>{t("proMonthlyPrice")}</span>
+              <span className="ml-1 text-sm text-muted-foreground">{t("perMonth")}</span>
             </div>
             <div className="mt-8">
               {tier === "pro" ? (
-                <Button variant="outline" className="w-full">
-                  {t("manageBilling")}
-                </Button>
+                <Button variant="outline" className="w-full">{t("manageBilling")}</Button>
               ) : (
                 <Button
                   className="w-full"
                   disabled={loadingCheckout || isLoading}
-                  onClick={() =>
-                    handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY ?? "")
-                  }
+                  onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY ?? "")}
                 >
                   {loadingCheckout ? "..." : t("subscribe")}
                 </Button>
@@ -165,8 +199,8 @@ export default function PricingPage() {
         </div>
 
         {/* Feature gating demo */}
-        <div className="mt-16 rounded-2xl border bg-card p-8">
-          <h2 className="text-xl font-semibold">{t("premiumFeatureDemo")}</h2>
+        <div className="mt-10 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-black/8 dark:border-white/8 p-8">
+          <h2 className={`text-2xl ${instrumentSerif.className}`}>{t("premiumFeatureDemo")}</h2>
           <div className="mt-4">
             {tier === "pro" ? (
               <div className="rounded-xl bg-emerald-500/10 p-6 text-center">
@@ -175,16 +209,14 @@ export default function PricingPage() {
                 </p>
               </div>
             ) : (
-              <div className="rounded-xl bg-muted p-6 text-center">
+              <div className="rounded-xl bg-black/5 dark:bg-white/5 p-6 text-center">
                 <LockIcon />
                 <p className="mt-2 text-sm text-muted-foreground">{t("premiumFeatureLocked")}</p>
                 <Button
                   variant="outline"
                   size="sm"
                   className="mt-4"
-                  onClick={() =>
-                    handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY ?? "")
-                  }
+                  onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY ?? "")}
                   disabled={loadingCheckout}
                 >
                   {t("upgradeRequired")}
@@ -195,11 +227,10 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <Link href="/">
-            <Button variant="ghost">{t("backToHome")}</Button>
-          </Link>
+          <Link href="/"><Button variant="ghost">{t("backToHome")}</Button></Link>
         </div>
       </div>
-    </main>
+      <PerspectiveGrid />
+    </div>
   );
 }

@@ -1,0 +1,179 @@
+---
+title: Get Started
+description: "Detailed setup guide: customize your app, configure integrations, and understand every environment variable."
+---
+
+## 1. Customize your app identity
+
+Every Blueprint project starts with a single config file that is the source of truth for your app's name, colors, URLs, and branding. Open it before you write any code:
+
+```
+packages/app-config/src/config.ts
+```
+
+```typescript
+export const appConfig = {
+  name: "My App",
+  slug: "my-app",
+  description: "A short description of what your app does",
+  slogan: "Your tagline here",
+  version: "0.1.0",
+
+  colors: {
+    primary: "#6366F1",  // Your brand color (hex)
+  },
+
+  urls: {
+    website: "https://myapp.com",
+    api: "http://localhost:3001",
+    docs: "https://docs.myapp.com",
+    supportEmail: "support@myapp.com",
+  },
+
+  mobile: {
+    bundleId: "com.myorg.myapp",
+    scheme: "myapp",
+  },
+
+  socials: {
+    github: "https://github.com/myorg/myapp",
+  },
+};
+```
+
+## 2. Propagate branding to all apps
+
+After editing `config.ts`, run:
+
+```bash
+pnpm sync-config
+```
+
+This single command:
+
+- Generates `theme.css` for `apps/web` and `apps/admin` with a full OKLCH light/dark color palette derived from your primary color
+- Patches `apps/react-native/app.json` with your app name, slug, bundle ID, and scheme
+- Patches `apps/docs/docs.json` with your app name
+- Copies logo and icon assets from `packages/app-config/assets/` to all apps
+
+<Warning>
+  Never manually edit `apps/web/src/app/theme.css`, `apps/admin/src/app/theme.css`, or brand assets in `apps/*/public/` — they are generated and will be overwritten by `pnpm sync-config`.
+</Warning>
+
+## 3. Replace brand assets
+
+Place your assets in `packages/app-config/assets/`:
+
+| File | Purpose |
+|---|---|
+| `logo-light.svg` | Logo for light mode |
+| `logo-dark.svg` | Logo for dark mode |
+| `favicon.svg` | Browser favicon |
+| `icon-512.png` | App icon (mobile + PWA) |
+| `icon-192.png` | App icon (smaller variant) |
+| `splash.png` | Mobile splash screen |
+| `og-banner.png` | Open Graph / social share image |
+
+Run `pnpm sync-config` after replacing assets.
+
+## 4. Configure environment variables
+
+Copy `.env.example` to `.env` in the repo root. Below is a reference for every variable.
+
+### Required
+
+```bash
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+```
+
+### Authentication (Dynamic)
+
+```bash
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID="your-dynamic-env-id"     # web
+EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID="your-dynamic-env-id"     # react-native
+DYNAMIC_ENVIRONMENT_ID="your-dynamic-env-id"                 # server
+```
+
+Get your environment ID from the [Dynamic dashboard](https://app.dynamic.xyz).
+
+### Payments (Stripe)
+
+```bash
+# Server-only (never expose to client)
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+STRIPE_PRICE_PRO_MONTHLY="price_..."
+STRIPE_PRICE_PRO_YEARLY="price_..."
+
+# Client-side
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+```
+
+Use `4242 4242 4242 4242` for test payments.
+
+### Voice Agent (ElevenLabs)
+
+```bash
+NEXT_PUBLIC_ELEVENLABS_AGENT_ID="your-agent-id"      # web
+EXPO_PUBLIC_ELEVENLABS_AGENT_ID="your-agent-id"      # react-native
+```
+
+### Analytics (Google)
+
+```bash
+NEXT_PUBLIC_GA_MEASUREMENT_ID="G-XXXXXXXXXX"
+```
+
+All integrations are **opt-in** — the app works without any of these set.
+
+## 5. Database setup
+
+The shared database schema lives in `packages/db/src/schema/`. To push it to your Neon database:
+
+```bash
+pnpm db:push       # push schema (development)
+pnpm db:generate   # generate migration files
+pnpm db:studio     # open Drizzle Studio browser UI
+```
+
+## 6. Start developing
+
+```bash
+pnpm dev           # all apps
+pnpm dev:web       # web only (port 3000)
+pnpm dev:server    # API server only (port 3001)
+pnpm dev:admin     # admin panel only (port 3002)
+```
+
+The Swagger API docs are at [http://localhost:3001/docs](http://localhost:3001/docs).
+
+## 7. Useful scripts
+
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start all apps in parallel |
+| `pnpm build` | Build all apps |
+| `pnpm lint` | Lint all apps and packages |
+| `pnpm check-types` | TypeScript type-check all |
+| `pnpm db:push` | Push schema to database |
+| `pnpm db:generate` | Generate Drizzle migrations |
+| `pnpm db:studio` | Open Drizzle Studio |
+| `pnpm sync-config` | Sync branding and theme to all apps |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="building" href="/architecture">
+    Understand the monorepo structure in depth
+  </Card>
+  <Card title="Features" icon="sparkles" href="/features/app-config">
+    Dive into each built-in feature
+  </Card>
+  <Card title="Conventions" icon="book" href="/conventions/code-style">
+    Learn the coding standards and conventions
+  </Card>
+  <Card title="Extending" icon="wrench" href="/extending/overview">
+    Add features and customize Blueprint
+  </Card>
+</CardGroup>

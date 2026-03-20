@@ -26,6 +26,16 @@ export const elevenlabsManifest: FeatureManifest = {
       match: 'href="/voice-agent"',
     },
     {
+      file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-line",
+      match: 'href: "/voice-agent"',
+    },
+    {
+      file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-line",
+      match: "elevenlabs-nav-icon",
+    },
+    {
       file: "apps/react-native/app/_layout.tsx",
       type: "remove-import",
       match: "elevenlabsEnabled",
@@ -51,6 +61,7 @@ export const elevenlabsManifest: FeatureManifest = {
     "EXPO_PUBLIC_ELEVENLABS_AGENT_ID",
   ],
   i18nKeysToRemove: [
+    "elevenlabsVoice",
     "voiceAgent",
     "voiceAgentDescription",
     "voiceAgentStart",

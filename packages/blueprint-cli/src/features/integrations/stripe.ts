@@ -35,6 +35,16 @@ export const stripeManifest: FeatureManifest = {
       match: 'href="/pricing"',
     },
     {
+      file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-line",
+      match: 'href: "/pricing"',
+    },
+    {
+      file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-line",
+      match: "stripe-nav-icon",
+    },
+    {
       file: "apps/server/src/app.ts",
       type: "remove-import",
       match: "stripeRoutes",
@@ -94,6 +104,7 @@ export const stripeManifest: FeatureManifest = {
     "EXPO_PUBLIC_MERCHANT_IDENTIFIER",
   ],
   i18nKeysToRemove: [
+    "stripeIntegration",
     "pricing",
     "pageTitle",
     "pageSubtitle",

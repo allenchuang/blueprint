@@ -1,0 +1,112 @@
+---
+title: App Config
+description: "Centralized app metadata, branding, colors, and assets — one file to rule them all."
+---
+
+## Overview
+
+`packages/app-config/src/config.ts` is the **single source of truth** for everything that defines your app's identity. No other file in any app should hardcode a name, color, URL, or logo path.
+
+## The config object
+
+```typescript
+// packages/app-config/src/config.ts
+import type { AppConfig } from "./types";
+
+export const appConfig = {
+  name: "My App",
+  slug: "my-app",
+  description: "A short description",
+  slogan: "Your tagline here",
+  version: "0.1.0",
+
+  colors: {
+    primary: "#6366F1",
+  },
+
+  urls: {
+    website: "https://myapp.com",
+    api: "http://localhost:3001",
+    docs: "https://docs.myapp.com",
+    supportEmail: "support@myapp.com",
+  },
+
+  mobile: {
+    bundleId: "com.myorg.myapp",
+    scheme: "myapp",
+  },
+
+  socials: {
+    github: "https://github.com/myorg/myapp",
+  },
+} satisfies AppConfig;
+```
+
+## Using the config
+
+Import `appConfig` directly in any TypeScript file:
+
+```typescript
+import { appConfig } from "@repo/app-config";
+
+// In a component
+<title>{appConfig.name}</title>
+
+// In server code
+console.log(`Starting ${appConfig.name} v${appConfig.version}`);
+```
+
+Used in:
+- `apps/web/src/app/layout.tsx` — page title, OG metadata
+- `apps/admin/src/app/layout.tsx` — admin panel title
+- `apps/server/src/app.ts` — Swagger title and version
+- `apps/remotion/` — video composition branding
+
+## Propagating changes: `pnpm sync-config`
+
+After editing `config.ts` or replacing assets, run:
+
+```bash
+pnpm sync-config
+```
+
+This command:
+
+| Action | Output |
+|---|---|
+| Generate theme CSS | `apps/web/src/app/theme.css`, `apps/admin/src/app/theme.css` |
+| Patch React Native config | `apps/react-native/app.json` |
+| Patch docs config | `apps/docs/docs.json` |
+| Copy logo assets | `apps/*/public/logo-*.svg` |
+| Copy favicon | `apps/*/public/favicon.svg` |
+| Copy icons | `apps/*/public/icon-*.png` |
+| Generate OG image | `apps/web/public/og-image.png` |
+
+## Brand assets
+
+All assets live in `packages/app-config/assets/`:
+
+```
+packages/app-config/assets/
+├── logo-light.svg     → Brand logo (light backgrounds)
+├── logo-dark.svg      → Brand logo (dark backgrounds)
+├── favicon.svg        → Browser tab favicon
+├── icon-512.png       → App icon (PWA / mobile)
+├── icon-192.png       → App icon (smaller)
+├── splash.png         → Mobile splash screen
+├── og-banner.png      → Open Graph / social share banner
+└── og-font.ttf        → (optional) Custom font for OG text
+```
+
+## Theme generation
+
+The primary color in `config.ts` drives the entire design system. `pnpm sync-config` generates a full OKLCH light/dark palette — primary, secondary, accent, background, foreground, and all semantic colors — from that single hex value.
+
+This means you change one color and the entire app re-themes. No manual CSS variable editing.
+
+## Rules
+
+- **DO** always import `appConfig` from `@repo/app-config` — never hardcode names or colors
+- **DO** run `pnpm sync-config` after any config or asset change
+- **DO NOT** manually edit generated files (`theme.css`, `apps/*/public/` assets)
+- **DO NOT** store duplicate logos or icons in individual app directories

@@ -4,6 +4,8 @@
   "settings": "Settings",
   "home": "Home",
   "mainWebApplication": "Main web application",
+  "stripeIntegration": "Stripe Integration",
+  "elevenlabsVoice": "ElevenLabs Voice",
   "pricing": "Pricing",
   "pageTitle": "Pricing",
   "pageSubtitle": "Choose the plan that works for you",
@@ -57,5 +59,9 @@
   "logout": "Log Out",
   "loggedInAs": "Logged in as",
   "authNotConfigured": "Auth Not Configured",
-  "authNotConfiguredHint": "Set NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID in your environment to enable authentication."
+  "authNotConfiguredHint": "Set NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID in your environment to enable authentication.",
+  "switchToLight": "Switch to light mode",
+  "switchToDark": "Switch to dark mode",
+  "openMenu": "Open menu",
+  "switchLanguage": "Switch language"
 }

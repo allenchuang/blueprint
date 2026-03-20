@@ -10,33 +10,51 @@ alwaysApply: true
 
 All user-facing strings in `apps/web` and `apps/react-native` must go through i18next. Never hardcode display text directly in components.
 
-## Supported Languages
+## Language Discovery — Read Before You Write
 
-Defined in `packages/app-config/src/languages.json` (single source of truth). Currently: English (`en`), Chinese Simplified (`zh`), Spanish (`es`).
+The configured languages are **not hardcoded in this rule**. Before adding or modifying translations, always check the source of truth:
+
+**`packages/app-config/src/languages.json`**
+
+This file defines `defaultLocale` and a `locales` array. Each entry has `code`, `name`, and `nativeName`. The CLI's language selection during `npx blueprint new` determines which locales are present.
+
+**Before adding translation keys, read `languages.json` to discover which locale files exist.** Then add the key to every locale file that exists in:
+
+- `apps/web/src/i18n/locales/{code}.json`
+- `apps/react-native/i18n/locales/{code}.json`
+
+If `languages.json` lists `en`, `zh`, and `es`, you must update all three. If a project only has `en` and `fr`, update only those two.
 
 ## Translation File Structure
 
 Each app stores one flat JSON file per locale — no namespaces, no folder-per-locale:
 
 ```
-apps/web/src/i18n/locales/en.json
-apps/web/src/i18n/locales/zh.json
-apps/web/src/i18n/locales/es.json
-
-apps/react-native/i18n/locales/en.json
-apps/react-native/i18n/locales/zh.json
-apps/react-native/i18n/locales/es.json
+apps/web/src/i18n/locales/{code}.json
+apps/react-native/i18n/locales/{code}.json
 ```
 
 All keys for all features live in a single file per locale.
 
-## Adding Strings
+## Adding Strings for a New Feature
 
-When adding a new feature or screen:
+When adding a new feature, page, or component:
 
-1. Add all user-facing strings as keys to every locale file (`en.json`, `zh.json`, `es.json`)
-2. Use `useTranslation()` (no namespace argument) in components
-3. No need to register namespaces — there are none
+1. **Read `packages/app-config/src/languages.json`** to discover which locales are configured
+2. **Add all user-facing strings** as keys to every locale file that exists (both web and react-native)
+3. **Provide real translations** for each locale — not English placeholders. Use the `nativeName` in `languages.json` to identify the language. Common languages:
+   - `en` → English
+   - `zh` → Chinese Simplified (中文)
+   - `es` → Spanish (Español)
+   - `fr` → French (Français)
+   - `de` → German (Deutsch)
+   - `ja` → Japanese (日本語)
+   - `ko` → Korean (한국어)
+   - `pt` → Portuguese (Português)
+   - `ar` → Arabic (العربية) — note: RTL language
+   - `hi` → Hindi (हिन्दी)
+4. **Use `useTranslation()`** (no namespace argument) in components
+5. No need to register namespaces — there are none
 
 ## Usage
 
@@ -65,6 +83,12 @@ export default function MyScreen() {
 }
 ```
 
+## Language Switcher
+
+The web app includes a `LanguageSwitcher` component (`apps/web/src/components/language-switcher.tsx`) that reads from `@repo/app-config/languages` to dynamically list all configured locales. It renders as a globe icon in the bottom-right corner and shows a popover with each language's native name.
+
+The switcher reads `languages.json` at runtime, so adding a new language to the config and creating the locale file is all that's needed — no component changes required.
+
 ## Key Naming
 
 - Use flat camelCase keys: `"welcomeMessage"`, `"submitButton"`, `"errorNotFound"`
@@ -73,17 +97,21 @@ export default function MyScreen() {
 
 ## Rules
 
+- **DO** read `packages/app-config/src/languages.json` before adding translations to discover which locales exist
 - **DO** wrap every user-facing string with `t()` from `useTranslation()`
-- **DO** add new keys to all locale files when adding a translation
+- **DO** add new keys to **every** locale file that exists in both web and react-native
+- **DO** provide real, accurate translations in each language — not English placeholders
 - **DO** import the language list from `@repo/app-config/languages` — never hardcode the list of locales
 - **DO NOT** hardcode display text in JSX or component files
 - **DO NOT** add a translation key to one locale without adding it to all locales
 - **DO NOT** use namespaces — all keys go in a single file per locale
 - **DO NOT** create subdirectories per locale — use flat `{code}.json` files
 - **DO NOT** install `i18next-browser-languagedetector` in React Native — use `expo-localization` instead
+- **DO NOT** assume which languages are configured — always check `languages.json`
 
 ## Adding a New Language
 
 1. Add the locale entry to `packages/app-config/src/languages.json`
-2. Create a new `{code}.json` file in both `apps/web/src/i18n/locales/` and `apps/react-native/i18n/locales/` with all existing keys
+2. Create a new `{code}.json` file in both `apps/web/src/i18n/locales/` and `apps/react-native/i18n/locales/` with all existing keys translated
 3. Import and register the new locale in both i18n config files (`apps/web/src/i18n/index.ts` and `apps/react-native/i18n/index.ts`)
+4. The `LanguageSwitcher` component picks up new languages automatically — no component changes needed

@@ -44,5 +44,9 @@
   "logout": "Log Out",
   "loggedInAs": "Logged in as",
   "authNotConfigured": "Auth Not Configured",
-  "authNotConfiguredHint": "Set EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID in your environment to enable authentication."
+  "authNotConfiguredHint": "Set EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID in your environment to enable authentication.",
+  "switchToLight": "Switch to light mode",
+  "switchToDark": "Switch to dark mode",
+  "openMenu": "Open menu",
+  "switchLanguage": "Switch language"
 }

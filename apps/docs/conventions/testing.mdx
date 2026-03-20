@@ -1,0 +1,108 @@
+---
+title: Testing
+description: "Vitest, Playwright, and React Native Testing Library conventions."
+---
+
+## Recommended stack
+
+| Scope | Tool |
+|---|---|
+| Unit & integration (web/server) | [Vitest](https://vitest.dev/) |
+| E2E (web) | [Playwright](https://playwright.dev/) |
+| API (Fastify) | Vitest + `app.inject()` |
+| React Native | Jest + React Native Testing Library |
+
+## File structure
+
+Colocate test files next to the code they test:
+
+```
+src/
+├── lib/
+│   ├── format-date.ts
+│   └── format-date.test.ts     ← colocated unit test
+├── routes/
+│   ├── users.ts
+│   └── users.test.ts           ← colocated API test
+└── __tests__/
+    └── auth-flow.e2e.ts        ← integration/E2E test
+```
+
+## File naming
+
+| Type | Convention |
+|---|---|
+| Unit test | `[filename].test.ts` |
+| Integration test | `[feature].integration.test.ts` |
+| E2E test | `[flow].e2e.test.ts` |
+
+## Writing tests
+
+Use `describe` blocks grouped by function or feature. Test names should read as sentences:
+
+```typescript
+// lib/format-date.test.ts
+import { describe, it, expect } from "vitest";
+import { formatDate } from "./format-date";
+
+describe("formatDate", () => {
+  it("formats a date as MM/DD/YYYY", () => {
+    const result = formatDate(new Date("2024-01-15"));
+    expect(result).toBe("01/15/2024");
+  });
+
+  it("returns an empty string for null input", () => {
+    expect(formatDate(null)).toBe("");
+  });
+});
+```
+
+## API tests with Fastify
+
+Use Fastify's `app.inject()` helper — no need to start an actual HTTP server:
+
+```typescript
+// routes/users.test.ts
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { buildApp } from "../app";
+
+describe("GET /api/users", () => {
+  let app: ReturnType<typeof buildApp>;
+
+  beforeAll(async () => {
+    app = buildApp();
+    await app.ready();
+  });
+
+  afterAll(() => app.close());
+
+  it("returns 200 with a list of users", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/users" });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toBeInstanceOf(Array);
+  });
+
+  it("returns 404 when user not found", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/users/nonexistent" });
+    expect(response.statusCode).toBe(404);
+  });
+});
+```
+
+## Conventions
+
+- **Prefer testing behavior over implementation details** — test what the user/API consumer sees, not internal state
+- **Mock external services, not internal modules** — mock Stripe, Dynamic, ElevenLabs; don't mock your own functions
+- **Use descriptive test names** that read as sentences without context
+- **One assertion per test** when possible — makes failures easier to diagnose
+
+## Running tests
+
+```bash
+# From the repo root
+pnpm test
+
+# From a specific app
+cd apps/server && pnpm test
+cd apps/web && pnpm test
+```

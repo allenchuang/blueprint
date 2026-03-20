@@ -1,0 +1,121 @@
+---
+title: Database Patterns
+description: "Drizzle ORM schema conventions, @repo/db usage, and migration workflow."
+---
+
+## Schema location
+
+All database schema definitions live in `packages/db/src/schema/`. This is the **only** place schema is defined. Never create schema files inside individual apps.
+
+```
+packages/db/src/
+├── schema/
+│   ├── index.ts          → re-exports all tables
+│   ├── users.ts
+│   ├── subscriptions.ts
+│   └── your-table.ts     → add new tables here
+├── index.ts              → exports createDb, types
+└── client.ts             → Drizzle + Neon client factory
+```
+
+## Schema conventions
+
+| Rule | Example |
+|---|---|
+| Table names: plural snake_case | `users`, `blog_posts`, `user_sessions` |
+| Column names: snake_case | `created_at`, `user_id`, `stripe_customer_id` |
+| Every table has `id`, `createdAt`, `updatedAt` | — |
+| Primary keys: uuid | `uuid("id").primaryKey().defaultRandom()` |
+| Timestamps: with timezone | `timestamp("created_at", { withTimezone: true })` |
+| Foreign keys: reference `id` | `.references(() => users.id)` |
+
+## Adding a table
+
+```typescript
+// packages/db/src/schema/posts.ts
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { users } from "./users";
+
+export const posts = pgTable("posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  content: text("content"),
+  published: text("published").notNull().default("false"),
+  authorId: uuid("author_id").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Export types for use in apps
+export type Post = typeof posts.$inferSelect;
+export type NewPost = typeof posts.$inferInsert;
+```
+
+Then re-export from the index:
+
+```typescript
+// packages/db/src/schema/index.ts
+export * from "./users";
+export * from "./subscriptions";
+export * from "./posts"; // add this
+```
+
+## Migration workflow
+
+```bash
+# Development: push schema directly (no migration files)
+pnpm db:push
+
+# Production: generate and run migrations
+pnpm db:generate    # creates migration files in packages/db/drizzle/
+pnpm db:migrate     # runs pending migrations
+
+# Browse data
+pnpm db:studio
+```
+
+Always run `pnpm db:generate` after any schema change before committing.
+
+## Using the database in apps
+
+```typescript
+import { createDb } from "@repo/db";
+import { users, posts } from "@repo/db/schema";
+import { eq, desc, and } from "drizzle-orm";
+
+const db = createDb(process.env.DATABASE_URL!);
+
+// Select with filter
+const user = await db.select()
+  .from(users)
+  .where(eq(users.id, userId))
+  .limit(1);
+
+// Join
+const postsWithAuthors = await db.select()
+  .from(posts)
+  .leftJoin(users, eq(posts.authorId, users.id))
+  .orderBy(desc(posts.createdAt));
+
+// Insert and return
+const [newPost] = await db.insert(posts)
+  .values({ title: "Hello", authorId: userId })
+  .returning();
+
+// Update
+await db.update(posts)
+  .set({ title: "Updated" })
+  .where(eq(posts.id, postId));
+
+// Delete
+await db.delete(posts).where(eq(posts.id, postId));
+```
+
+## Rules
+
+- **DO** define all schema in `packages/db/src/schema/` only
+- **DO** export `Post`, `NewPost` types from the schema file
+- **DO** run `pnpm db:generate` after any schema change before committing
+- **DO NOT** write raw SQL for schema changes
+- **DO NOT** create a second database client — import from `@repo/db`
+- **DO NOT** modify the database schema directly through Drizzle Studio — always go through schema files

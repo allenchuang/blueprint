@@ -1,0 +1,69 @@
+---
+title: Extending Blueprint
+description: "How Blueprint is designed to be extended — features, integrations, languages, and AI guidance."
+---
+
+## Philosophy
+
+Blueprint is a **starting point**, not a framework. Everything it ships is meant to be customized, replaced, or removed. There are four main ways to extend it:
+
+1. **Add a feature** — new functionality backed by the CLI scaffold system
+2. **Add a language** — expand i18n locale support
+3. **Add a CLI scaffold** — register new optional features so they can be enabled at project creation time
+4. **Add AI guidance** — rules and skills that teach AI coding tools your conventions
+
+## The scaffold system
+
+When you run `npx blueprint new`, the CLI presents a menu of features. Unselected features are removed cleanly from the scaffold — routes deleted, packages uninstalled, env keys stripped. This is powered by `FeatureManifest` objects in `packages/blueprint-cli/src/features/`.
+
+Every optional feature in Blueprint has a corresponding manifest. This ensures the scaffold output is clean and minimal for every combination of selected features.
+
+## Extending guides
+
+<CardGroup cols={2}>
+  <Card title="CLI Reference" icon="terminal" href="/extending/cli">
+    Add features to the interactive scaffold, register CLI flags, and define FeatureManifests.
+  </Card>
+  <Card title="Skills & Rules" icon="brain" href="/extending/skills-rules">
+    Create AI coding rules and skills to encode your project conventions.
+  </Card>
+  <Card title="Adding a Language" icon="language" href="/extending/new-language">
+    Step-by-step guide to adding a new locale to the i18n system.
+  </Card>
+  <Card title="App Config" icon="settings" href="/features/app-config">
+    Customize branding, colors, assets, and URLs with a single config file.
+  </Card>
+</CardGroup>
+
+## Common extension patterns
+
+### Adding a new page (web + mobile)
+
+1. Create `apps/web/src/app/(routes)/feature/page.tsx`
+2. Create `apps/react-native/app/(tabs)/feature.tsx`
+3. Add a React Query hook in both `apps/web/src/hooks/` and `apps/react-native/hooks/`
+4. Add i18n keys to all locale files
+5. Add a navigation item in both apps
+
+### Adding a new API endpoint
+
+1. Create or update `apps/server/src/routes/[resource].ts`
+2. Define a Fastify schema for Swagger generation
+3. Register in `apps/server/src/app.ts`
+4. Create React Query hook in consuming apps
+5. Update API reference docs in `apps/docs/api-reference/`
+
+### Adding a new database table
+
+1. Create `packages/db/src/schema/[table].ts`
+2. Export from `packages/db/src/schema/index.ts`
+3. Run `pnpm db:generate` and commit the migration
+4. Export types (`Table`, `NewTable`)
+
+### Adding a third-party integration
+
+1. Add the env var to all relevant `.env.example` files
+2. Create a feature flag (`integrationEnabled`) in `lib/integration.ts`
+3. Gate all integration UI and API calls behind the flag
+4. Register the integration in the CLI feature manifest
+5. Add a docs page under `apps/docs/features/`

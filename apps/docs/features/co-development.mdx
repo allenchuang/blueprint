@@ -1,0 +1,79 @@
+---
+title: Co-Development
+description: "Web and mobile feature parity — every feature ships on both platforms simultaneously."
+---
+
+## Overview
+
+Blueprint enforces a strict co-development pattern: every UI feature must be implemented in **both** `apps/web` and `apps/react-native` at the same time. There is no "add mobile later." This keeps the two apps in feature parity and prevents the mobile app from falling behind.
+
+## Workflow
+
+1. Implement the feature in `apps/web`
+2. Immediately create the equivalent screen/component in `apps/react-native`
+3. Use identical hook names and data shapes in both apps
+
+## Component mapping
+
+| Web (shadcn/ui) | React Native (NativeWind) |
+|---|---|
+| `<Button>` | `<TouchableOpacity className="...">` |
+| `<Card>` | `<View className="...">` |
+| `<Input>` | `<TextInput className="...">` |
+| `<Dialog>` | `<Modal>` |
+| `<Sheet>` | `<Modal>` or bottom sheet |
+| Next.js `<Link>` | Expo Router `<Link>` |
+| `<Image>` (next/image) | `<Image>` (expo-image) |
+
+## Route structure parity
+
+| Platform | Location |
+|---|---|
+| Web page | `apps/web/src/app/(routes)/feature/page.tsx` |
+| RN screen | `apps/react-native/app/(tabs)/feature.tsx` |
+
+## Hook naming
+
+Use **identical hook names** in both apps. The hook interface (request/response types) must also match:
+
+```typescript
+// apps/web/src/hooks/use-get-posts.ts
+export function useGetPosts() {
+  return useQuery({ queryKey: ["posts"], queryFn: fetchPosts });
+}
+
+// apps/react-native/hooks/use-get-posts.ts
+export function useGetPosts() {
+  return useQuery({ queryKey: ["posts"], queryFn: fetchPosts });
+}
+```
+
+The API call itself (`fetchPosts`) may differ slightly between platforms (different base URLs, auth header injection), but the hook signature is identical.
+
+## Web-only APIs
+
+Never use browser-only APIs (`window`, `document`, `localStorage`) in shared hook logic. If you need platform-specific behavior, use platform checks or separate implementations:
+
+```typescript
+// Safe: abstracted in a hook
+import { useAuth } from "@/hooks/use-auth"; // web
+import { useAuth } from "@/hooks/use-auth"; // react-native (same name, different impl)
+```
+
+## Feature checklist
+
+When shipping any new feature, verify:
+
+- [ ] Web page/component created in `apps/web/src/app/`
+- [ ] React Native screen created in `apps/react-native/app/`
+- [ ] React Query hook created in both `apps/web/src/hooks/` and `apps/react-native/hooks/`
+- [ ] i18n keys added to locale files in both apps
+- [ ] Navigation item added in both apps if the feature gets its own screen
+
+## Rules
+
+- **DO** implement features in both apps simultaneously — not sequentially
+- **DO** use identical hook names across platforms
+- **DO NOT** copy-paste web components into React Native (the rendering layer is different)
+- **DO NOT** use web-only APIs (`window`, `document`) in shared hook logic
+- **DO NOT** ship a feature in web and mark mobile as a future task
