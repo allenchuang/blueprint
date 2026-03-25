@@ -1,0 +1,114 @@
+---
+title: Adding a Language
+description: "Step-by-step guide to adding a new locale to Blueprint's i18n system."
+---
+
+## Overview
+
+Blueprint uses i18next with locale files defined per app. The supported languages are driven by `packages/app-config/src/languages.json`. Adding a new language requires updating this config file, creating the locale JSON files, and registering the locale in the i18n configs.
+
+## Step 1 — Add the locale to languages.json
+
+```json
+// packages/app-config/src/languages.json
+{
+  "defaultLocale": "en",
+  "locales": [
+    { "code": "en", "name": "English", "nativeName": "English" },
+    { "code": "zh", "name": "Chinese", "nativeName": "中文" },
+    { "code": "es", "name": "Spanish", "nativeName": "Español" },
+    { "code": "fr", "name": "French", "nativeName": "Français" }
+  ]
+}
+```
+
+## Step 2 — Create locale files
+
+Create a new flat JSON file in both apps. Copy all keys from `en.json` and translate every value:
+
+```bash
+# Web
+cp apps/web/src/i18n/locales/en.json apps/web/src/i18n/locales/fr.json
+
+# React Native
+cp apps/react-native/i18n/locales/en.json apps/react-native/i18n/locales/fr.json
+```
+
+Then translate every value in `fr.json`:
+
+```json
+// apps/web/src/i18n/locales/fr.json
+{
+  "welcomeTitle": "Bienvenue",
+  "dashboardTitle": "Tableau de bord",
+  "signIn": "Se connecter",
+  "signOut": "Se déconnecter"
+}
+```
+
+<Warning>
+  Do not leave English placeholders in other locale files. Every key must be translated. If you're unsure of a translation, use a translation service — but provide a real translation.
+</Warning>
+
+## Step 3 — Register the locale in the web i18n config
+
+```typescript
+// apps/web/src/i18n/index.ts
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import en from "./locales/en.json";
+import zh from "./locales/zh.json";
+import es from "./locales/es.json";
+import fr from "./locales/fr.json"; // add this
+
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: en },
+    zh: { translation: zh },
+    es: { translation: es },
+    fr: { translation: fr }, // add this
+  },
+  // ...
+});
+```
+
+## Step 4 — Register the locale in the React Native i18n config
+
+```typescript
+// apps/react-native/i18n/index.ts
+import * as Localization from "expo-localization";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import en from "./locales/en.json";
+import zh from "./locales/zh.json";
+import es from "./locales/es.json";
+import fr from "./locales/fr.json"; // add this
+
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: en },
+    zh: { translation: zh },
+    es: { translation: es },
+    fr: { translation: fr }, // add this
+  },
+  lng: Localization.getLocales()[0]?.languageCode ?? "en",
+  // ...
+});
+```
+
+## Step 5 — Verify the language switcher
+
+The web app's `LanguageSwitcher` component reads from `@repo/app-config/languages` at runtime. No component changes are needed — once `languages.json` is updated and the locale file exists, the new language appears in the switcher automatically.
+
+## Step 6 — Update the CLI feature manifest (if applicable)
+
+If you're adding a language as part of a feature, update the `i18nKeysToRemove` array in the relevant `FeatureManifest` to include any keys that should be stripped when the feature is not selected.
+
+## Checklist
+
+- [ ] Added locale entry to `packages/app-config/src/languages.json`
+- [ ] Created `apps/web/src/i18n/locales/[code].json` with all keys translated
+- [ ] Created `apps/react-native/i18n/locales/[code].json` with all keys translated
+- [ ] Registered locale in `apps/web/src/i18n/index.ts`
+- [ ] Registered locale in `apps/react-native/i18n/index.ts`
+- [ ] Verified the language switcher shows the new language

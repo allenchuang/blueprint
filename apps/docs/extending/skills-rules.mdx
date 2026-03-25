@@ -1,0 +1,133 @@
+---
+title: Skills & Rules
+description: "Encoding conventions as AI rules and skills — and keeping them in sync across tools."
+---
+
+## Overview
+
+Blueprint ships with a set of AI coding rules and skills that teach AI tools (Cursor, Claude, Codex) your project conventions. When you ask an AI to add a feature, it already knows to:
+
+- Co-develop on web and mobile simultaneously
+- Define Fastify schemas for Swagger
+- Use `@repo/app-config` for branding
+- Add i18n keys to all locale files
+- Follow the `FeatureManifest` pattern for new integrations
+
+These conventions live in structured files that AI tools read automatically.
+
+## Three parallel directories
+
+Rules and skills exist in three directories that must stay **identical** at all times:
+
+```
+.cursor/rules/      → Cursor IDE
+.agents/rules/      → Codex and generic agents
+.claude/rules/      → Claude Code
+
+.cursor/skills/     → Cursor IDE
+.agents/skills/     → Codex and generic agents
+.claude/skills/     → Claude Code
+```
+
+**When you create, edit, or delete a rule or skill, apply the exact same change to all three directories.**
+
+## Rules
+
+Rules are `.mdc` files in the `rules/` directory. They are read automatically by AI tools on every relevant file edit.
+
+### Rule file structure
+
+```markdown
+---
+description: Brief description of when this rule applies
+globs:
+  - apps/web/**
+  - apps/react-native/**
+alwaysApply: false
+---
+
+# Rule Title
+
+Rule content in markdown...
+```
+
+- `alwaysApply: true` — rule is injected into every AI prompt
+- `alwaysApply: false` — rule is injected only when editing files matching `globs`
+- `description` — used by the AI to decide whether to load the rule
+
+### Existing rules
+
+| Rule file | Topic | Always applied |
+|---|---|---|
+| `000-project-overview.mdc` | Monorepo architecture | Yes |
+| `001-co-development.mdc` | Web + mobile parity | No |
+| `002-api-patterns.mdc` | Fastify + React Query | No |
+| `003-database-patterns.mdc` | Drizzle schema conventions | No |
+| `004-docs-patterns.mdc` | Mintlify docs updates | No |
+| `005-component-patterns.mdc` | shadcn/ui + composition | No |
+| `006-code-style.mdc` | TypeScript, naming, imports | Yes |
+| `007-testing.mdc` | Vitest, Playwright conventions | No |
+| `008-git-conventions.mdc` | Conventional commits | Yes |
+| `010-app-config.mdc` | App config single source of truth | Yes |
+| `014-i18n.mdc` | i18next conventions | Yes |
+| `016-stripe-payments.mdc` | Stripe integration | Yes |
+| `017-feature-gating.mdc` | Free/pro tier gating | Yes |
+| `020-dynamic-auth.mdc` | Dynamic auth | No |
+| `021-cli-feature-registration.mdc` | CLI FeatureManifest | No |
+
+### Creating a new rule
+
+1. Create `.cursor/rules/[NNN]-[name].mdc` with frontmatter + markdown content
+2. Copy identically to `.agents/rules/[NNN]-[name].mdc`
+3. Copy identically to `.claude/rules/[NNN]-[name].mdc`
+4. If the rule is important enough to document for humans, add it to `AGENTS.md`
+
+## Skills
+
+Skills are markdown files that give AI tools step-by-step instructions for specific, well-defined tasks. Unlike rules (which are always-on constraints), skills are triggered when the user asks for something specific.
+
+### Skill file structure
+
+```
+.cursor/skills/[skill-name]/SKILL.md
+```
+
+```markdown
+# Skill: Add a New Feature
+
+## When to use
+When the user asks to add a new optional feature to Blueprint.
+
+## Steps
+1. Create the feature implementation...
+2. Create the FeatureManifest...
+3. Register in CLI...
+```
+
+### Creating a new skill
+
+1. Create `.agents/skills/[skill-name]/SKILL.md`
+2. Copy identically to `.cursor/skills/[skill-name]/SKILL.md`
+3. Copy identically to `.claude/skills/[skill-name]/SKILL.md`
+
+### Existing skills
+
+| Skill | Description |
+|---|---|
+| `feature-gating` | Implementing subscription-based access control |
+| `stripe-integration` | Building Stripe checkout and webhooks |
+| `frontend-design` | Creating production-quality UI components |
+| `remotion-best-practices` | Remotion video composition patterns |
+| `vercel-react-best-practices` | React and Next.js performance patterns |
+
+## Sync rule
+
+Whenever you modify a rule or skill:
+
+```bash
+# Example: updating co-development rule
+cp .cursor/rules/001-co-development.mdc .agents/rules/001-co-development.mdc
+cp .cursor/rules/001-co-development.mdc .claude/rules/001-co-development.mdc
+```
+
+The three directories must always be identical. This ensures consistent AI behavior regardless of which tool is being used.

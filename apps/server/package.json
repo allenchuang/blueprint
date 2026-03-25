@@ -10,21 +10,28 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@repo/app-config": "workspace:*",
-    "@repo/db": "workspace:*",
-    "fastify": "^5.2.0",
-    "@fastify/swagger": "^9.4.0",
-    "@fastify/swagger-ui": "^5.2.0",
     "@fastify/cors": "^11.0.0",
     "@fastify/env": "^5.0.0",
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^5.2.0",
+    "@privy-io/node": "^0.11.0",
+    "@repo/app-config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "drizzle-orm": "^0.44.0",
+    "fastify": "^5.2.0",
+    "fastify-plugin": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^4.0.1",
+    "stripe": "^20.4.1",
     "zod": "^3.24.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.0",
-    "typescript": "^5.8.0",
-    "tsx": "^4.19.0",
+    "eslint": "^9.27.0",
     "tsup": "^8.5.0",
-    "eslint": "^9.27.0"
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
   }
 }

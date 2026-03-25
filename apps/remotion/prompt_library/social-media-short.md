@@ -9,9 +9,9 @@ A vertical 9:16 short-form video optimized for Instagram Reels, TikTok, and YouT
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `<HOOK_TEXT>` | Bold opening line at top | `We just launched on Product Hunt 🚀` |
-| `<BODY_TEXT>` | Main message in the center area | `Mastermind lets you create videos from React components` |
+| `<BODY_TEXT>` | Main message in the center area | `Blueprint lets you create videos from React components` |
 | `<CTA_TEXT>` | Call-to-action line at the bottom | `Link in bio →` |
-| `<BG_COLOR>` | Background hex color | `#0D9373` |
+| `<BG_COLOR>` | Background hex color | `#38BDF8` |
 | `<TEXT_COLOR>` | Text hex color | `#ffffff` |
 | `<ACCENT_COLOR>` | Accent highlight hex (used for CTA) | `#fbbf24` |
 | `<DURATION_SECONDS>` | Total video length in seconds (max 60) | `15` |

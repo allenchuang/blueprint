@@ -1,0 +1,118 @@
+---
+title: Component Patterns
+description: "shadcn/ui-first component organization, Server vs Client Components, and composition patterns."
+---
+
+## Directory structure
+
+```
+src/components/
+├── ui/              → shadcn/ui primitives (auto-generated — do not edit)
+├── forms/           → Form components (login-form.tsx, create-post-form.tsx)
+├── layout/          → Layout components (sidebar.tsx, header.tsx, nav-bar.tsx)
+└── [feature]/       → Feature-specific composed components
+```
+
+## shadcn/ui — always check first
+
+Before building any UI element, check if shadcn/ui has a component. If it does, install it instead of hand-rolling.
+
+```bash
+# From the app directory
+cd apps/web
+npx shadcn@latest add button card dialog dropdown-menu table
+```
+
+| UI Pattern | shadcn Component |
+|---|---|
+| Dropdown / context menu | `DropdownMenu` |
+| Modal / confirmation | `Dialog` |
+| Side panel / drawer | `Sheet` |
+| Tooltip | `Tooltip` |
+| Popover | `Popover` |
+| Tabs | `Tabs` |
+| Select / combobox | `Select` or `Command` |
+| Accordion / collapsible | `Accordion` or `Collapsible` |
+| Toast / notification | `Sonner` |
+| Data table | `Table` + DataTable pattern |
+| Form inputs | `Input`, `Textarea`, `Checkbox`, `Switch` |
+
+<Warning>
+  Each Next.js app (`web`, `admin`) has its own **independent** shadcn/ui install. Never copy components between apps and never import a shadcn component from one app into another.
+</Warning>
+
+## Do NOT
+
+- Manually edit files in `components/ui/` — they are managed by the shadcn CLI
+- Hand-roll dropdowns, dialogs, tooltips, or any pattern shadcn already provides
+- Use raw Radix primitives directly — use the shadcn wrapper for consistent styling
+
+## Component conventions
+
+- **One component per file**
+- File naming: kebab-case (`user-profile-card.tsx`)
+- Component naming: PascalCase (`UserProfileCard`)
+- Colocate component-specific types in the same file
+- Extract shared types to `types.ts` only when used by 3+ components
+
+## Composition
+
+Prefer composition over prop-drilling. Feature components import from `@/components/ui/` and compose them:
+
+```typescript
+// components/posts/post-card.tsx
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
+
+interface PostCardProps {
+  title: string;
+  author: string;
+  content: string;
+  onLike: () => void;
+}
+
+export function PostCard({ title, author, content, onLike }: PostCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <Avatar>{author[0]}</Avatar>
+        <h3>{title}</h3>
+      </CardHeader>
+      <CardContent>
+        <p>{content}</p>
+      </CardContent>
+      <CardFooter>
+        <Button variant="ghost" onClick={onLike}>Like</Button>
+      </CardFooter>
+    </Card>
+  );
+}
+```
+
+## Server vs Client Components
+
+Next.js App Router defaults to **Server Components**. Add `"use client"` only when the component needs:
+
+- Event handlers (`onClick`, `onChange`)
+- React hooks (`useState`, `useEffect`, `useQuery`)
+- Browser APIs (`window`, `localStorage`, `navigator`)
+
+```typescript
+// Server Component (default) — no directive needed
+export async function UserProfile({ userId }: { userId: string }) {
+  const user = await db.select().from(users).where(eq(users.id, userId));
+  return <div>{user.email}</div>;
+}
+
+// Client Component — add directive
+"use client";
+import { useState } from "react";
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [liked, setLiked] = useState(false);
+  return <button onClick={() => setLiked(!liked)}>{liked ? "Liked" : "Like"}</button>;
+}
+```
+
+Keep client components as small and leaf-level as possible to maximize server-side rendering.

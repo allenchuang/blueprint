@@ -1,0 +1,121 @@
+# ElevenLabs Voice Agent
+
+## When to Use
+
+This integration is already set up and ready to use. Apply these patterns whenever a task mentions:
+
+- **Voice agent**, voice assistant, voice bot, voice AI, conversational AI
+- **ElevenLabs**, Eleven Labs, 11 Labs, 11labs
+- **Voice data collection**, collect via voice, voice survey, voice intake, voice form
+- **Real-time voice conversation**, talk to AI, speak to agent
+
+When any of the above are mentioned, use the existing `useVoiceAgent()` hook and `lib/elevenlabs.ts` — do NOT install new packages or create new abstractions. The infrastructure is already wired in both `apps/web` and `apps/react-native`.
+
+### Existing Files (already implemented)
+
+**Web** (`apps/web`):
+- `src/lib/elevenlabs.ts` — feature flag (`elevenlabsEnabled`) and `ELEVENLABS_AGENT_ID`
+- `src/hooks/use-voice-agent.ts` — `useVoiceAgent()` hook
+- `src/app/voice-agent/page.tsx` — demo page at `/voice-agent`
+
+**React Native** (`apps/react-native`):
+- `lib/elevenlabs.ts` — feature flag and agent ID
+- `hooks/use-voice-agent.ts` — `useVoiceAgent()` hook
+- `app/(tabs)/voice-agent.tsx` — demo screen
+- `app/_layout.tsx` — `ElevenLabsWrapper` provider (already in root layout)
+
+### Quick Start for New Features
+
+To add a voice agent to a new page or screen, just import the hook:
+
+```typescript
+import { useVoiceAgent } from "@/hooks/use-voice-agent";
+
+const { enabled, status, isSpeaking, messages, start, stop } = useVoiceAgent();
+```
+
+No provider setup needed on web. React Native is already wrapped with `ElevenLabsProvider` in the root layout.
+
+## SDK Selection
+
+- **Web**: Use `@elevenlabs/react` — provides the `useConversation` hook for WebRTC/WebSocket voice conversations in the browser. No additional native dependencies needed.
+- **React Native**: Use `@elevenlabs/react-native` — provides `ElevenLabsProvider` and `useConversation` hook. Requires LiveKit peer dependencies (`@livekit/react-native`, `@livekit/react-native-webrtc`, `livekit-client`) for WebRTC on mobile. Expo Go is **not** supported — requires a development build.
+
+## Environment Variables
+
+Client-side only (public agent IDs):
+- `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` — web agent ID from ElevenLabs dashboard
+- `EXPO_PUBLIC_ELEVENLABS_AGENT_ID` — React Native agent ID
+
+Agent IDs are public and safe to expose. Create agents at https://elevenlabs.io/app/conversational-ai.
+
+## Graceful Fallback
+
+All ElevenLabs features must degrade gracefully when the agent ID env var is missing. Follow the same pattern as Stripe and Google Analytics.
+
+- Export `elevenlabsEnabled` from `lib/elevenlabs.ts` — check before rendering any voice agent UI
+- `useVoiceAgent()` returns `enabled: false` and no-op methods when not configured
+- Voice agent pages/screens show a "not configured" message with setup instructions
+
+## Wrapper Hook
+
+Use `useVoiceAgent()` (in `hooks/use-voice-agent.ts` for both web and react-native) as the app-level wrapper:
+
+```typescript
+const { enabled, status, isSpeaking, messages, start, stop, sendFeedback } = useVoiceAgent();
+```
+
+This hook wraps the SDK's `useConversation` and adds:
+- Graceful fallback when not configured
+- Microphone permission management (web)
+- Message history tracking
+- Consistent interface across web and mobile
+
+## Microphone Permissions
+
+ElevenLabs requires microphone access for voice conversations.
+
+- **Web**: Call `navigator.mediaDevices.getUserMedia({ audio: true })` before starting a conversation. Handle the denied case with a user-friendly message.
+- **React Native**: Configure `NSMicrophoneUsageDescription` in `Info.plist` (iOS) and `RECORD_AUDIO` permission in `AndroidManifest.xml` (Android). The SDK handles permission requests at runtime.
+
+## Connection Types
+
+- **WebRTC** (preferred): Lower latency, better audio quality. Default for React Native. Available on web via `connectionType: "webrtc"`.
+- **WebSocket**: Fallback option for web when WebRTC is not available. Use `connectionType: "websocket"`.
+
+## Provider Setup
+
+### Web
+No provider needed. The `useConversation` hook from `@elevenlabs/react` works standalone.
+
+### React Native
+Wrap the app with `ElevenLabsProvider` in the root layout. Use the conditional wrapper pattern:
+
+```typescript
+function ElevenLabsWrapper({ children }: { children: React.ReactNode }) {
+  if (!elevenlabsEnabled) return <>{children}</>;
+  const { ElevenLabsProvider } = require("@elevenlabs/react-native");
+  return <ElevenLabsProvider>{children}</ElevenLabsProvider>;
+}
+```
+
+## Key SDK Methods
+
+- `startSession({ agentId })` — start a conversation with a public agent
+- `endSession()` — end the current conversation
+- `sendFeedback(true/false)` — thumbs up/down on the latest agent response
+- `sendUserMessage(text)` — send a text message instead of voice
+- `sendContextualUpdate(text)` — inform the agent of context changes without triggering a response
+
+## Rules
+
+- **DO** check `elevenlabsEnabled` before rendering voice agent UI components
+- **DO** request microphone permission with user-friendly UI before starting a conversation
+- **DO** use `useVoiceAgent()` hook for consistent patterns across web and mobile
+- **DO** handle all conversation states in UI (connecting, connected/listening, speaking, disconnected)
+- **DO** show a "not configured" fallback when the agent ID env var is missing
+- **DO** clean up conversations on component unmount (call `endSession`)
+- **DO NOT** call `startSession()` without a valid agent ID
+- **DO NOT** skip microphone permission checks — always request before connecting
+- **DO NOT** hardcode agent IDs in components — use env vars via `lib/elevenlabs.ts`
+- **DO NOT** import `@elevenlabs/react-native` unconditionally — use dynamic `require()` behind the `elevenlabsEnabled` check to avoid crashes when LiveKit native modules are not linked

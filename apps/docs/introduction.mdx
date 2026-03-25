@@ -1,32 +1,104 @@
 ---
 title: Introduction
-description: "Welcome to Mastermind documentation"
+description: "Blueprint — a production-ready full-stack monorepo starter kit for shipping ideas fast."
 ---
 
-## Overview
+## What is Blueprint?
 
-Mastermind is a full-stack application built with a modern monorepo architecture.
+Blueprint is a **full-stack monorepo starter kit** built with [Turborepo](https://turbo.build/). It gives you a complete, production-ready codebase the moment you run `npx blueprint new` — including a web app, admin panel, mobile app, API server, documentation site, and video generation tool, all wired together and ready to ship.
 
-### Tech Stack
+The goal is simple: **eliminate the setup tax**. Authentication, payments, database, API, internationalization, voice agents — all built-in, all optional, all gracefully removable via the CLI.
 
-| App | Stack |
-|-----|-------|
-| Web | Next.js, shadcn/ui, Tailwind CSS |
-| Admin | Next.js, shadcn/ui, Tailwind CSS |
-| Mobile | Expo, Expo Router, NativeWind |
-| Server | Fastify, Swagger |
-| Database | Drizzle ORM, Neon PostgreSQL |
+> **"Ship ideas at the speed of thought."**
 
-## Quick Links
+## What's included
 
 <CardGroup cols={2}>
+  <Card title="Web App" icon="globe" href="/features/co-development">
+    Next.js 15 + shadcn/ui + Tailwind CSS v4. Server Components by default, React Query for data fetching, mobile-first UX patterns built in.
+  </Card>
+  <Card title="Mobile App" icon="mobile" href="/features/co-development">
+    Expo + Expo Router + NativeWind. Feature parity with the web app enforced by convention.
+  </Card>
+  <Card title="API Server" icon="server" href="/features/api-server">
+    Fastify + Swagger. Schema-first endpoints with auto-generated OpenAPI docs at `/docs`.
+  </Card>
+  <Card title="Admin Panel" icon="layout-dashboard" href="/architecture">
+    Separate Next.js app for internal tooling, isolated from the main web app.
+  </Card>
+  <Card title="Database" icon="database" href="/features/database">
+    Drizzle ORM + Neon PostgreSQL. Type-safe queries, migrations, and a shared schema package used across all apps.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/features/authentication">
+    Dynamic email OTP — no passwords, no wallets. JWT-verified on the server via JWKS.
+  </Card>
+  <Card title="Payments" icon="credit-card" href="/features/payments">
+    Stripe Checkout + webhooks + Customer Portal. Free/Pro tier gating with `useSubscription()`.
+  </Card>
+  <Card title="Internationalization" icon="language" href="/features/i18n">
+    i18next with multi-locale support. Language switcher included. Add locales in one config file.
+  </Card>
+  <Card title="Voice Agent" icon="microphone" href="/features/voice-agent">
+    ElevenLabs Conversational AI. Real-time voice conversations via WebRTC in both web and mobile.
+  </Card>
+  <Card title="Video Generation" icon="video" href="/features/video-generation">
+    Remotion for programmatic video creation. Branded compositions with app-config integration.
+  </Card>
+  <Card title="Documentation" icon="book" href="/architecture">
+    Mintlify — you're reading it now. Ships with every Blueprint project.
+  </Card>
+  <Card title="App Config" icon="settings" href="/features/app-config">
+    Centralized branding, colors, URLs, and assets. One config file propagates to all apps via `pnpm sync-config`.
+  </Card>
+</CardGroup>
+
+## Monorepo layout
+
+```
+blueprint/
+├── apps/
+│   ├── web/          → Next.js 15 + shadcn/ui + Tailwind CSS v4   :3000
+│   ├── admin/        → Next.js 15 + shadcn/ui + Tailwind CSS v4   :3002
+│   ├── docs/         → Mintlify documentation                      :3003
+│   ├── react-native/ → Expo + Expo Router + NativeWind
+│   ├── remotion/     → Video generation                            :3004
+│   └── server/       → Fastify + Swagger API                       :3001
+├── packages/
+│   ├── app-config/   → Single source of truth for branding & config
+│   ├── blueprint-cli/→ npx blueprint CLI
+│   ├── db/           → Drizzle ORM schema + Neon client
+│   ├── eslint-config/→ Shared ESLint rules
+│   └── typescript-config/ → Shared tsconfig
+└── prompts/          → AI prompt library
+```
+
+## Tech stack at a glance
+
+| Layer | Technology |
+|---|---|
+| Web & Admin | Next.js 15, React 19, Tailwind CSS v4, shadcn/ui |
+| Mobile | Expo SDK, Expo Router, NativeWind |
+| API | Fastify, Swagger/OpenAPI |
+| Database | Drizzle ORM, Neon PostgreSQL |
+| Auth | Dynamic (email OTP) |
+| Payments | Stripe (Checkout, webhooks, Customer Portal) |
+| i18n | i18next, expo-localization |
+| Voice | ElevenLabs Conversational AI |
+| Video | Remotion |
+| Docs | Mintlify |
+| Monorepo | Turborepo, pnpm workspaces |
+| Runtime | Node.js ≥ 23 |
+
+## Quick links
+
+<CardGroup cols={3}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get up and running in minutes
+    Up and running in 5 minutes
+  </Card>
+  <Card title="Get Started" icon="map" href="/get-started">
+    Full setup and customization guide
   </Card>
   <Card title="Architecture" icon="building" href="/architecture">
-    Understand the project structure
-  </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Explore the API endpoints
+    How the monorepo is structured
   </Card>
 </CardGroup>

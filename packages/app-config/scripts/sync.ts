@@ -22,6 +22,10 @@ function lightenHex(hex: string, amount: number): string {
   return formatHex(oklch) ?? hex;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function patchJson(filePath: string, patcher: (data: Record<string, unknown>) => void): void {
   const abs = resolve(ROOT, filePath);
   const raw = readFileSync(abs, "utf-8");
@@ -87,45 +91,35 @@ function syncReactNative(): void {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Sync Mintlify docs mint.json + assets
+// 2. Sync Mintlify docs.json + assets
 // ---------------------------------------------------------------------------
 function syncDocs(): void {
-  console.log("\n[Docs] Syncing mint.json + assets...");
+  console.log("\n[Docs] Syncing docs.json + assets...");
 
   const lightVariant = lightenHex(appConfig.colors.primary, 0.15);
 
-  patchJson("apps/docs/mint.json", (data) => {
+  patchJson("apps/docs/docs.json", (data) => {
     data["name"] = appConfig.name;
 
-    const colors = data["colors"] as Record<string, unknown>;
+    const colors: Record<string, unknown> = isRecord(data["colors"]) ? data["colors"] : {};
+    data["colors"] = colors;
     colors["primary"] = appConfig.colors.primary;
     colors["light"] = lightVariant;
     colors["dark"] = appConfig.colors.primary;
-    const anchors = colors["anchors"] as Record<string, unknown>;
-    anchors["from"] = appConfig.colors.primary;
-    anchors["to"] = lightVariant;
 
-    const topbarLinks = data["topbarLinks"] as Array<Record<string, unknown>>;
-    if (topbarLinks?.[0]) {
-      topbarLinks[0]["url"] = `mailto:${appConfig.urls.supportEmail}`;
-    }
-
-    const topbarCta = data["topbarCtaButton"] as Record<string, unknown>;
-    if (topbarCta) {
-      topbarCta["url"] = appConfig.urls.website;
-    }
-
-    if (appConfig.socials) {
-      const footerSocials: Record<string, string> = {};
-      if (appConfig.socials.github) footerSocials["github"] = appConfig.socials.github;
-      if (appConfig.socials.twitter) footerSocials["x"] = appConfig.socials.twitter;
-      if (appConfig.socials.discord) footerSocials["discord"] = appConfig.socials.discord;
-      data["footerSocials"] = footerSocials;
-
-      const existingAnchors = data["anchors"] as Array<Record<string, unknown>> | undefined;
-      if (existingAnchors && appConfig.socials.github) {
-        const ghAnchor = existingAnchors.find((a) => a["icon"] === "github");
-        if (ghAnchor) ghAnchor["url"] = appConfig.socials.github;
+    if (appConfig.socials?.github) {
+      const navigation = data["navigation"];
+      if (isRecord(navigation)) {
+        const global = navigation["global"];
+        const anchors = isRecord(global) ? global["anchors"] : undefined;
+        if (Array.isArray(anchors)) {
+          for (const anchor of anchors) {
+            if (!isRecord(anchor)) continue;
+            if (typeof anchor["anchor"] === "string" && anchor["anchor"].toLowerCase() === "github") {
+              anchor["href"] = appConfig.socials.github;
+            }
+          }
+        }
       }
     }
   });

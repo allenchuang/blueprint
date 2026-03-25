@@ -18,7 +18,7 @@ Runs on **http://localhost:3003**.
 
 ```
 apps/docs/
-├── mint.json                    → Mintlify configuration and navigation
+├── docs.json                    → Mintlify configuration and navigation
 ├── introduction.mdx             → Project overview
 ├── quickstart.mdx               → Getting started guide
 ├── architecture.mdx             → Architecture documentation
@@ -36,14 +36,14 @@ apps/docs/
 ## Patterns
 
 - **Keep docs concise** — document what users need, avoid filler content
-- **Update navigation** in `mint.json` when adding new pages
+- **Update navigation** in `docs.json` when adding new pages
 - **API docs** should reference the Swagger UI at `http://localhost:3001/docs` for interactive testing
 - **MDX format** — all pages use `.mdx` with Mintlify components (`<Card>`, `<Steps>`, `<CardGroup>`)
 
 ## Adding a New Page
 
 1. Create a new `.mdx` file in the appropriate directory
-2. Add the page path to `mint.json` under the correct navigation group
+2. Add the page path to `docs.json` under the correct navigation tab or group
 3. Preview with `pnpm dev:docs`
 
 ## Deployment

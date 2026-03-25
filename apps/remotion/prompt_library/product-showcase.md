@@ -8,11 +8,11 @@ A multi-section feature highlight reel at 16:9. Each section shows a feature nam
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `<PRODUCT_NAME>` | Product/brand name shown in the intro | `Mastermind` |
+| `<PRODUCT_NAME>` | Product/brand name shown in the intro | `Blueprint` |
 | `<TAGLINE>` | One-line description shown under product name | `The AI-powered video platform` |
 | `<FEATURES>` | JSON array of feature objects (see format below) | see example |
 | `<BG_COLOR>` | Background hex color | `#0f172a` |
-| `<ACCENT_COLOR>` | Accent / highlight hex color | `#0D9373` |
+| `<ACCENT_COLOR>` | Accent / highlight hex color | `#38BDF8` |
 | `<TEXT_COLOR>` | Body text hex | `#ffffff` |
 | `<SECTION_DURATION_SECONDS>` | How long each feature section is shown | `3` |
 

@@ -1,11 +1,11 @@
 {
-  "name": "Mastermind",
-  "short_name": "Mastermind",
+  "name": "Blueprint",
+  "short_name": "Blueprint",
   "description": "Build your next big thing",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0D9373",
+  "theme_color": "#38BDF8",
   "icons": [
     {
       "src": "/icon-192.png",

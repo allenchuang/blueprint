@@ -13,7 +13,7 @@ export const HelloWorld: React.FC = () => {
       style={{
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#0D9373",
+        backgroundColor: "#38BDF8",
       }}
     >
       <h1
@@ -24,7 +24,7 @@ export const HelloWorld: React.FC = () => {
           opacity,
         }}
       >
-        Mastermind
+        Blueprint
       </h1>
     </AbsoluteFill>
   );

@@ -4,12 +4,12 @@ globs:
 alwaysApply: true
 ---
 
-# Mastermind Monorepo
+# Blueprint Monorepo
 
 ## Architecture
 
 ```
-mastermind/
+blueprint/
 ├── apps/
 │   ├── web/            → Next.js 15 + shadcn/ui + Tailwind CSS v4       :3000
 │   ├── admin/          → Next.js 15 + shadcn/ui + Tailwind CSS v4       :3002

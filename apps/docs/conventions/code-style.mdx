@@ -1,0 +1,158 @@
+---
+title: Code Style
+description: "TypeScript conventions, file naming, path aliases, and error handling patterns."
+---
+
+## TypeScript
+
+- **Strict mode everywhere** — `tsconfig.json` has `strict: true` in all apps. No `any` types unless absolutely necessary. If you must use `any`, add a comment explaining why.
+- Prefer `interface` for object shapes:
+
+```typescript
+interface User {
+  id: string;
+  email: string;
+  createdAt: Date;
+}
+```
+
+- Use `type` for unions and intersections:
+
+```typescript
+type Status = "active" | "inactive" | "pending";
+type AdminUser = User & { role: "admin" };
+```
+
+- Use the `satisfies` operator for type-safe object literals:
+
+```typescript
+const config = {
+  name: "My App",
+  version: "1.0.0",
+} satisfies AppConfig;
+```
+
+- Export types alongside their implementations — keep types co-located.
+
+## File naming
+
+| Thing | Convention | Example |
+|---|---|---|
+| Files | kebab-case | `user-profile.tsx`, `get-users.ts` |
+| Components | PascalCase | `UserProfile`, `DataTable` |
+| Hooks | camelCase + `use` prefix | `useGetUsers`, `useAuth` |
+| Constants | SCREAMING_SNAKE_CASE | `API_BASE_URL`, `MAX_RETRIES` |
+| DB tables/schemas | camelCase export, snake_case DB | `blogPosts` table, `blog_posts` DB name |
+
+## Path aliases
+
+All Next.js apps and the server map `@/` to `src/`. Always use aliases — never `../../..` relative paths:
+
+```typescript
+// Correct
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { appConfig } from "@repo/app-config";
+
+// Wrong
+import { useAuth } from "../../../hooks/use-auth";
+```
+
+## Import ordering
+
+Group imports in this order, with a blank line between groups:
+
+```typescript
+// 1. External packages
+import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+
+// 2. Internal packages
+import { appConfig } from "@repo/app-config";
+import { users } from "@repo/db/schema";
+
+// 3. Local aliases
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+```
+
+## Exports
+
+Use **named exports** everywhere except Next.js pages and layouts, which must use default exports:
+
+```typescript
+// Correct (utility, component, hook)
+export function formatDate(date: Date) { /* ... */ }
+export const UserCard = () => { /* ... */ };
+export function useGetUsers() { /* ... */ }
+
+// Correct (Next.js page — must be default)
+export default function DashboardPage() { /* ... */ }
+```
+
+## Error handling
+
+Use `try/catch` with typed errors:
+
+```typescript
+try {
+  const user = await db.select().from(users).where(eq(users.id, id));
+} catch (error) {
+  if (error instanceof DatabaseError) {
+    // handle specific error
+  }
+  throw error;
+}
+```
+
+In React Query hooks, let React Query handle errors — no manual `try/catch` in `queryFn`:
+
+```typescript
+export function useGetUser(id: string) {
+  return useQuery({
+    queryKey: ["users", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/users/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch user");
+      return res.json() as Promise<User>;
+    },
+  });
+}
+```
+
+In Fastify routes, use Fastify's built-in HTTP errors:
+
+```typescript
+throw app.httpErrors.notFound("User not found");
+throw app.httpErrors.badRequest("Email is required");
+```
+
+## Async/await
+
+Always use `async/await` over `.then()` chains:
+
+```typescript
+// Correct
+const user = await fetchUser(id);
+
+// Wrong
+fetchUser(id).then((user) => { /* ... */ });
+```
+
+Never catch and re-throw without adding context:
+
+```typescript
+// Wrong — swallows the original error context
+try {
+  await doSomething();
+} catch (e) {
+  throw new Error("Failed"); // lost original stack trace
+}
+
+// Correct — let it propagate or add context
+try {
+  await doSomething();
+} catch (e) {
+  throw new Error(`Failed to do something: ${(e as Error).message}`);
+}
+```

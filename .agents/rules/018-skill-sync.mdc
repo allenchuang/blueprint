@@ -1,0 +1,22 @@
+---
+description: Keep agent skills in sync across .agents/skills/, .cursor/skills/, and .claude/skills/
+globs:
+alwaysApply: true
+---
+
+# Skill Sync
+
+Skills exist in three parallel directories that must stay identical:
+
+- `.agents/skills/` — Codex / generic agents
+- `.cursor/skills/` — Cursor
+- `.claude/skills/` — Claude Code
+
+When creating, editing, or deleting any skill, apply the **same change** to all three directories.
+
+## Workflow
+
+1. Make the change in `.agents/skills/<skill-name>/SKILL.md`
+2. Copy the identical folder to `.cursor/skills/<skill-name>/SKILL.md` and `.claude/skills/<skill-name>/SKILL.md`
+3. If a skill is deleted, delete it from all three directories
+4. If the skill has additional files (e.g., `LICENSE.txt`, reference docs), copy those too

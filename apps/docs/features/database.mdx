@@ -1,0 +1,124 @@
+---
+title: Database
+description: "Type-safe PostgreSQL with Drizzle ORM and Neon — shared schema across all apps."
+---
+
+## Overview
+
+All database logic lives in `packages/db`. This shared package exports the schema, typed query client, and all table types. Every app that needs database access imports from `@repo/db` — no app defines its own schema.
+
+## Setup
+
+Set your Neon connection string in `.env`:
+
+```bash
+DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require"
+```
+
+Push the schema to your database:
+
+```bash
+pnpm db:push        # push current schema (development)
+pnpm db:generate    # generate Drizzle migration files
+pnpm db:migrate     # run migrations (production)
+pnpm db:studio      # open Drizzle Studio browser UI
+```
+
+## Schema location
+
+```
+packages/db/src/
+├── schema/
+│   ├── index.ts      → re-exports all tables
+│   ├── users.ts      → users table
+│   └── subscriptions.ts → subscriptions table
+├── index.ts          → exports createDb, schema types
+└── client.ts         → Neon + Drizzle client factory
+```
+
+## Defining a table
+
+Always follow these conventions:
+
+- Table names: **plural snake_case** (`users`, `blog_posts`)
+- Column names: **snake_case** (`created_at`, `user_id`)
+- Every table gets `id`, `createdAt`, `updatedAt`
+- Primary keys: `uuid` with `.defaultRandom()`
+- Timestamps: `timestamp("...", { withTimezone: true })`
+
+```typescript
+// packages/db/src/schema/posts.ts
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { users } from "./users";
+
+export const posts = pgTable("posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  content: text("content"),
+  authorId: uuid("author_id").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type Post = typeof posts.$inferSelect;
+export type NewPost = typeof posts.$inferInsert;
+```
+
+Export the new table from `packages/db/src/schema/index.ts`, then run `pnpm db:generate`.
+
+## Querying the database
+
+```typescript
+import { createDb } from "@repo/db";
+import { users, posts } from "@repo/db/schema";
+import { eq } from "drizzle-orm";
+
+const db = createDb(process.env.DATABASE_URL!);
+
+// Select
+const user = await db.select().from(users).where(eq(users.id, userId));
+
+// Insert
+const [newPost] = await db.insert(posts).values({
+  title: "Hello",
+  content: "World",
+  authorId: userId,
+}).returning();
+
+// Update
+await db.update(users).set({ email: newEmail }).where(eq(users.id, userId));
+
+// Delete
+await db.delete(posts).where(eq(posts.id, postId));
+```
+
+## Using in the server
+
+Import the `db` instance created in `apps/server/src/plugins/db.ts`:
+
+```typescript
+// apps/server/src/routes/posts.ts
+import { db } from "@/plugins/db";
+import { posts } from "@repo/db/schema";
+
+app.get("/api/posts", async (request, reply) => {
+  const allPosts = await db.select().from(posts);
+  return allPosts;
+});
+```
+
+## Drizzle Studio
+
+```bash
+pnpm db:studio
+```
+
+Opens a browser UI to browse, query, and edit your database data visually.
+
+## Rules
+
+- **DO** define all schema in `packages/db/src/schema/` — never in app directories
+- **DO** export types (`Post`, `NewPost`) from the schema file
+- **DO** run `pnpm db:generate` after any schema change before committing
+- **DO NOT** write raw SQL for schema changes — use Drizzle's schema DSL
+- **DO NOT** create a second database client in an app — import from `@repo/db`

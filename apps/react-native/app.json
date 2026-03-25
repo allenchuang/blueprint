@@ -1,28 +1,28 @@
 {
   "expo": {
-    "name": "Mastermind",
-    "slug": "mastermind",
+    "name": "Blueprint",
+    "slug": "blueprint",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "mastermind",
+    "scheme": "blueprint",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0D9373"
+      "backgroundColor": "#38BDF8"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mastermind.app"
+      "bundleIdentifier": "com.blueprint.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0D9373"
+        "backgroundColor": "#38BDF8"
       },
-      "package": "com.mastermind.app"
+      "package": "com.blueprint.app"
     },
     "web": {
       "bundler": "metro",

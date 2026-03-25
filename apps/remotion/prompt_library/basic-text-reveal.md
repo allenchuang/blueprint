@@ -8,9 +8,9 @@ A clean animated title card that fades and slides text in over a solid backgroun
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `<TITLE>` | Main headline text | `Introducing Mastermind` |
+| `<TITLE>` | Main headline text | `Introducing Blueprint` |
 | `<SUBTITLE>` | Optional supporting line (leave blank to omit) | `The AI-powered video platform` |
-| `<BG_COLOR>` | Background hex color | `#0D9373` |
+| `<BG_COLOR>` | Background hex color | `#38BDF8` |
 | `<TEXT_COLOR>` | Text hex color | `#ffffff` |
 | `<DURATION_SECONDS>` | Total video length in seconds | `5` |
 

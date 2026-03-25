@@ -1,0 +1,122 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "theme": "mint",
+  "name": "Blueprint 🧢 ",
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#38BDF8",
+    "light": "#7DD3FC",
+    "dark": "#0EA5E9"
+  },
+  "background": {
+    "decoration": "grid",
+    "color": {
+      "light": "#FFFFFF",
+      "dark": "#0D1117"
+    }
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        { "anchor": "GitHub", "href": "https://github.com", "icon": "github" }
+      ]
+    },
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "icon": "rocket",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["introduction", "quickstart", "get-started"]
+          },
+          {
+            "group": "Project",
+            "pages": ["architecture"]
+          }
+        ]
+      },
+      {
+        "tab": "Features",
+        "icon": "sparkles",
+        "groups": [
+          {
+            "group": "Foundation",
+            "pages": [
+              "features/app-config",
+              "features/database",
+              "features/api-server"
+            ]
+          },
+          {
+            "group": "Auth & Payments",
+            "pages": ["features/authentication", "features/privy-auth", "features/payments"]
+          },
+          {
+            "group": "Frontend",
+            "pages": [
+              "features/co-development",
+              "features/mobile-patterns",
+              "features/i18n"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": ["features/voice-agent", "features/video-generation"]
+          }
+        ]
+      },
+      {
+        "tab": "Conventions",
+        "icon": "book",
+        "groups": [
+          {
+            "group": "Code",
+            "pages": [
+              "conventions/code-style",
+              "conventions/component-patterns",
+              "conventions/api-patterns",
+              "conventions/database-patterns"
+            ]
+          },
+          {
+            "group": "Process",
+            "pages": ["conventions/testing", "conventions/git"]
+          }
+        ]
+      },
+      {
+        "tab": "Extending",
+        "icon": "wrench",
+        "groups": [
+          {
+            "group": "Extend Blueprint",
+            "pages": [
+              "extending/overview",
+              "extending/cli",
+              "extending/skills-rules",
+              "extending/new-language"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "square-terminal",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

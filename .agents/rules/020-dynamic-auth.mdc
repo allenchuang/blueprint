@@ -1,0 +1,81 @@
+# Dynamic Auth
+
+## Overview
+
+Dynamic is an **authentication provider** for this project (alternative: Privy — see `022-privy-auth.mdc`). Email-only authentication via OTP. Choose between Dynamic and Privy during CLI scaffolding — they are mutually exclusive.
+
+## Architecture
+
+- **Web** (`apps/web`): `DynamicContextProvider` from `@dynamic-labs/sdk-react-core`
+- **React Native** (`apps/react-native`): `createClient` from `@dynamic-labs/client` + `@dynamic-labs/react-native-extension`
+- **Server** (`apps/server`): JWT verification via `jsonwebtoken` + `jwks-rsa` against Dynamic's JWKS endpoint
+- **External infra backend**: `apps/server` proxies authenticated requests to `INFRA_API_URL` — clients never call infra directly
+
+## Auth Flow
+
+1. Client authenticates with Dynamic (email OTP)
+2. Client receives a JWT from Dynamic
+3. Client sends `Authorization: Bearer <token>` to `apps/server`
+4. Server verifies JWT signature, checks `scope` includes `user:basic`, upserts user in local DB
+5. Server handles the request or proxies to `INFRA_API_URL`
+
+## Environment Variables
+
+| Location            | Variable                             | Description                    |
+|---------------------|--------------------------------------|--------------------------------|
+| `apps/web`          | `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` | Dynamic environment ID         |
+| `apps/react-native` | `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID` | Dynamic environment ID         |
+| `apps/server`       | `DYNAMIC_ENVIRONMENT_ID`             | Dynamic environment ID         |
+| `apps/server`       | `INFRA_API_URL`                      | External infra backend URL     |
+
+## Feature Flag
+
+Both client apps export `dynamicEnabled` from `lib/dynamic.ts`. Check this before rendering auth UI.
+
+```typescript
+import { dynamicEnabled } from "@/lib/dynamic";
+if (!dynamicEnabled) {
+  // Show unauthenticated fallback
+}
+```
+
+## Client-Side Hooks
+
+Use `useAuth()` in both apps for consistent auth state:
+
+```typescript
+import { useAuth } from "@/hooks/use-auth";
+
+const { user, isLoggedIn, getToken } = useAuth();
+```
+
+## Getting the JWT
+
+- **Web**: `getAuthToken()` from `@dynamic-labs/sdk-react-core`
+- **React Native**: `dynamicClient.auth.token` from `lib/dynamic-client.ts`
+
+## Server-Side Verification
+
+The `authenticate` preHandler on `apps/server` verifies the Dynamic JWT:
+
+1. Extracts `Authorization: Bearer <token>` header
+2. Verifies signature via Dynamic's JWKS endpoint (`https://app.dynamic.xyz/api/v0/sdk/{envId}/.well-known/jwks`)
+3. Checks `scope` includes `user:basic`
+4. Attaches `request.dynamicUser` (`sub`, `email`, `scope`)
+5. Upserts user in local DB (maps `dynamic_user_id`)
+
+## Database
+
+The `users` table has a `dynamic_user_id` column (text, unique) that maps Dynamic's `sub` JWT claim to the local user record.
+
+## Rules
+
+- **DO** use Dynamic for all authentication when selected — never add another auth provider alongside it
+- **DO** enable email-only in the Dynamic dashboard — no wallets, no social, no SMS
+- **DO** check `dynamicEnabled` before rendering any auth UI
+- **DO** verify `scope` includes `user:basic` on the server before trusting the JWT
+- **DO** send the JWT as `Authorization: Bearer <token>` to `apps/server`
+- **DO NOT** add wallet connectors (`EthereumWalletConnectors`, etc.) to the provider
+- **DO NOT** call the infra backend directly from client apps — always go through `apps/server`
+- **DO NOT** expose `DYNAMIC_ENVIRONMENT_ID` or `INFRA_API_URL` to client-side code
+- **DO NOT** store or log user JWTs on the server

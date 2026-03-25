@@ -1,0 +1,130 @@
+---
+title: CLI Reference
+description: "npx blueprint new — interactive scaffolding with feature selection and FeatureManifests."
+---
+
+## Overview
+
+The Blueprint CLI (`packages/blueprint-cli`) powers `npx blueprint new`. It clones the Blueprint template, presents an interactive feature selection menu, and removes all code for unselected features — leaving a clean, minimal scaffold.
+
+## Creating a new project
+
+```bash
+npx blueprint new my-app
+```
+
+The interactive prompt lets you:
+
+1. Set your app name and slug
+2. Select apps to include (web, admin, mobile, docs, remotion)
+3. Select integrations (auth, payments, voice agent, analytics, MiniKit)
+4. Select web features (dark mode, i18n, mobile patterns)
+5. Select database options
+
+Unselected features are surgically removed: route files deleted, packages uninstalled from `package.json`, env keys stripped from `.env.example`, i18n keys removed from locale files.
+
+## CLI flags
+
+You can bypass the interactive menu with flags:
+
+```bash
+npx blueprint new my-app \
+  --with-auth \
+  --with-stripe \
+  --with-elevenlabs \
+  --with-i18n \
+  --skip-mobile
+```
+
+## FeatureManifest
+
+Every optional feature must have a `FeatureManifest` in `packages/blueprint-cli/src/features/`. This manifest describes everything that needs to be removed when the feature is not selected:
+
+```typescript
+// packages/blueprint-cli/src/features/stripe.ts
+import type { FeatureManifest } from "./index";
+
+export const stripeFeature: FeatureManifest = {
+  id: "stripe",
+  name: "Stripe Payments",
+  description: "Stripe Checkout, webhooks, Customer Portal, and subscription tiers",
+
+  // Files/directories to remove when not selected
+  filesToRemove: [
+    "apps/server/src/routes/stripe.ts",
+    "apps/web/src/app/(routes)/pricing/",
+    "apps/web/src/hooks/use-subscription.ts",
+    "apps/web/src/lib/stripe.ts",
+  ],
+
+  // npm packages to remove per workspace
+  dependenciesToRemove: {
+    "apps/web": ["@stripe/stripe-js", "@stripe/react-stripe-js"],
+    "apps/react-native": ["@stripe/stripe-react-native"],
+    "apps/server": ["stripe"],
+  },
+
+  // Lines to remove from layout files (provider wrappers)
+  layoutPatches: [
+    {
+      file: "apps/web/src/app/layout.tsx",
+      removeImports: ["StripeProvider"],
+      removeComponents: ["<StripeProvider>"],
+    },
+  ],
+
+  // Env keys to strip from .env.example
+  envKeysToRemove: [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PRICE_PRO_MONTHLY",
+    "STRIPE_PRICE_PRO_YEARLY",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+  ],
+
+  // i18n keys to remove from locale files
+  i18nKeysToRemove: ["pricingTitle", "upgradeButton", "cancelSubscription"],
+
+  // Agent rule and skill files to remove
+  agentFilesToRemove: [
+    "016-stripe-payments.mdc",
+    "017-feature-gating.mdc",
+  ],
+};
+```
+
+## Registering a new feature
+
+1. **Create the manifest** at `packages/blueprint-cli/src/features/[feature].ts`
+2. **Register in the index** at `packages/blueprint-cli/src/features/index.ts`
+3. **Add a CLI flag** in `packages/blueprint-cli/src/commands/new.ts`
+4. **Add to the interactive prompt** in the appropriate category (Apps, Integrations, Web Features, Database)
+5. **Add env vars** to all relevant `.env.example` files
+6. **Gate the feature at runtime** with an env-based flag (the app must work without it)
+7. **Update the root README** built-in features section
+
+## Runtime gating rule
+
+Every optional feature **must** degrade gracefully when its env vars are absent. Never crash or show an error when a feature is not configured — just hide the relevant UI.
+
+```typescript
+// lib/stripe.ts
+export const stripeEnabled =
+  typeof process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY === "string" &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.length > 0;
+
+// In a component
+import { stripeEnabled } from "@/lib/stripe";
+
+if (!stripeEnabled) return null; // or show a fallback
+```
+
+## Workspace commands
+
+Beyond scaffolding, the CLI also provides workspace utilities:
+
+```bash
+npx blueprint add <feature>     # add a feature to an existing project
+npx blueprint sync-config       # alias for pnpm sync-config
+```
