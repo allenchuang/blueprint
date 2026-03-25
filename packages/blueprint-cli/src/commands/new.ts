@@ -13,6 +13,7 @@ import {
   LANGUAGE_OPTIONS,
 } from "../features/index.js";
 import { stripFeatures } from "../features/strip.js";
+import { setupAiKeys, AI_PROVIDERS } from "../utils/setup-ai-keys.js";
 
 const REPO_URL = "https://github.com/allenchuang/blueprint.git";
 const REQUIRED_NODE_MAJOR = 23;
@@ -25,6 +26,10 @@ const DATABASE_OPTIONS: { value: DatabaseProvider; title: string; description: s
 ];
 
 const DB_REQUIRED_FEATURES = new Set(["stripe", "dynamic", "privy"]);
+
+function toDbProvider(s: string | undefined): DatabaseProvider {
+  return DATABASE_OPTIONS.some((o) => o.value === s) ? (s as DatabaseProvider) : "neon";
+}
 
 export interface NewCommandOptions {
   withAdmin?: boolean;
@@ -98,7 +103,7 @@ async function reExecWithNode(nodePath: string, args: string[]): Promise<never> 
 
 function checkNodeVersion(): { ok: boolean; current: string; required: number } {
   const current = process.version;
-  const major = Number.parseInt(current.slice(1).split(".")[0]!, 10);
+  const major = Number.parseInt(current.slice(1).split(".")[0] ?? "0", 10);
   return { ok: major >= REQUIRED_NODE_MAJOR, current, required: REQUIRED_NODE_MAJOR };
 }
 
@@ -128,7 +133,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
       auth: "dynamic",
       integrations: INTEGRATION_MANIFESTS.map((m) => m.id),
       webFeatures: WEB_FEATURE_MANIFESTS.map((m) => m.id),
-      database: (opts.db as DatabaseProvider) || "neon",
+      database: toDbProvider(opts.db),
       languages: LANGUAGE_OPTIONS.slice(0, 3).map((l) => l.code),
     };
   }
@@ -139,7 +144,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
       auth: "none",
       integrations: [],
       webFeatures: [],
-      database: (opts.db as DatabaseProvider) || "neon",
+      database: toDbProvider(opts.db),
       languages: [],
     };
   }
@@ -169,7 +174,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
     auth,
     integrations,
     webFeatures,
-    database: (opts.db as DatabaseProvider) || "neon",
+    database: toDbProvider(opts.db),
     languages: webFeatures.includes("i18n") ? ["en"] : [],
   };
 }
@@ -257,7 +262,8 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
 
   // If i18n selected, prompt for languages
   let languages: string[] = [];
-  if ((webFeatures as string[]).includes("i18n")) {
+  const webFeaturesArr = (webFeatures ?? []) as string[];
+  if (webFeaturesArr.includes("i18n")) {
     const { selectedLangs } = await prompts({
       type: "multiselect",
       name: "selectedLangs",
@@ -276,7 +282,7 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
       process.exit(0);
     }
 
-    languages = selectedLangs as string[];
+    languages = (selectedLangs ?? []) as string[];
     if (!languages.includes("en")) {
       languages.unshift("en");
     }
@@ -612,6 +618,9 @@ export const appConfig = {
     }
   }
 
+  // AI provider setup
+  await setupAiKeys(targetDir);
+
   // Install dependencies
   console.log();
   const installSpinner = ora("Installing dependencies with pnpm...").start();
@@ -687,6 +696,26 @@ export const appConfig = {
   }
   const dbOption = DATABASE_OPTIONS.find((o) => o.value === selections.database);
   console.log(kleur.dim("  Database: ") + kleur.bold(dbOption?.title ?? selections.database));
+
+  // Show configured AI providers from .env
+  try {
+    const envContent = existsSync(join(targetDir, ".env"))
+      ? readFileSync(join(targetDir, ".env"), "utf8")
+      : "";
+    const configuredProviders = AI_PROVIDERS.filter(
+      (p) => !p.isLocal && envContent.includes(`${p.envKey}=`) && !envContent.match(new RegExp(`${p.envKey}=\\s*$`, "m")),
+    );
+    const ollamaConfigured = envContent.includes("OLLAMA_BASE_URL=");
+    const providerNames = [
+      ...configuredProviders.map((p) => p.name),
+      ...(ollamaConfigured ? ["Ollama (local)"] : []),
+    ];
+    if (providerNames.length > 0) {
+      console.log(kleur.dim("  AI Providers: ") + kleur.bold(providerNames.join(", ")));
+    }
+  } catch {
+    // non-critical
+  }
   console.log();
 
   if (!nodeCheck.ok) {
