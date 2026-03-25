@@ -1,49 +1,80 @@
 ---
-title: "Quickstart"
-description: "Get started with Mastermind development"
+title: Quickstart
+description: "From zero to running Blueprint in under 5 minutes."
 ---
 
 ## Prerequisites
 
-- Node.js 18+
-- pnpm 10+
-- Neon PostgreSQL database (or local PostgreSQL)
+- **Node.js ≥ 23** (run `nvm use` — an `.nvmrc` is included)
+- **pnpm 10+** — `npm install -g pnpm`
+- A [Neon PostgreSQL](https://neon.tech) database (free tier works fine)
 
-## Setup
+## Option A — Scaffold a new project
 
-<Steps>
-  <Step title="Clone and install">
-    ```bash
-    git clone <repo-url>
-    cd mastermind
-    pnpm install
-    ```
-  </Step>
-  <Step title="Configure environment">
-    Copy the example env files and fill in your values:
-    ```bash
-    cp .env.example .env
-    ```
-    Set your `DATABASE_URL` to your Neon connection string.
-  </Step>
-  <Step title="Push database schema">
-    ```bash
-    pnpm db:push
-    ```
-  </Step>
-  <Step title="Start development">
-    ```bash
-    pnpm dev
-    ```
-    This starts all apps in development mode.
-  </Step>
-</Steps>
-
-## Running Individual Apps
+Use the Blueprint CLI to create a new project and pick only the features you need:
 
 ```bash
-pnpm dev:web      # Web app on port 3000
-pnpm dev:admin    # Admin panel on port 3002
-pnpm dev:server   # API server on port 3001
-pnpm dev:docs     # Documentation
+npx blueprint new my-app
 ```
+
+The interactive prompt lets you select apps (web, admin, mobile, docs, remotion) and optional integrations (auth, payments, voice, analytics). Unselected features are removed from the scaffold.
+
+## Option B — Clone directly
+
+```bash
+git clone https://github.com/your-org/blueprint my-app
+cd my-app
+pnpm install
+```
+
+## Set up environment variables
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set your database URL:
+
+```bash
+DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+```
+
+All other variables are optional — features degrade gracefully when their env vars are missing. See [Get Started](/get-started) for the full variable reference.
+
+## Initialize the database
+
+```bash
+pnpm db:push
+```
+
+This pushes the Drizzle schema to your Neon database. No migrations needed for initial setup.
+
+## Start all apps
+
+```bash
+pnpm dev
+```
+
+| App | URL |
+|---|---|
+| Web | [http://localhost:3000](http://localhost:3000) |
+| API Server | [http://localhost:3001](http://localhost:3001) |
+| Admin | [http://localhost:3002](http://localhost:3002) |
+| Docs | [http://localhost:3003](http://localhost:3003) |
+| Remotion | [http://localhost:3004](http://localhost:3004) |
+
+## Running individual apps
+
+```bash
+pnpm dev:web      # Web app only
+pnpm dev:admin    # Admin panel only
+pnpm dev:server   # API server only
+```
+
+## Next step — make it yours
+
+Before writing any features, update the app config to reflect your brand:
+
+<Card title="Get Started" icon="map" href="/get-started">
+  Customize app name, colors, logo, and environment variables
+</Card>

@@ -7,7 +7,8 @@ Expo app with Expo Router (file-based routing) and NativeWind (Tailwind for RN).
 - `app/` — Expo Router file-based routes (like Next.js App Router)
 - `app/(tabs)/` — Tab navigator screens
 - `components/` — Reusable components
-- `hooks/` — React Query hooks (same naming as web app)
+- `hooks/` — React Query hooks (same naming as web app: `use-auth.ts`, `use-voice-agent.ts`, `use-subscription.ts`)
+- `lib/` — Feature flags and utilities (`dynamic.ts`, `dynamic-client.ts`, `privy.ts`, `elevenlabs.ts`, `features.ts`, `analytics.ts`)
 - `assets/` — Images, fonts, static assets
 
 ## Rules
@@ -17,6 +18,10 @@ Expo app with Expo Router (file-based routing) and NativeWind (Tailwind for RN).
 - Use React Query hooks in `hooks/` for all API calls (same names as web)
 - File-based routing via Expo Router — create files in `app/` for new screens
 - Use `FlatList`/`FlashList` for lists, never `.map()` in ScrollView
+- Check `dynamicEnabled` or `privyEnabled` before rendering auth UI. Use `useAuth()` for auth state.
+- Wrap app with `DynamicWrapper` conditionally (same pattern as `StripeWrapper`)
+- Check `elevenlabsEnabled` before rendering voice agent UI
+- Wrap app with `ElevenLabsProvider` conditionally (same pattern as `StripeWrapper`)
 
 ## Component Mapping from Web
 

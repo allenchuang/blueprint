@@ -10,10 +10,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@dynamic-labs/sdk-react-core": "^4.68.0",
+    "@elevenlabs/react": "^0.14.3",
     "@next/third-parties": "^16.1.6",
+    "@privy-io/react-auth": "^3.18.0",
     "@repo/app-config": "workspace:*",
     "@repo/db": "workspace:*",
+    "@stripe/react-stripe-js": "^5.6.1",
+    "@stripe/stripe-js": "^8.11.0",
     "@tanstack/react-query": "^5.75.0",
+    "@worldcoin/minikit-js": "^1.11.0",
+    "@worldcoin/minikit-react": "^1.9.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "^25.8.0",
@@ -21,11 +28,13 @@
     "lucide-react": "^0.511.0",
     "motion": "^12.36.0",
     "next": "^15.3.0",
+    "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^16.5.4",
     "tailwind-merge": "^3.3.0",
+    "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2"
   },
   "devDependencies": {

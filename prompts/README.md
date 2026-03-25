@@ -9,6 +9,20 @@ A collection of detailed, copy-paste-ready design prompts for building world-cla
 3. Paste it into your AI assistant (Cursor, Claude, etc.) along with the relevant file references (e.g., `@apps/web/src/app/page.tsx`).
 4. Replace any `<PLACEHOLDER>` variables with your own values.
 
+---
+
+## Starting a New Project? Generate a PRD First
+
+Use the **PRD Generator** to turn any app idea into a full Product Requirements Document before you start building.
+
+```bash
+ANTHROPIC_API_KEY=sk-... pnpm generate-prd "Your app idea here"
+```
+
+See [`prd/generate-prd.md`](./prd/generate-prd.md) for the full prompt, manual (paste) usage, and CLI docs.
+
+---
+
 ## Categories
 
 ### `branding/design-systems/`

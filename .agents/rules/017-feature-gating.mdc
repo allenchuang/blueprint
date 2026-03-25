@@ -1,0 +1,63 @@
+---
+description: Feature gating and subscription-based access control — tier model, server enforcement, client hooks
+globs:
+alwaysApply: true
+---
+
+# Feature Gating
+
+## Tier Model
+
+Tiers are defined in `lib/features.ts` (exists in both `apps/web/src/lib/` and `apps/react-native/lib/`):
+
+- `free` — default tier, basic features
+- `pro` — paid tier, all features
+
+The `FEATURES` map associates each feature key with the tiers that have access:
+
+```typescript
+const FEATURES = {
+  basicAnalytics: ["free", "pro"],
+  advancedAnalytics: ["pro"],
+  exportData: ["pro"],
+} as const;
+```
+
+Use `hasFeature(tier, featureKey)` to check access.
+
+## Server-Side Enforcement
+
+Protected API routes must check the user's subscription tier from the database. Return `403 { error: "upgrade_required", requiredTier: "pro" }` when access is denied.
+
+## Client-Side Gating
+
+Use the `useSubscription()` hook (in `hooks/use-subscription.ts` for both web and react-native):
+
+```typescript
+const { tier, isProUser, hasFeature } = useSubscription();
+if (!hasFeature("advancedAnalytics")) {
+  // Show upgrade prompt
+}
+```
+
+When Stripe is not configured, `useSubscription()` returns all features as unlocked so the app is fully usable.
+
+## Gating UI Patterns
+
+- **Soft gate**: Feature is visible but disabled with a lock icon and "Upgrade to Pro" badge
+- **Hard gate**: Feature is hidden entirely for free users
+- **Usage gate**: Feature works N times for free, then requires upgrade (future)
+
+## Webhook-Driven Sync
+
+Subscription status propagates via Stripe webhooks to the `subscriptions` table. The client refetches subscription status on window/app focus.
+
+## Rules
+
+- **DO** always enforce feature access on the server — never rely solely on client checks
+- **DO** use `hasFeature()` from `lib/features.ts` for consistent gating logic
+- **DO** show upgrade prompts with a link to `/pricing` when gating features
+- **DO** handle grace periods for canceled subscriptions (`cancelAtPeriodEnd`)
+- **DO NOT** hardcode tier checks — always use the `FEATURES` map
+- **DO NOT** gate features only on the client without server verification
+- **DO NOT** block the entire app when subscription status fails to load — default to free tier

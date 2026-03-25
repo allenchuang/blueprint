@@ -1,0 +1,118 @@
+---
+title: Internationalization
+description: "i18next multi-locale support with a built-in language switcher and per-feature translation keys."
+---
+
+## Overview
+
+All user-facing strings in `apps/web` and `apps/react-native` must go through i18next. The supported languages are defined in `packages/app-config/src/languages.json` — the source of truth for locale configuration. The web app includes a language switcher component out of the box.
+
+## Supported languages
+
+Check `packages/app-config/src/languages.json` to see which locales are configured in your project:
+
+```json
+{
+  "defaultLocale": "en",
+  "locales": [
+    { "code": "en", "name": "English", "nativeName": "English" },
+    { "code": "zh", "name": "Chinese", "nativeName": "中文" },
+    { "code": "es", "name": "Spanish", "nativeName": "Español" }
+  ]
+}
+```
+
+## Translation file structure
+
+One flat JSON file per locale, no namespaces:
+
+```
+apps/web/src/i18n/locales/
+├── en.json
+├── zh.json
+└── es.json
+
+apps/react-native/i18n/locales/
+├── en.json
+├── zh.json
+└── es.json
+```
+
+## Using translations in components
+
+### Web (Next.js)
+
+Components using translations must be client components:
+
+```typescript
+"use client";
+import { useTranslation } from "react-i18next";
+
+export function WelcomeBanner() {
+  const { t } = useTranslation();
+  return <h1>{t("welcomeTitle")}</h1>;
+}
+```
+
+### React Native
+
+```typescript
+import { useTranslation } from "react-i18next";
+
+export default function HomeScreen() {
+  const { t } = useTranslation();
+  return <Text>{t("welcomeTitle")}</Text>;
+}
+```
+
+## Adding translation keys
+
+When adding strings for a new feature, add the key to **every locale file** in both apps:
+
+```json
+// apps/web/src/i18n/locales/en.json
+{
+  "welcomeTitle": "Welcome to My App",
+  "dashboardTitle": "Dashboard",
+  "newFeatureTitle": "New Feature"
+}
+
+// apps/web/src/i18n/locales/zh.json
+{
+  "welcomeTitle": "欢迎使用我的应用",
+  "dashboardTitle": "仪表板",
+  "newFeatureTitle": "新功能"
+}
+
+// apps/web/src/i18n/locales/es.json
+{
+  "welcomeTitle": "Bienvenido a Mi App",
+  "dashboardTitle": "Panel",
+  "newFeatureTitle": "Nueva función"
+}
+```
+
+Key naming rules:
+- Flat camelCase: `"welcomeMessage"`, not `"welcome.message"`
+- Descriptive: `"userProfileTitle"` not `"title"`
+- No namespaces — all keys in a single file per locale
+
+## Language switcher
+
+The web app includes a `LanguageSwitcher` component in `apps/web/src/components/language-switcher.tsx`. It reads from `@repo/app-config/languages` to render all configured locales dynamically — no changes needed when adding a new language.
+
+It renders as a globe icon in the bottom-right corner with a popover listing each language by its native name.
+
+## Adding a new language
+
+See the step-by-step guide: [Adding a Language](/extending/new-language).
+
+## Rules
+
+- **DO** wrap every user-facing string with `t()` from `useTranslation()`
+- **DO** add keys to every locale file that exists (both web and react-native)
+- **DO** provide real translations — not English placeholders in other locales
+- **DO** check `languages.json` before adding keys to know which files to update
+- **DO NOT** hardcode display text in JSX
+- **DO NOT** use namespaces — all keys go in a single file per locale
+- **DO NOT** use `i18next-browser-languagedetector` in React Native — use `expo-localization`

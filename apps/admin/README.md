@@ -1,6 +1,6 @@
 # Admin Panel
 
-Admin dashboard for Mastermind. Same stack as the web app but with an independent shadcn/ui theme (slate base color).
+Admin dashboard for Blueprint. Same stack as the web app but with an independent shadcn/ui theme (slate base color).
 
 ## Tech Stack
 

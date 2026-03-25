@@ -1,0 +1,141 @@
+# World Mini App (MiniKit)
+
+## Overview
+
+`apps/web` is configured as a World Mini App — a web app that runs inside the World App webview via the MiniKit SDK. MiniKit is initialized by wrapping the app with `MiniKitProvider` in the root layout.
+
+## Packages
+
+- `@worldcoin/minikit-js` — core SDK (commands, provider, types, verification helpers)
+- `@worldcoin/minikit-react` — React hooks (`useWaitForTransactionReceipt`, etc.)
+
+## Environment Variables
+
+- `NEXT_PUBLIC_WORLD_APP_ID` — your App ID from the [Developer Portal](https://developer.worldcoin.org/) (format: `app_xxxxxxxxxx`)
+- `WORLD_APP_DEV_PORTAL_API_KEY` — server-side API key for verify/payment confirmation (never expose to the client)
+
+## Provider Setup
+
+`MiniKitProvider` wraps the app inside `<body>` in `apps/web/src/app/layout.tsx`. The wrapper component lives at `@/components/minikit-provider`. Do not remove or reorder it.
+
+## Commands
+
+All MiniKit commands are dispatched from client components. Use the **async pattern** (`MiniKit.commandsAsync.*`) as the default — it returns a promise with `finalPayload`. The event-listener pattern (`MiniKit.subscribe`) is available but less common.
+
+Available commands: `verify`, `pay`, `walletAuth`, `sendTransaction`, `signMessage`, `shareContacts`, `requestPermission`, `getPermissions`, `sendHapticFeedback`, `share`, `chat`.
+
+### Guard with `isInstalled()`
+
+Always check `MiniKit.isInstalled()` before dispatching any command. This returns `true` only when the app is running inside World App.
+
+```typescript
+if (!MiniKit.isInstalled()) {
+  return;
+}
+const { finalPayload } = await MiniKit.commandsAsync.verify(payload);
+```
+
+## Backend Verification
+
+**All proof and payment verification MUST happen server-side.** Users can manipulate the frontend. API routes live under `src/app/api/minikit/`:
+
+- `verify/route.ts` — verifies World ID proofs via `verifyCloudProof()`
+- `confirm-payment/route.ts` — confirms payments via Developer Portal API
+- `nonce/route.ts` — generates SIWE nonce for wallet auth
+- `complete-siwe/route.ts` — verifies SIWE signatures via `verifySiweMessage()`
+
+## Authentication
+
+Use **Wallet Auth** (SIWE) as the primary auth flow — not the Verify command. The flow:
+
+1. Frontend fetches a nonce from `/api/minikit/nonce`
+2. Frontend calls `MiniKit.commandsAsync.walletAuth({ nonce, ... })`
+3. Frontend posts the signed payload + nonce to `/api/minikit/complete-siwe`
+4. Backend verifies the SIWE message and creates a session
+
+## User Identity
+
+- Always display `MiniKit.user.username` — never show raw wallet addresses
+- Access profile picture via `MiniKit.user.profilePictureUrl`
+- Check `MiniKit.user.optedIntoOptionalAnalytics` before collecting analytics; if `false`, do not track
+
+## Convenience Hook
+
+`@/hooks/use-minikit` exports `useMiniKit()` providing `isInstalled`, `user`, `deviceProperties`, and `launchLocation`.
+
+## Design Rules (Webview Constraints)
+
+- **Padding:** default 24px around content
+- **No `alert()` / `confirm()` / `prompt()`** — alert dialogs are disabled on iOS webview
+- **Use `100dvh`** instead of `100vh` to account for dynamic viewport
+- **Set `overscroll-behavior: none`** on `html, body` to prevent iOS bounce
+- **No footers, sidebars, or hamburger menus** — use bottom tab navigation and anchored buttons
+- **Target load time:** 2-3 seconds max for initial load, under 1 second for subsequent actions
+- **No zooming:** viewport already sets `user-scalable=false`
+
+## Safe Area Insets
+
+The root layout includes `viewport-fit=cover`. Use CSS `env(safe-area-inset-*)` for fixed-position elements. Device insets are also available at `MiniKit.deviceProperties.safeAreaInsets`.
+
+## Haptic Feedback
+
+Use `MiniKit.commands.sendHapticFeedback()` on important interactions:
+
+- `impact` (light/medium/heavy) — for UI element collisions
+- `notification` (success/warning/error) — for action outcomes
+- `selectionChanged` — for checkbox/toggle state changes
+
+## Payments
+
+- Supported tokens: WLD, USDC on World Chain
+- Minimum transfer: $0.1
+- Whitelist recipient addresses in the Developer Portal
+- Always verify payments server-side via the Developer Portal API
+- Use `tokenToDecimals()` helper for amount formatting
+
+## Transactions
+
+- Whitelist contracts in Developer Portal (Configuration → Advanced)
+- Users get 500 free transactions/day; 1M gas limit per transaction
+- Approvals are not supported — use Permit2 for token spending
+- Use `useWaitForTransactionReceipt` from `@worldcoin/minikit-react` to poll for confirmation
+
+## Notifications
+
+1. Request permission: `MiniKit.commandsAsync.requestPermission({ permission: Permission.Notifications })`
+2. Enable notifications in Developer Portal Advanced settings
+3. Send via Developer Portal API or the send-notification endpoint (server-side)
+4. Support localized notifications for better engagement
+
+## Quick Actions (Deep Links)
+
+Link to your mini app: `https://world.org/mini-app?app_id={app_id}&path={path}`
+
+The `path` parameter should be URL-encoded and maps to your Next.js app routes.
+
+## Sharing
+
+- Use `MiniKit.commandsAsync.share()` for native OS share sheet
+- Use `MiniKit.commandsAsync.shareContacts()` to access user contacts (returns `username` + `walletAddress`)
+
+## Localization
+
+World App users span many regions. Prioritize: Portuguese, Korean, Japanese, Thai, Spanish, English. The existing i18n setup with i18next handles this — add translation keys for all MiniKit-related UI strings.
+
+## Testing
+
+- Use your App ID at the [testing page](https://docs.world.org/mini-apps/quick-start/testing) and scan the QR code with World App
+- Use [Eruda](https://github.com/liriliri/eruda) for mobile console logs
+- Use ngrok/zrok for local testing with World App
+- Use the [L2 Faucet](https://www.l2faucet.com/world) for testnet WLD on Sepolia
+
+## Do NOT
+
+- Hardcode app IDs — use `process.env.NEXT_PUBLIC_WORLD_APP_ID`
+- Verify proofs or payments on the frontend — always use server-side API routes
+- Use `alert()`, `confirm()`, or `prompt()` — they are disabled in iOS webview
+- Show wallet addresses to users — always show usernames
+- Use the Verify command for login — use Wallet Auth (SIWE) instead
+- Use `100vh` — use `100dvh` for full-height layouts
+- Skip the `MiniKit.isInstalled()` guard before any command
+- Collect analytics when `MiniKit.user.optedIntoOptionalAnalytics` is `false`

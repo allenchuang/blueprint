@@ -1,0 +1,158 @@
+---
+title: Payments & Feature Gating
+description: "Stripe subscriptions, webhooks, Customer Portal, and free/pro tier access control."
+---
+
+## Overview
+
+Blueprint includes a complete Stripe integration for subscription billing and a feature gating system that controls access based on subscription tier. Both work gracefully when Stripe is not configured — the app defaults to all features unlocked.
+
+## Environment variables
+
+```bash
+# Server-only (never expose to clients)
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+STRIPE_PRICE_PRO_MONTHLY="price_..."
+STRIPE_PRICE_PRO_YEARLY="price_..."
+
+# Client-side
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."       # web
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."       # react-native
+```
+
+Use `4242 4242 4242 4242` for test payments. When `STRIPE_SECRET_KEY` is absent, Stripe features are disabled and the app works fully with all features unlocked.
+
+## Tier model
+
+Tiers are defined in `lib/features.ts` (in both `apps/web/src/lib/` and `apps/react-native/lib/`):
+
+```typescript
+const FEATURES = {
+  basicAnalytics: ["free", "pro"],
+  advancedAnalytics: ["pro"],
+  exportData: ["pro"],
+} as const;
+```
+
+Two tiers: `free` (default) and `pro` (paid). The `FEATURES` map associates each feature key with the tiers that have access.
+
+## Checking feature access
+
+### Client-side
+
+```typescript
+import { useSubscription } from "@/hooks/use-subscription";
+
+const { tier, isProUser, hasFeature } = useSubscription();
+
+if (!hasFeature("advancedAnalytics")) {
+  return <UpgradePrompt />;
+}
+```
+
+### Server-side
+
+Always verify access on the server — never rely solely on client checks:
+
+```typescript
+import { hasFeature } from "@repo/db"; // or from lib/features.ts
+import { db } from "@/plugins/db";
+
+app.get("/api/analytics/advanced", {
+  preHandler: [authenticate],
+}, async (request, reply) => {
+  const subscription = await db.select()
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, request.user.id));
+
+  if (!hasFeature(subscription?.tier ?? "free", "advancedAnalytics")) {
+    return reply.status(403).send({
+      error: "upgrade_required",
+      requiredTier: "pro",
+    });
+  }
+
+  // ... return data
+});
+```
+
+## Checkout flow
+
+Redirect users to a Stripe-hosted Checkout page:
+
+```typescript
+// POST /api/stripe/create-checkout-session
+// Returns { url: "https://checkout.stripe.com/..." }
+const res = await fetch("/api/stripe/create-checkout-session", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}` },
+  body: JSON.stringify({ priceId: "price_..." }),
+});
+const { url } = await res.json();
+window.location.href = url;
+```
+
+## Customer Portal
+
+Let users manage their subscription (cancel, upgrade, update payment method) via Stripe's hosted portal:
+
+```typescript
+// POST /api/stripe/create-portal-session
+const res = await fetch("/api/stripe/create-portal-session", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}` },
+});
+const { url } = await res.json();
+window.location.href = url;
+```
+
+Do not build a custom billing UI — always use the Stripe Customer Portal.
+
+## Webhooks
+
+Stripe sends events to your server to keep subscription state in sync. The webhook handler in `apps/server/src/routes/stripe.ts` processes:
+
+| Event | Action |
+|---|---|
+| `checkout.session.completed` | Create/activate subscription |
+| `customer.subscription.updated` | Update tier, status, `cancelAtPeriodEnd` |
+| `customer.subscription.deleted` | Downgrade to free |
+| `invoice.paid` | Mark subscription as active |
+| `invoice.payment_failed` | Flag payment failure |
+
+Webhook signatures are verified with `STRIPE_WEBHOOK_SECRET` on every request.
+
+## Database
+
+The `subscriptions` table mirrors Stripe subscription state:
+
+| Column | Description |
+|---|---|
+| `userId` | Links to your `users` table |
+| `stripeCustomerId` | Stripe customer ID |
+| `stripeSubscriptionId` | Stripe subscription ID |
+| `tier` | `"free"` or `"pro"` |
+| `status` | Stripe status (`active`, `canceled`, etc.) |
+| `cancelAtPeriodEnd` | Whether cancellation is scheduled |
+
+`users.stripe_customer_id` links a user to their Stripe Customer object.
+
+## Gating UI patterns
+
+- **Soft gate**: Feature is visible but disabled with a lock icon and "Upgrade to Pro" badge
+- **Hard gate**: Feature is hidden entirely for free users
+- Show upgrade prompts with a link to `/pricing`
+
+## React Native
+
+Uses `@stripe/stripe-react-native` with **PaymentSheet** for native payment collection.
+
+## Rules
+
+- **DO** enforce feature access on the server — client-side checks are UI-only
+- **DO** use `hasFeature()` from `lib/features.ts` — never hardcode tier checks
+- **DO** show upgrade prompts with a link to `/pricing`
+- **DO** verify webhook signatures in production
+- **DO NOT** expose `STRIPE_SECRET_KEY` to any client
+- **DO NOT** call `loadStripe()` with an empty or undefined key

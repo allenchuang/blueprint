@@ -6,6 +6,25 @@ CLI to scaffold and manage [Blueprint](https://github.com/allenchuang/blueprint)
 npx blueprint-stack
 ```
 
+## Prerequisites
+
+- **Node.js** >= 23 — Blueprint projects require Node.js v23+
+- **nvm** (recommended) — [install nvm](https://github.com/nvm-sh/nvm#installing-and-updating) to manage Node versions
+- **pnpm** >= 10 — [install pnpm](https://pnpm.io/installation) (`corepack enable && corepack prepare pnpm@latest --activate`)
+
+> **Note:** The CLI itself runs on Node >= 18, but the scaffolded project requires Node >= 23. If your current version is too old, the CLI will detect this and help you install the right version via nvm.
+
+### Quick Node setup
+
+```bash
+# Install nvm (if you don't have it)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+# Install Node 23+
+nvm install 23
+nvm use 23
+```
+
 ## Install
 
 No installation required — use `npx` to run directly. Or install globally:

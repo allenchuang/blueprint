@@ -1,0 +1,29 @@
+# CLI Feature Registration
+
+When adding a new optional feature to the monorepo, always register it in the blueprint CLI (`packages/blueprint-cli/`) so it can be toggled during project scaffolding.
+
+## Checklist
+
+When adding a new feature:
+
+1. **Runtime gating**: Gate the feature with an env-based flag and graceful fallback (feature works without the env var)
+2. **Feature manifest**: Create a manifest in `packages/blueprint-cli/src/features/` listing:
+   - Files and directories to remove when the feature is not selected
+   - Dependencies to remove per app (`apps/web`, `apps/react-native`, `apps/server`)
+   - Layout patches (provider wrappers, imports to remove from layout files)
+   - Env example keys to strip from all `.env.example` files
+   - i18n keys to strip from locale JSON files
+   - Agent rule and skill files to remove (all 3 dirs: `.cursor/`, `.agents/`, `.claude/`)
+   - Root scripts and turbo tasks to remove
+3. **CLI flag**: Add a `--with-<feature>` option to the `new` command in `packages/blueprint-cli/src/commands/new.ts`
+4. **Interactive prompt**: Add the feature to the appropriate multi-select category (Apps, Integrations, Web Features, or Database)
+5. **Env examples**: Add the feature's env vars to all relevant `.env.example` files with descriptive comments
+6. **README**: Update the root `README.md` built-in features section (quick-glance list and detailed subsection)
+
+## Rules
+
+- **DO** follow the existing `FeatureManifest` interface in `packages/blueprint-cli/src/features/index.ts`
+- **DO** gate every optional feature at runtime with an env-based flag so the app works without it
+- **DO** test scaffold output with and without the feature selected
+- **DO NOT** add an optional feature to the codebase without a corresponding CLI manifest
+- **DO NOT** add env vars to `.env.example` without also adding them to the manifest's `envKeysToRemove`

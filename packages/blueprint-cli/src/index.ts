@@ -1,23 +1,49 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { Command } from "commander";
 import kleur from "kleur";
 import prompts from "prompts";
 import { newCommand } from "./commands/new.js";
+import type { NewCommandOptions } from "./commands/new.js";
 import { runCommand, listProxyCommands } from "./commands/run.js";
 import { printLogo } from "./utils/logo.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const pkg = JSON.parse(
+  readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+);
+const CLI_VERSION: string = pkg.version;
 
 const program = new Command();
 
 program
   .name("blueprint-stack")
   .description("Scaffold and manage a Blueprint monorepo")
-  .version("0.1.0");
+  .version(CLI_VERSION);
 
 program
   .command("new [project-name]")
   .description("Scaffold a new Blueprint monorepo project")
-  .action(async (projectName?: string) => {
-    printLogo();
+  .option("--with-admin", "Include Admin Panel")
+  .option("--with-mobile", "Include React Native app")
+  .option("--with-docs", "Include Mintlify docs")
+  .option("--with-remotion", "Include Remotion video generation")
+  .option("--with-dynamic", "Include Dynamic Auth")
+  .option("--with-privy", "Include Privy Auth")
+  .option("--with-stripe", "Include Stripe Payments")
+  .option("--with-elevenlabs", "Include ElevenLabs Voice Agent")
+  .option("--with-minikit", "Include World MiniKit")
+  .option("--with-analytics", "Include Google Analytics")
+  .option("--with-i18n", "Include internationalization")
+  .option("--with-pwa", "Include Mobile Web / PWA patterns")
+  .option("--db <provider>", "Database: neon | supabase | pg | none", "neon")
+  .option("--all", "Include all optional features")
+  .option("--minimal", "Minimal scaffold (web + server only, no integrations)")
+  .action(async (projectName: string | undefined, opts: NewCommandOptions) => {
+    printLogo(CLI_VERSION);
 
     if (!projectName) {
       const { name } = await prompts({
@@ -35,7 +61,7 @@ program
       projectName = name;
     }
 
-    await newCommand(projectName!);
+    await newCommand(projectName!, opts);
   });
 
 const proxyCommands = listProxyCommands();
@@ -52,7 +78,7 @@ for (const cmdName of proxyCommands) {
 
 // When run with no arguments, show logo and prompt
 if (process.argv.length <= 2) {
-  printLogo();
+  printLogo(CLI_VERSION);
 
   (async () => {
     const { name } = await prompts({

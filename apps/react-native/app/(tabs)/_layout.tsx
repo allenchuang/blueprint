@@ -13,6 +13,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="pricing"
+        options={{
+          title: t("pricing"),
+        }}
+      />
+      <Tabs.Screen
+        name="voice-agent"
+        options={{
+          title: t("voiceAgent"),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: t("settings"),

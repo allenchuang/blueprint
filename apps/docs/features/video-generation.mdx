@@ -1,0 +1,118 @@
+---
+title: Video Generation
+description: "Programmatic video creation with Remotion — React components that render to MP4."
+---
+
+## Overview
+
+`apps/remotion` uses [Remotion](https://www.remotion.dev/) to create videos as React components. This is useful for product demos, social media content, data visualizations, and personalized video generation. All compositions use `@repo/app-config` for branding — no hardcoded colors or names.
+
+## Running the Remotion studio
+
+```bash
+pnpm dev  # starts Remotion studio at http://localhost:3004
+```
+
+Or individually:
+
+```bash
+cd apps/remotion
+pnpm dev
+```
+
+## Directory structure
+
+```
+apps/remotion/
+├── src/
+│   ├── compositions/
+│   │   └── HelloWorld.tsx    → Example composition
+│   ├── Root.tsx              → Register all compositions here
+│   └── index.ts
+├── package.json
+└── remotion.config.ts
+```
+
+## Creating a composition
+
+Every composition is a React component. Use `@repo/app-config` for all branding:
+
+```typescript
+// apps/remotion/src/compositions/ProductDemo.tsx
+import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
+import { Img, staticFile } from "remotion";
+import { appConfig } from "@repo/app-config";
+
+export function ProductDemo() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: appConfig.colors.primary }}>
+      <Sequence from={0} durationInFrames={fps * 2}>
+        <Img src={staticFile("logo-dark.svg")} />
+        <h1 style={{ color: "white" }}>{appConfig.name}</h1>
+      </Sequence>
+    </AbsoluteFill>
+  );
+}
+```
+
+## Registering a composition
+
+Add your composition to `src/Root.tsx`:
+
+```typescript
+import { Composition } from "remotion";
+import { ProductDemo } from "./compositions/ProductDemo";
+
+export const RemotionRoot = () => (
+  <>
+    <Composition
+      id="ProductDemo"
+      component={ProductDemo}
+      durationInFrames={150}
+      fps={30}
+      width={1920}
+      height={1080}
+    />
+  </>
+);
+```
+
+## Using app-config for branding
+
+Always import branding from `@repo/app-config` — never hardcode:
+
+```typescript
+import { appConfig } from "@repo/app-config";
+import { staticFile, Img } from "remotion";
+
+// Colors
+style={{ backgroundColor: appConfig.colors.primary }}
+
+// App name
+<text>{appConfig.name}</text>
+
+// Website URL (for CTAs / watermarks)
+<text>{appConfig.urls.website}</text>
+
+// Logo
+<Img src={staticFile("logo-dark.svg")} />
+```
+
+The logo files (`logo-light.svg`, `logo-dark.svg`) are copied from `packages/app-config/assets/` to `apps/remotion/public/` by `pnpm sync-config`.
+
+## Rendering a video
+
+```bash
+cd apps/remotion
+npx remotion render ProductDemo out/product-demo.mp4
+```
+
+## Rules
+
+- **DO** import `appConfig` for all branding — name, color, URL, slogan
+- **DO** load logo/icon assets via Remotion's `staticFile()` from `public/`
+- **DO NOT** hardcode brand colors or store duplicate assets in `apps/remotion/`
+- **DO** ensure `@repo/app-config` is in `apps/remotion/package.json`

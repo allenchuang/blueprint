@@ -1,0 +1,54 @@
+# Navigation Sidebar
+
+## Overview
+
+The web app uses a left-side Sheet-based sidebar for navigation, triggered by a hamburger menu icon (top-left). All optional features that include pages must be listed in the sidebar.
+
+## Key File
+
+`apps/web/src/components/nav-sidebar.tsx` — single source of truth for sidebar navigation items.
+
+## NAV_ITEMS Array
+
+The `NAV_ITEMS` array in `nav-sidebar.tsx` defines every sidebar link:
+
+```typescript
+const NAV_ITEMS: NavItem[] = [
+  { href: "/", labelKey: "home", icon: <Home className="h-4 w-4" /> },
+  { href: "/pricing", labelKey: "pricing", icon: <CreditCard className="h-4 w-4" /> },
+  { href: "/voice-agent", labelKey: "voiceAgent", icon: <Mic className="h-4 w-4" /> },
+];
+```
+
+Each item has:
+- `href` — route path
+- `labelKey` — i18n translation key (must exist in all locale files)
+- `icon` — Lucide icon component
+
+## When to Add a Sidebar Item
+
+Every optional feature from `packages/blueprint-cli` that has a corresponding page in `apps/web/src/app/` **must** have an entry in `NAV_ITEMS`. This includes features from all CLI manifest categories:
+
+- **Integrations** (`INTEGRATION_MANIFESTS`): Stripe → `/pricing`, ElevenLabs → `/voice-agent`, Dynamic → auth (on home page, no separate route needed)
+- **Web features** (`WEB_FEATURE_MANIFESTS`): features that add pages
+- **Apps** (`APP_MANIFESTS`): if an app adds a web route (uncommon)
+
+When adding a new integration or feature that creates a new page route in the web app, always add a corresponding `NAV_ITEMS` entry.
+
+## Checklist for Adding a New Feature Page
+
+1. Create the page route in `apps/web/src/app/<feature>/page.tsx`
+2. Add an entry to `NAV_ITEMS` in `apps/web/src/components/nav-sidebar.tsx`
+3. Choose an appropriate Lucide icon and add the import
+4. Add the `labelKey` to all web locale files (`en.json`, `zh.json`, `es.json`)
+5. Add the same key to all React Native locale files for parity
+
+## Rules
+
+- **DO** add a `NAV_ITEMS` entry for every new feature page
+- **DO** use i18n keys for all sidebar labels (never hardcode text)
+- **DO** use Lucide icons consistently (same `h-4 w-4` size)
+- **DO** keep `NAV_ITEMS` ordered: Home first, then features alphabetically or by importance
+- **DO NOT** link to external URLs in the sidebar — it is for internal app navigation only
+- **DO NOT** add feature pages without a sidebar entry — users must be able to discover every page
+- **DO NOT** remove the Home link from `NAV_ITEMS`

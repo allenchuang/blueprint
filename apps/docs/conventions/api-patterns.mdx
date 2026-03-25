@@ -1,0 +1,149 @@
+---
+title: API Patterns
+description: "Fastify endpoint conventions and React Query hook patterns."
+---
+
+## Server: Fastify endpoints
+
+All API endpoints live in `apps/server/src/routes/`. Each route file exports an async Fastify plugin.
+
+### Schema-first (required)
+
+Every endpoint must define a `schema` property. This is not optional — schemas power the Swagger UI at `http://localhost:3001/docs`:
+
+```typescript
+app.get("/users", {
+  schema: {
+    description: "List all users",
+    tags: ["users"],
+    querystring: {
+      type: "object",
+      properties: {
+        limit: { type: "integer", default: 20 },
+        offset: { type: "integer", default: 0 },
+      },
+    },
+    response: {
+      200: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            email: { type: "string" },
+            createdAt: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { limit, offset } = request.query as { limit: number; offset: number };
+  return db.select().from(users).limit(limit).offset(offset);
+});
+```
+
+### Route organization
+
+- Group related endpoints in a single file (`users.ts` has GET/POST/PATCH/DELETE)
+- Register with a prefix: `app.register(userRoutes, { prefix: "/api" })`
+- Register all routes in `apps/server/src/app.ts`
+
+### Adding a new endpoint checklist
+
+1. Create/update a route file in `apps/server/src/routes/`
+2. Define a schema with description, tags, and response shapes
+3. Register the route in `apps/server/src/app.ts`
+4. Verify the endpoint appears in Swagger UI at `http://localhost:3001/docs`
+
+## Frontend: React Query hooks
+
+Every API call must go through a React Query custom hook. Direct `fetch` calls in components are not allowed.
+
+### File conventions
+
+- **Location**: `src/hooks/` (web/admin) or `hooks/` (react-native)
+- **One hook per file**: `use-get-users.ts`, `use-create-post.ts`
+- **Naming**:
+  - Queries: `useGet[Resource]` or `useList[Resources]`
+  - Mutations: `use[Verb][Resource]`
+
+### Query hook template
+
+```typescript
+// src/hooks/use-get-users.ts
+import { useQuery } from "@tanstack/react-query";
+
+interface User {
+  id: string;
+  email: string;
+}
+
+export function useGetUsers() {
+  return useQuery({
+    queryKey: ["users"],
+    queryFn: async (): Promise<User[]> => {
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
+  });
+}
+```
+
+### Mutation hook template
+
+```typescript
+// src/hooks/use-create-user.ts
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { email: string; name: string }) => {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to create user");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+```
+
+### Authenticated requests
+
+Include the JWT from `useAuth()` in API calls:
+
+```typescript
+import { useAuth } from "@/hooks/use-auth";
+
+export function useGetProfile() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Unauthorized");
+      return res.json();
+    },
+    enabled: !!token,
+  });
+}
+```
+
+## Checklist for any API change
+
+- [ ] Endpoint has `schema` defined (for Swagger)
+- [ ] React Query hook created/updated in all consuming apps (web, admin, react-native)
+- [ ] Types are consistent between server response and frontend hook return type
+- [ ] Protected routes use the `authenticate` preHandler

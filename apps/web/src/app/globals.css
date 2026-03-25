@@ -1,2 +1,32 @@
 @import "tailwindcss";
 @import "./theme.css";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --border: oklch(0.94 0 0);
+}
+
+.dark {
+  --border: oklch(0.22 0 0);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border, currentColor);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+html,
+body {
+  overscroll-behavior-y: none;
+}

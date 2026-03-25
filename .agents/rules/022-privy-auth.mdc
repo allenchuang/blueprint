@@ -1,0 +1,89 @@
+# Privy Auth
+
+## Overview
+
+Privy is an **alternative authentication provider** to Dynamic. It supports email OTP, social logins (Google, Apple, etc.), external wallets, and embedded wallets. Choose between Privy and Dynamic during CLI scaffolding — they are mutually exclusive.
+
+## Architecture
+
+- **Web** (`apps/web`): `PrivyProvider` from `@privy-io/react-auth`
+- **React Native** (`apps/react-native`): `PrivyProvider` from `@privy-io/expo`
+- **Server** (`apps/server`): JWT verification via `@privy-io/node` (`PrivyClient.verifyAuthToken`)
+
+## Auth Flow
+
+1. Client authenticates with Privy (email OTP, social login, or wallet)
+2. Client receives an ES256 JWT from Privy
+3. Client sends `Authorization: Bearer <token>` to `apps/server`
+4. Server verifies JWT via `@privy-io/node`, upserts user in local DB
+5. Server handles the request
+
+## Environment Variables
+
+| Location            | Variable                        | Description                              |
+|---------------------|---------------------------------|------------------------------------------|
+| `apps/web`          | `NEXT_PUBLIC_PRIVY_APP_ID`      | Privy App ID                             |
+| `apps/web`          | `NEXT_PUBLIC_PRIVY_CLIENT_ID`   | Privy Client ID (optional)               |
+| `apps/react-native` | `EXPO_PUBLIC_PRIVY_APP_ID`      | Privy App ID                             |
+| `apps/react-native` | `EXPO_PUBLIC_PRIVY_CLIENT_ID`   | Privy Client ID (optional)               |
+| `apps/server`       | `PRIVY_APP_ID`                  | Privy App ID                             |
+| `apps/server`       | `PRIVY_APP_SECRET`              | Privy App Secret                         |
+| `apps/server`       | `PRIVY_VERIFICATION_KEY`        | Verification key (optional, avoids API)  |
+
+## Feature Flag
+
+Both client apps export `privyEnabled` from `lib/privy.ts`. Check this before rendering auth UI.
+
+```typescript
+import { privyEnabled } from "@/lib/privy";
+if (!privyEnabled) {
+  // Show unauthenticated fallback
+}
+```
+
+## Client-Side Hooks
+
+Use `useAuth()` in both apps for consistent auth state:
+
+```typescript
+import { useAuth } from "@/hooks/use-auth";
+const { user, isLoggedIn, getToken } = useAuth();
+```
+
+For login/logout UI, use Privy-specific hooks:
+
+```typescript
+import { useLogin, usePrivy } from "@privy-io/react-auth";
+const { login } = useLogin();
+const { logout } = usePrivy();
+```
+
+## Getting the JWT
+
+- **Web**: `getAccessToken()` from `usePrivy` or direct import from `@privy-io/react-auth`
+- **React Native**: `getAccessToken()` from `@privy-io/expo`
+
+## Server-Side Verification
+
+The `authenticate` preHandler on `apps/server` verifies the Privy JWT:
+
+1. Extracts `Authorization: Bearer <token>` header
+2. Verifies via `privyClient.verifyAuthToken(token)`
+3. Extracts `userId` (Privy DID) from verified claims
+4. Upserts user in local DB (maps `privy_user_id`)
+5. Attaches `request.authUser` (`sub`, `provider`)
+
+## Database
+
+The `users` table has a `privy_user_id` column (text, unique) that maps Privy's user DID to the local user record.
+
+## Rules
+
+- **DO** use Privy for all authentication when selected — never add another auth provider
+- **DO** check `privyEnabled` before rendering any auth UI
+- **DO** use the Privy login modal via `useLogin()` for the best UX
+- **DO** verify tokens server-side using `@privy-io/node`
+- **DO** send the JWT as `Authorization: Bearer <token>` to `apps/server`
+- **DO NOT** use Dynamic, NextAuth, Clerk, or other auth libraries alongside Privy
+- **DO NOT** expose `PRIVY_APP_SECRET` to client-side code
+- **DO NOT** store or log user JWTs on the server

@@ -1,11 +1,11 @@
-# Mastermind - Agent Instructions
+# Blueprint - Agent Instructions
 
 ## Repository Map
 
 This is a Turborepo monorepo with the following structure:
 
 ```
-mastermind/
+blueprint/
 ├── apps/
 │   ├── web/            → Main web app (Next.js 15 + shadcn/ui + Tailwind CSS v4, port 3000)
 │   ├── admin/          → Admin panel (Next.js 15 + shadcn/ui + Tailwind CSS v4, port 3002)
@@ -117,7 +117,7 @@ Conventions:
 
 ### 6. Documentation Updates
 
-When adding user-facing features or API changes, update `apps/docs/`. Keep docs concise — no filler content. Update `mint.json` navigation when adding new pages. Use Mintlify components where they add clarity.
+When adding user-facing features or API changes, update `apps/docs/`. Keep docs concise — no filler content. Update `docs.json` navigation when adding new pages. Use Mintlify components where they add clarity.
 
 ### 7. shadcn/ui Components
 
@@ -196,19 +196,49 @@ All user-facing strings in `apps/web` and `apps/react-native` must use i18next. 
 
 Supported languages are defined in `packages/app-config/src/languages.json` (currently: `en`, `zh`, `es`).
 
-Translation files live at:
-- `apps/web/src/i18n/locales/{locale}/{namespace}.json`
-- `apps/react-native/i18n/locales/{locale}/{namespace}.json`
+Translation files are one flat JSON file per locale (no namespaces):
+- `apps/web/src/i18n/locales/{locale}.json`
+- `apps/react-native/i18n/locales/{locale}.json`
 
-When creating a new feature:
-1. Create a `{feature}.json` namespace file in every locale directory
-2. Register the namespace in the i18n config files
-3. Use `useTranslation("feature")` in components
-4. Add keys to all locales (use English as placeholder if translation is unavailable)
+When adding strings for a new feature:
+1. Add keys to every locale file (`en.json`, `zh.json`, `es.json`)
+2. Use `useTranslation()` (no namespace argument) in components
+3. Add translations to all locales (use English as placeholder if unavailable)
 
 Key naming: flat camelCase (`"welcomeMessage"`, not `"welcome.message"`).
 
 Web uses `i18next-browser-languagedetector`; React Native uses `expo-localization`. Do NOT mix them.
+
+### 14. Authentication (Dynamic or Privy)
+
+Blueprint supports two mutually exclusive auth providers, chosen during CLI scaffolding.
+
+**Dynamic Auth** — email-only OTP via [Dynamic](https://www.dynamic.xyz/):
+- **Web**: `DynamicContextProvider` from `@dynamic-labs/sdk-react-core`. Feature flag: `dynamicEnabled` in `lib/dynamic.ts`.
+- **React Native**: `createClient` from `@dynamic-labs/client` + `ReactNativeExtension`.
+- **Server**: JWT verification via JWKS (RS256). Upserts user via `dynamic_user_id`.
+- Gated on: `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` / `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID` / `DYNAMIC_ENVIRONMENT_ID`
+
+**Privy Auth** — email OTP, social logins, wallets, embedded wallets via [Privy](https://www.privy.io/):
+- **Web**: `PrivyProvider` from `@privy-io/react-auth`. Feature flag: `privyEnabled` in `lib/privy.ts`.
+- **React Native**: `PrivyProvider` from `@privy-io/expo`.
+- **Server**: JWT verification via `@privy-io/node` (ES256). Upserts user via `privy_user_id`.
+- Gated on: `NEXT_PUBLIC_PRIVY_APP_ID` / `EXPO_PUBLIC_PRIVY_APP_ID` / `PRIVY_APP_ID` + `PRIVY_APP_SECRET`
+
+Both providers expose the same `useAuth()` hook interface (`{ user, isLoggedIn, getToken }`). Send JWT as `Authorization: Bearer <token>` to `apps/server`. Never use NextAuth, Clerk, or other auth libraries.
+
+### 15. ElevenLabs Voice Agent
+
+Real-time voice conversations with AI agents via ElevenLabs Conversational AI (ElevenAgents).
+
+- **Web**: `@elevenlabs/react` — `useConversation` hook, browser-native WebRTC/WebSocket
+- **React Native**: `@elevenlabs/react-native` — `ElevenLabsProvider` + `useConversation`, WebRTC via LiveKit
+
+Feature flag: `elevenlabsEnabled` in `lib/elevenlabs.ts` (both apps). Gated on:
+- Web: `NEXT_PUBLIC_ELEVENLABS_AGENT_ID`
+- RN: `EXPO_PUBLIC_ELEVENLABS_AGENT_ID`
+
+Use the `useVoiceAgent()` wrapper hook for consistent patterns. Check `elevenlabsEnabled` before rendering voice UI. Shows "not configured" fallback when env var is missing.
 
 ## Environment Variables
 

@@ -1,6 +1,6 @@
 # React Native App
 
-Mobile application for Mastermind built with Expo and Expo Router. Uses NativeWind for Tailwind CSS-style styling on React Native.
+Mobile application for Blueprint built with Expo and Expo Router. Uses NativeWind for Tailwind CSS-style styling on React Native.
 
 ## Tech Stack
 
