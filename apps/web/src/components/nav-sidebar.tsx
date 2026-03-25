@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { CreditCard, Home, Mic } from "lucide-react";
+import { Home } from "lucide-react";
+import { CreditCard } from "lucide-react"; // stripe-nav-icon
+import { Mic } from "lucide-react"; // elevenlabs-nav-icon
 import { appConfig } from "@repo/app-config";
 import {
   Sidebar,

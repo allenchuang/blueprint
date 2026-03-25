@@ -209,21 +209,23 @@ Key naming: flat camelCase (`"welcomeMessage"`, not `"welcome.message"`).
 
 Web uses `i18next-browser-languagedetector`; React Native uses `expo-localization`. Do NOT mix them.
 
-### 14. Dynamic Auth (Email OTP)
+### 14. Authentication (Dynamic or Privy)
 
-Authentication via [Dynamic](https://www.dynamic.xyz/) — email-only OTP, no wallets or social providers.
+Blueprint supports two mutually exclusive auth providers, chosen during CLI scaffolding.
 
-- **Web**: `DynamicContextProvider` from `@dynamic-labs/sdk-react-core` wraps the app. `useAuth()` hook in `src/hooks/use-auth.ts`.
-- **React Native**: `createClient` from `@dynamic-labs/client` + `ReactNativeExtension`. `useAuth()` hook in `hooks/use-auth.ts`.
-- **Server**: `authenticate` preHandler in `src/plugins/auth.ts` verifies JWTs via Dynamic JWKS. Upserts user in local DB (`dynamic_user_id`).
-- **Gateway**: Server proxies to `INFRA_API_URL` for external infra backend calls.
+**Dynamic Auth** — email-only OTP via [Dynamic](https://www.dynamic.xyz/):
+- **Web**: `DynamicContextProvider` from `@dynamic-labs/sdk-react-core`. Feature flag: `dynamicEnabled` in `lib/dynamic.ts`.
+- **React Native**: `createClient` from `@dynamic-labs/client` + `ReactNativeExtension`.
+- **Server**: JWT verification via JWKS (RS256). Upserts user via `dynamic_user_id`.
+- Gated on: `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` / `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID` / `DYNAMIC_ENVIRONMENT_ID`
 
-Feature flag: `dynamicEnabled` in `lib/dynamic.ts` (both apps). Gated on:
-- Web: `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
-- RN: `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
-- Server: `DYNAMIC_ENVIRONMENT_ID`
+**Privy Auth** — email OTP, social logins, wallets, embedded wallets via [Privy](https://www.privy.io/):
+- **Web**: `PrivyProvider` from `@privy-io/react-auth`. Feature flag: `privyEnabled` in `lib/privy.ts`.
+- **React Native**: `PrivyProvider` from `@privy-io/expo`.
+- **Server**: JWT verification via `@privy-io/node` (ES256). Upserts user via `privy_user_id`.
+- Gated on: `NEXT_PUBLIC_PRIVY_APP_ID` / `EXPO_PUBLIC_PRIVY_APP_ID` / `PRIVY_APP_ID` + `PRIVY_APP_SECRET`
 
-Use `useAuth()` for auth state. Send JWT as `Authorization: Bearer <token>` to `apps/server`. Never use NextAuth, Clerk, or other auth libraries.
+Both providers expose the same `useAuth()` hook interface (`{ user, isLoggedIn, getToken }`). Send JWT as `Authorization: Bearer <token>` to `apps/server`. Never use NextAuth, Clerk, or other auth libraries.
 
 ### 15. ElevenLabs Voice Agent
 

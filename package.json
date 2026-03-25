@@ -16,6 +16,7 @@
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",
     "db:studio": "turbo run db:studio",
+    "generate-prd": "tsx scripts/generate-prd.ts",
     "sync-config": "tsx packages/app-config/scripts/sync.ts",
     "build:cli": "turbo run build --filter=blueprint-stack",
     "release:cli": "npm run release --prefix packages/blueprint-cli",

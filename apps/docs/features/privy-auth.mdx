@@ -1,0 +1,124 @@
+---
+title: Privy Auth
+description: "Full-featured authentication via Privy — email OTP, social logins, wallets, and embedded wallets."
+---
+
+## Overview
+
+Blueprint supports [Privy](https://www.privy.io/) as an alternative authentication provider to Dynamic. Privy offers email OTP, social logins (Google, Apple, Discord, etc.), external wallet connections, and embedded wallets — all through a polished, pre-built login modal.
+
+Privy issues a JWT (ES256) on successful authentication. The Blueprint server verifies that JWT using the official `@privy-io/node` SDK, then upserts the user into your local database.
+
+## Environment variables
+
+```bash
+# apps/web
+NEXT_PUBLIC_PRIVY_APP_ID="your-privy-app-id"
+NEXT_PUBLIC_PRIVY_CLIENT_ID="your-privy-client-id"  # optional
+
+# apps/react-native
+EXPO_PUBLIC_PRIVY_APP_ID="your-privy-app-id"
+EXPO_PUBLIC_PRIVY_CLIENT_ID="your-privy-client-id"  # optional
+
+# apps/server
+PRIVY_APP_ID="your-privy-app-id"
+PRIVY_APP_SECRET="your-privy-app-secret"
+PRIVY_VERIFICATION_KEY="your-verification-key"  # optional, avoids API call
+```
+
+Get your App ID, App Secret, and optional verification key from the [Privy Dashboard](https://dashboard.privy.io). When these variables are absent, authentication is disabled and the app still loads.
+
+## Web setup
+
+The `PrivyProvider` wraps `apps/web` in the root layout. The `useAuth()` hook gives you auth state anywhere in the app:
+
+```typescript
+import { useAuth } from "@/hooks/use-auth";
+
+const { user, isLoggedIn, getToken } = useAuth();
+```
+
+To trigger the Privy login modal:
+
+```typescript
+import { useLogin } from "@privy-io/react-auth";
+
+const { login } = useLogin();
+// Call login() to open the modal
+```
+
+## React Native setup
+
+Uses `@privy-io/expo` with `PrivyProvider`:
+
+```typescript
+import { useAuth } from "@/hooks/use-auth";
+
+const { user, isLoggedIn, getToken } = useAuth();
+```
+
+Same hook name as web — identical interface.
+
+## Server verification
+
+Every protected API route uses the `authenticate` preHandler plugin from `apps/server/src/plugins/auth.ts`:
+
+```typescript
+app.get("/api/profile", {
+  preHandler: [authenticate],
+  schema: { /* ... */ },
+}, async (request, reply) => {
+  const user = request.authUser; // typed, verified from JWT
+  return user;
+});
+```
+
+The plugin:
+1. Reads the `Authorization: Bearer <token>` header
+2. Verifies the JWT using `@privy-io/node`'s `verifyAuthToken`
+3. Upserts the user into your `users` table (keyed on `privy_user_id`)
+4. Attaches `request.authUser` for use in the route handler
+
+## Sending authenticated requests
+
+Include the JWT as a Bearer token on every request to the server:
+
+```typescript
+const { getToken } = useAuth();
+
+const token = await getToken();
+const res = await fetch("/api/profile", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+```
+
+## Database columns
+
+The `users` table in `packages/db/src/schema/users.ts` includes:
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | uuid | Internal user ID |
+| `privyUserId` | text | Privy user DID (unique) |
+| `email` | text | User email |
+| `createdAt` | timestamp | Account creation time |
+| `updatedAt` | timestamp | Last updated |
+
+## Login methods
+
+Privy supports multiple login methods, configurable in the [Privy Dashboard](https://dashboard.privy.io):
+
+- **Email OTP** — one-time passcode sent to email
+- **Social logins** — Google, Apple, Discord, GitHub, Twitter, etc.
+- **External wallets** — MetaMask, WalletConnect, Coinbase Wallet, etc.
+- **Embedded wallets** — Privy creates a wallet for users who don't have one
+
+## Rules
+
+- **DO** use `useAuth()` for all auth state in components — never read JWTs directly
+- **DO** protect server routes with the `authenticate` preHandler
+- **DO** check `privyEnabled` before rendering any auth UI
+- **DO** use the Privy login modal via `useLogin()` for the best UX
+- **DO NOT** use Dynamic, NextAuth, Clerk, or any other auth library alongside Privy
+- **DO NOT** trust client-side auth state for data access — always verify on the server
+- **DO NOT** expose `PRIVY_APP_SECRET` to client-side code

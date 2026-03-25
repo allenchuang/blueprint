@@ -7,11 +7,13 @@ import prompts from "prompts";
 import type { FeatureSelections, DatabaseProvider } from "../features/index.js";
 import {
   APP_MANIFESTS,
+  AUTH_MANIFESTS,
   INTEGRATION_MANIFESTS,
   WEB_FEATURE_MANIFESTS,
   LANGUAGE_OPTIONS,
 } from "../features/index.js";
 import { stripFeatures } from "../features/strip.js";
+import { setupAiKeys, AI_PROVIDERS } from "../utils/setup-ai-keys.js";
 
 const REPO_URL = "https://github.com/allenchuang/blueprint.git";
 const REQUIRED_NODE_MAJOR = 23;
@@ -23,7 +25,11 @@ const DATABASE_OPTIONS: { value: DatabaseProvider; title: string; description: s
   { value: "none", title: "None", description: "No database" },
 ];
 
-const DB_REQUIRED_FEATURES = new Set(["stripe", "dynamic"]);
+const DB_REQUIRED_FEATURES = new Set(["stripe", "dynamic", "privy"]);
+
+function toDbProvider(s: string | undefined): DatabaseProvider {
+  return DATABASE_OPTIONS.some((o) => o.value === s) ? (s as DatabaseProvider) : "neon";
+}
 
 export interface NewCommandOptions {
   withAdmin?: boolean;
@@ -31,6 +37,7 @@ export interface NewCommandOptions {
   withDocs?: boolean;
   withRemotion?: boolean;
   withDynamic?: boolean;
+  withPrivy?: boolean;
   withStripe?: boolean;
   withElevenlabs?: boolean;
   withMinikit?: boolean;
@@ -96,7 +103,7 @@ async function reExecWithNode(nodePath: string, args: string[]): Promise<never> 
 
 function checkNodeVersion(): { ok: boolean; current: string; required: number } {
   const current = process.version;
-  const major = Number.parseInt(current.slice(1).split(".")[0]!, 10);
+  const major = Number.parseInt(current.slice(1).split(".")[0] ?? "0", 10);
   return { ok: major >= REQUIRED_NODE_MAJOR, current, required: REQUIRED_NODE_MAJOR };
 }
 
@@ -109,6 +116,7 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
     opts.withDocs ||
     opts.withRemotion ||
     opts.withDynamic ||
+    opts.withPrivy ||
     opts.withStripe ||
     opts.withElevenlabs ||
     opts.withMinikit ||
@@ -122,9 +130,10 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
   if (opts.all) {
     return {
       apps: APP_MANIFESTS.map((m) => m.id),
+      auth: "dynamic",
       integrations: INTEGRATION_MANIFESTS.map((m) => m.id),
       webFeatures: WEB_FEATURE_MANIFESTS.map((m) => m.id),
-      database: (opts.db as DatabaseProvider) || "neon",
+      database: toDbProvider(opts.db),
       languages: LANGUAGE_OPTIONS.slice(0, 3).map((l) => l.code),
     };
   }
@@ -132,9 +141,10 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
   if (opts.minimal) {
     return {
       apps: [],
+      auth: "none",
       integrations: [],
       webFeatures: [],
-      database: (opts.db as DatabaseProvider) || "neon",
+      database: toDbProvider(opts.db),
       languages: [],
     };
   }
@@ -145,8 +155,11 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
   if (opts.withDocs) apps.push("docs");
   if (opts.withRemotion) apps.push("remotion");
 
+  let auth = "none";
+  if (opts.withDynamic) auth = "dynamic";
+  if (opts.withPrivy) auth = "privy";
+
   const integrations: string[] = [];
-  if (opts.withDynamic) integrations.push("dynamic");
   if (opts.withStripe) integrations.push("stripe");
   if (opts.withElevenlabs) integrations.push("elevenlabs");
   if (opts.withMinikit) integrations.push("minikit");
@@ -158,9 +171,10 @@ function resolveSelectionsFromFlags(opts: NewCommandOptions): FeatureSelections 
 
   return {
     apps,
+    auth,
     integrations,
     webFeatures,
-    database: (opts.db as DatabaseProvider) || "neon",
+    database: toDbProvider(opts.db),
     languages: webFeatures.includes("i18n") ? ["en"] : [],
   };
 }
@@ -184,6 +198,28 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
   });
 
   if (!apps) {
+    console.log(kleur.dim("\n  Cancelled.\n"));
+    process.exit(0);
+  }
+
+  const AUTH_OPTIONS = [
+    { title: "None", value: "none", description: "No authentication" },
+    ...AUTH_MANIFESTS.map((m) => ({
+      title: m.name,
+      value: m.id,
+      description: m.description,
+    })),
+  ];
+
+  const { auth } = await prompts({
+    type: "select",
+    name: "auth",
+    message: "Auth provider:",
+    choices: AUTH_OPTIONS,
+    initial: 0,
+  });
+
+  if (auth === undefined) {
     console.log(kleur.dim("\n  Cancelled.\n"));
     process.exit(0);
   }
@@ -226,7 +262,8 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
 
   // If i18n selected, prompt for languages
   let languages: string[] = [];
-  if ((webFeatures as string[]).includes("i18n")) {
+  const webFeaturesArr = (webFeatures ?? []) as string[];
+  if (webFeaturesArr.includes("i18n")) {
     const { selectedLangs } = await prompts({
       type: "multiselect",
       name: "selectedLangs",
@@ -245,7 +282,7 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
       process.exit(0);
     }
 
-    languages = selectedLangs as string[];
+    languages = (selectedLangs ?? []) as string[];
     if (!languages.includes("en")) {
       languages.unshift("en");
     }
@@ -268,12 +305,15 @@ async function promptFeatureSelections(): Promise<FeatureSelections> {
     process.exit(0);
   }
 
-  return { apps, integrations, webFeatures, database, languages };
+  return { apps, auth, integrations, webFeatures, database, languages };
 }
 
 function validateSelections(selections: FeatureSelections): FeatureSelections {
   if (selections.database === "none") {
     const conflicting = selections.integrations.filter((id) => DB_REQUIRED_FEATURES.has(id));
+    if (selections.auth !== "none" && DB_REQUIRED_FEATURES.has(selections.auth)) {
+      conflicting.push(selections.auth);
+    }
     if (conflicting.length > 0) {
       const names = conflicting.join(", ");
       console.log(
@@ -282,6 +322,9 @@ function validateSelections(selections: FeatureSelections): FeatureSelections {
       selections.integrations = selections.integrations.filter(
         (id) => !DB_REQUIRED_FEATURES.has(id),
       );
+      if (DB_REQUIRED_FEATURES.has(selections.auth)) {
+        selections.auth = "none";
+      }
     }
   }
 
@@ -575,6 +618,9 @@ export const appConfig = {
     }
   }
 
+  // AI provider setup
+  await setupAiKeys(targetDir);
+
   // Install dependencies
   console.log();
   const installSpinner = ora("Installing dependencies with pnpm...").start();
@@ -630,6 +676,10 @@ export const appConfig = {
   console.log(
     kleur.dim("  Apps: ") + kleur.bold(includedApps.join(", ")),
   );
+  if (selections.auth !== "none") {
+    const authManifest = AUTH_MANIFESTS.find((m) => m.id === selections.auth);
+    console.log(kleur.dim("  Auth: ") + kleur.bold(authManifest?.name ?? selections.auth));
+  }
   if (selections.integrations.length > 0) {
     const names = selections.integrations.map((id) => {
       const m = INTEGRATION_MANIFESTS.find((m) => m.id === id);
@@ -646,6 +696,26 @@ export const appConfig = {
   }
   const dbOption = DATABASE_OPTIONS.find((o) => o.value === selections.database);
   console.log(kleur.dim("  Database: ") + kleur.bold(dbOption?.title ?? selections.database));
+
+  // Show configured AI providers from .env
+  try {
+    const envContent = existsSync(join(targetDir, ".env"))
+      ? readFileSync(join(targetDir, ".env"), "utf8")
+      : "";
+    const configuredProviders = AI_PROVIDERS.filter(
+      (p) => !p.isLocal && envContent.includes(`${p.envKey}=`) && !envContent.match(new RegExp(`${p.envKey}=\\s*$`, "m")),
+    );
+    const ollamaConfigured = envContent.includes("OLLAMA_BASE_URL=");
+    const providerNames = [
+      ...configuredProviders.map((p) => p.name),
+      ...(ollamaConfigured ? ["Ollama (local)"] : []),
+    ];
+    if (providerNames.length > 0) {
+      console.log(kleur.dim("  AI Providers: ") + kleur.bold(providerNames.join(", ")));
+    }
+  } catch {
+    // non-critical
+  }
   console.log();
 
   if (!nodeCheck.ok) {

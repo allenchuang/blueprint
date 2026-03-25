@@ -6,6 +6,7 @@ import i18n from "../i18n";
 import { useScreenTracking } from "@/hooks/use-screen-tracking";
 import { elevenlabsEnabled } from "@/lib/elevenlabs";
 import { dynamicEnabled } from "@/lib/dynamic";
+import { privyEnabled, PRIVY_APP_ID, PRIVY_CLIENT_ID } from "@/lib/privy";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,17 @@ function DynamicWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
+function PrivyWrapper({ children }: { children: React.ReactNode }) {
+  if (!privyEnabled) return <>{children}</>;
+
+  const { PrivyProvider } = require("@privy-io/expo");
+  return (
+    <PrivyProvider appId={PRIVY_APP_ID} clientId={PRIVY_CLIENT_ID || undefined}>
+      {children}
+    </PrivyProvider>
+  );
+}
+
 function ElevenLabsWrapper({ children }: { children: React.ReactNode }) {
   if (!elevenlabsEnabled) return <>{children}</>;
 
@@ -63,11 +75,13 @@ export default function RootLayout() {
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <DynamicWrapper>
-          <StripeWrapper>
-            <ElevenLabsWrapper>
-              <AppLayout />
-            </ElevenLabsWrapper>
-          </StripeWrapper>
+          <PrivyWrapper>
+            <StripeWrapper>
+              <ElevenLabsWrapper>
+                <AppLayout />
+              </ElevenLabsWrapper>
+            </StripeWrapper>
+          </PrivyWrapper>
         </DynamicWrapper>
       </QueryClientProvider>
     </I18nextProvider>

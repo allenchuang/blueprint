@@ -8,6 +8,7 @@ export const i18nManifest: FeatureManifest = {
   cliFlag: "--with-i18n",
   filesToRemove: [
     "apps/web/src/components/i18n-provider.tsx",
+    "apps/web/src/components/language-switcher.tsx",
     "packages/app-config/src/languages.json",
     // RN files
     "apps/react-native/i18n/index.ts",
@@ -31,6 +32,18 @@ export const i18nManifest: FeatureManifest = {
       type: "remove-wrapper",
       match: "I18nProvider",
     },
+    // Remove LanguageSwitcher from nav-bar
+    {
+      file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-import",
+      match: "language-switcher",
+    },
+    {
+      file: "apps/web/src/components/nav-bar.tsx",
+      type: "remove-line",
+      match: "<LanguageSwitcher",
+    },
+    // RN layout patches
     {
       file: "apps/react-native/app/_layout.tsx",
       type: "remove-import",

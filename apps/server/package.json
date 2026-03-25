@@ -14,6 +14,7 @@
     "@fastify/env": "^5.0.0",
     "@fastify/swagger": "^9.4.0",
     "@fastify/swagger-ui": "^5.2.0",
+    "@privy-io/node": "^0.11.0",
     "@repo/app-config": "workspace:*",
     "@repo/db": "workspace:*",
     "drizzle-orm": "^0.44.0",

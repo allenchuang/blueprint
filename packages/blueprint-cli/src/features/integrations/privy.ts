@@ -1,185 +1,190 @@
 import type { FeatureManifest } from "../index.js";
 
-export const dynamicManifest: FeatureManifest = {
-  id: "dynamic",
-  name: "Dynamic Auth",
-  description: "Email OTP authentication via Dynamic Labs",
+export const privyManifest: FeatureManifest = {
+  id: "privy",
+  name: "Privy Auth",
+  description: "Authentication via Privy (email, social, wallets)",
   category: "integration",
-  cliFlag: "--with-dynamic",
+  cliFlag: "--with-privy",
   filesToRemove: [
-    "apps/web/src/lib/dynamic.ts",
-    "apps/web/src/components/dynamic-provider.tsx",
-    // DB schema: wallets + subaccounts
-    "packages/db/src/schema/wallets.ts",
+    "apps/web/src/lib/privy.ts",
+    "apps/web/src/components/privy-provider.tsx",
     // RN files (skipped if RN not included, handled by strip engine)
-    "apps/react-native/lib/dynamic.ts",
-    "apps/react-native/lib/dynamic-client.ts",
+    "apps/react-native/lib/privy.ts",
   ],
   dirsToRemove: [],
   depsToRemove: {
-    "apps/web": ["@dynamic-labs/sdk-react-core"],
-    "apps/server": ["jsonwebtoken", "jwks-rsa", "@types/jsonwebtoken"],
-    "apps/react-native": ["@dynamic-labs/react-native-extension"],
+    "apps/web": ["@privy-io/react-auth"],
+    "apps/server": ["@privy-io/node"],
+    "apps/react-native": [
+      "@privy-io/expo",
+      "@privy-io/expo-native-extensions",
+      "fast-text-encoding",
+      "react-native-get-random-values",
+      "@ethersproject/shims",
+    ],
   },
   layoutPatches: [
-    // Web layout: remove Dynamic provider
+    // Web layout: remove Privy provider
     {
       file: "apps/web/src/app/layout.tsx",
       type: "remove-import",
-      match: "dynamic-provider",
+      match: "privy-provider",
     },
     {
       file: "apps/web/src/app/layout.tsx",
       type: "remove-wrapper",
-      match: "DynamicAuthProvider",
+      match: "PrivyAuthProvider",
     },
-    // Web use-auth.ts: remove Dynamic code
+    // Web use-auth.ts: remove Privy code
     {
       file: "apps/web/src/hooks/use-auth.ts",
       type: "remove-import",
-      match: "@dynamic-labs/sdk-react-core",
+      match: "@privy-io/react-auth",
     },
     {
       file: "apps/web/src/hooks/use-auth.ts",
       type: "remove-import",
-      match: "dynamicEnabled",
+      match: "privy",
     },
     {
       file: "apps/web/src/hooks/use-auth.ts",
       type: "remove-block",
-      match: "function useDynamicAuth",
+      match: "function usePrivyAuth",
     },
     {
       file: "apps/web/src/hooks/use-auth.ts",
       type: "remove-line",
-      match: "dynamic-auth-hook",
+      match: "privy-auth-hook",
     },
-    // Web auth-demo.tsx: remove Dynamic code
+    // Web auth-demo.tsx: remove Privy code
     {
       file: "apps/web/src/components/auth-demo.tsx",
       type: "remove-import",
-      match: "@dynamic-labs/sdk-react-core",
+      match: "@privy-io/react-auth",
     },
     {
       file: "apps/web/src/components/auth-demo.tsx",
       type: "remove-import",
-      match: "dynamicEnabled",
+      match: "privy",
     },
     {
       file: "apps/web/src/components/auth-demo.tsx",
       type: "remove-block",
-      match: "function DynamicAuthDemoInner",
+      match: "function PrivyAuthDemoInner",
     },
     {
       file: "apps/web/src/components/auth-demo.tsx",
       type: "remove-line",
-      match: "dynamic-auth-render",
+      match: "privy-auth-render",
     },
-    // Web nav-auth.tsx: remove Dynamic code
+    // Web nav-auth.tsx: remove Privy code
     {
       file: "apps/web/src/components/nav-auth.tsx",
       type: "remove-import",
-      match: "@dynamic-labs/sdk-react-core",
+      match: "@privy-io/react-auth",
     },
     {
       file: "apps/web/src/components/nav-auth.tsx",
       type: "remove-import",
-      match: "dynamicEnabled",
+      match: "privy",
     },
     {
       file: "apps/web/src/components/nav-auth.tsx",
       type: "remove-block",
-      match: "function DynamicNavAuthInner",
+      match: "function PrivyNavAuthInner",
     },
     {
       file: "apps/web/src/components/nav-auth.tsx",
       type: "remove-line",
-      match: "dynamic-auth-render",
+      match: "privy-auth-render",
     },
-    // Server auth: remove Dynamic code
+    // Server auth: remove Privy code
     {
       file: "apps/server/src/plugins/auth.ts",
       type: "remove-import",
-      match: "jsonwebtoken",
-    },
-    {
-      file: "apps/server/src/plugins/auth.ts",
-      type: "remove-import",
-      match: "jwks-rsa",
+      match: "@privy-io/node",
     },
     {
       file: "apps/server/src/plugins/auth.ts",
       type: "remove-line",
-      match: "DYNAMIC_ENVIRONMENT_ID",
+      match: "PRIVY_APP_ID",
+    },
+    {
+      file: "apps/server/src/plugins/auth.ts",
+      type: "remove-line",
+      match: "PRIVY_APP_SECRET",
+    },
+    {
+      file: "apps/server/src/plugins/auth.ts",
+      type: "remove-line",
+      match: "PRIVY_VERIFICATION_KEY",
     },
     {
       file: "apps/server/src/plugins/auth.ts",
       type: "remove-block",
-      match: "jwksClient",
+      match: "privyClient",
     },
     {
       file: "apps/server/src/plugins/auth.ts",
       type: "remove-block",
-      match: "upsertDynamicUser",
+      match: "upsertPrivyUser",
     },
     {
       file: "apps/server/src/plugins/auth.ts",
       type: "remove-block",
-      match: "verifyDynamic",
+      match: "verifyPrivy",
     },
-    // DB schema: remove dynamicUserId column
+    // DB schema: remove privyUserId column
     {
       file: "packages/db/src/schema/users.ts",
       type: "remove-line",
-      match: "dynamicUserId",
+      match: "privyUserId",
     },
-    // Remove wallets exports from schema barrel
-    {
-      file: "packages/db/src/schema/index.ts",
-      type: "remove-block",
-      match: '"./wallets"',
-    },
-    // RN layout: remove Dynamic wrapper
+    // RN layout: remove Privy wrapper
     {
       file: "apps/react-native/app/_layout.tsx",
       type: "remove-import",
-      match: "dynamicEnabled",
+      match: "privyEnabled",
     },
     {
       file: "apps/react-native/app/_layout.tsx",
       type: "remove-block",
-      match: "function DynamicWrapper",
+      match: "function PrivyWrapper",
     },
     {
       file: "apps/react-native/app/_layout.tsx",
       type: "remove-wrapper",
-      match: "DynamicWrapper",
+      match: "PrivyWrapper",
     },
-    // RN use-auth.ts: remove Dynamic code
+    // RN use-auth.ts: remove Privy code
     {
       file: "apps/react-native/hooks/use-auth.ts",
       type: "remove-import",
-      match: "dynamicEnabled",
+      match: "privy",
     },
     {
       file: "apps/react-native/hooks/use-auth.ts",
       type: "remove-block",
-      match: "function useDynamicAuth",
+      match: "function usePrivyAuth",
     },
     {
       file: "apps/react-native/hooks/use-auth.ts",
       type: "remove-line",
-      match: "dynamic-auth-hook",
+      match: "privy-auth-hook",
     },
   ],
   envKeysToRemove: [
-    "NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID",
-    "EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID",
-    "DYNAMIC_ENVIRONMENT_ID",
-    "INFRA_API_URL",
+    "NEXT_PUBLIC_PRIVY_APP_ID",
+    "NEXT_PUBLIC_PRIVY_CLIENT_ID",
+    "EXPO_PUBLIC_PRIVY_APP_ID",
+    "EXPO_PUBLIC_PRIVY_CLIENT_ID",
+    "PRIVY_APP_ID",
+    "PRIVY_APP_SECRET",
+    "PRIVY_VERIFICATION_KEY",
   ],
   i18nKeysToRemove: [],
-  ruleFilesToRemove: ["020-dynamic-auth.mdc"],
+  ruleFilesToRemove: ["022-privy-auth.mdc"],
   skillDirsToRemove: [],
   rootScriptsToRemove: [],
   turboTasksToRemove: [],

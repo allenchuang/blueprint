@@ -53,33 +53,29 @@ function generateLocaleFiles(
   localeDir: string,
   languages: LanguageOption[],
 ): void {
-  // Read en.json as the template
+  // Read en.json as the template (if it exists)
   const enPath = join(localeDir, "en.json");
   let enData: Record<string, string> = {};
   if (existsSync(enPath)) {
     enData = JSON.parse(readFileSync(enPath, "utf-8"));
   }
 
-  // Remove locale files that aren't selected
   const selectedCodes = new Set(languages.map((l) => l.code));
 
-  // For each selected language, ensure a locale file exists
-  for (const lang of languages) {
-    const localePath = join(localeDir, `${lang.code}.json`);
-    if (lang.code === "en") continue;
-
-    if (!existsSync(localePath)) {
-      // Create with English values as placeholders
-      writeFileSync(localePath, JSON.stringify(enData, null, 2) + "\n");
-    }
-  }
-
-  // Remove locale files for unselected languages
+  // Remove locale files for unselected languages FIRST
   const existingFiles = readdirSync(localeDir).filter((f) => f.endsWith(".json"));
   for (const file of existingFiles) {
     const code = file.replace(".json", "");
     if (!selectedCodes.has(code)) {
       rmSync(join(localeDir, file));
+    }
+  }
+
+  // Ensure ALL selected locale files exist (including en.json)
+  for (const lang of languages) {
+    const localePath = join(localeDir, `${lang.code}.json`);
+    if (!existsSync(localePath)) {
+      writeFileSync(localePath, JSON.stringify(enData, null, 2) + "\n");
     }
   }
 }

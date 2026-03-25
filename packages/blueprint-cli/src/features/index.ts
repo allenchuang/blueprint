@@ -57,6 +57,7 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
 
 export interface FeatureSelections {
   apps: string[];
+  auth: string;
   integrations: string[];
   webFeatures: string[];
   database: DatabaseProvider;
@@ -68,6 +69,7 @@ import { reactNativeManifest } from "./apps/react-native.js";
 import { docsManifest } from "./apps/docs.js";
 import { remotionManifest } from "./apps/remotion.js";
 import { dynamicManifest } from "./integrations/dynamic.js";
+import { privyManifest } from "./integrations/privy.js";
 import { stripeManifest } from "./integrations/stripe.js";
 import { elevenlabsManifest } from "./integrations/elevenlabs.js";
 import { minikitManifest } from "./integrations/minikit.js";
@@ -82,8 +84,12 @@ export const APP_MANIFESTS: FeatureManifest[] = [
   remotionManifest,
 ];
 
-export const INTEGRATION_MANIFESTS: FeatureManifest[] = [
+export const AUTH_MANIFESTS: FeatureManifest[] = [
   dynamicManifest,
+  privyManifest,
+];
+
+export const INTEGRATION_MANIFESTS: FeatureManifest[] = [
   stripeManifest,
   elevenlabsManifest,
   minikitManifest,
@@ -97,6 +103,7 @@ export const WEB_FEATURE_MANIFESTS: FeatureManifest[] = [
 
 export const ALL_MANIFESTS: FeatureManifest[] = [
   ...APP_MANIFESTS,
+  ...AUTH_MANIFESTS,
   ...INTEGRATION_MANIFESTS,
   ...WEB_FEATURE_MANIFESTS,
 ];
@@ -110,5 +117,8 @@ export function getManifestsToStrip(
     ...selections.integrations,
     ...selections.webFeatures,
   ]);
+  if (selections.auth !== "none") {
+    selectedIds.add(selections.auth);
+  }
   return allManifests.filter((m) => !selectedIds.has(m.id));
 }

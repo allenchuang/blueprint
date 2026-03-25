@@ -53,7 +53,7 @@
           },
           {
             "group": "Auth & Payments",
-            "pages": ["features/authentication", "features/payments"]
+            "pages": ["features/authentication", "features/privy-auth", "features/payments"]
           },
           {
             "group": "Frontend",

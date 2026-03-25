@@ -32,6 +32,7 @@ program
   .option("--with-docs", "Include Mintlify docs")
   .option("--with-remotion", "Include Remotion video generation")
   .option("--with-dynamic", "Include Dynamic Auth")
+  .option("--with-privy", "Include Privy Auth")
   .option("--with-stripe", "Include Stripe Payments")
   .option("--with-elevenlabs", "Include ElevenLabs Voice Agent")
   .option("--with-minikit", "Include World MiniKit")
