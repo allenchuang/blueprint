@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import { RefreshCw, ChevronUp, ChevronDown, X, Plus, Twitter, ChevronRight, ChevronDown as ChevronDownIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OnboardingWizard } from "./onboarding-wizard";
 
 // ─── Contenteditable placeholder styles ──────────────────────────────────────
 
@@ -19,6 +20,12 @@ const TWEET_EDITOR_CSS = `
 `;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface TwitterAccountInfo {
+  id: string;
+  username: string;
+  displayName: string;
+}
 
 interface Draft {
   id: string;
@@ -216,11 +223,13 @@ function TwitterAvatar({ url }: { url?: string | null }) {
   );
 }
 
-function TwitterTweetHeader() {
+function TwitterTweetHeader({ displayName, username }: { displayName?: string; username?: string }) {
+  const name = displayName ?? 'Blueprint OS';
+  const handle = username ?? 'blueprint_os';
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3, flexWrap: "wrap" }}>
-      <span style={{ fontSize: 15, fontWeight: 700, color: "#e7e9ea", lineHeight: 1.3 }}>Blueprint OS</span>
-      <span style={{ fontSize: 15, color: "#71767b" }}>@blueprint_os</span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: "#e7e9ea", lineHeight: 1.3 }}>{name}</span>
+      <span style={{ fontSize: 15, color: "#71767b" }}>@{handle}</span>
       <span style={{ color: "#71767b", fontSize: 15 }}>·</span>
       <span style={{ fontSize: 15, color: "#71767b" }}>now</span>
     </div>
@@ -287,7 +296,7 @@ function ContentEditable({ text, onChange, className, placeholder, style }: {
   );
 }
 
-function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avatarUrl?: string | null; onChange?: (t: string) => void }) {
+function TwitterTweetPreview({ text, avatarUrl, onChange, displayName, username }: { text: string; avatarUrl?: string | null; onChange?: (t: string) => void; displayName?: string; username?: string }) {
   return (
     <div
       style={{
@@ -301,7 +310,7 @@ function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avat
       <div style={{ display: "flex", gap: 12 }}>
         <TwitterAvatar url={avatarUrl} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <TwitterTweetHeader />
+          <TwitterTweetHeader displayName={displayName} username={username} />
           <ContentEditable
             text={text}
             onChange={onChange}
@@ -326,7 +335,7 @@ function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avat
   );
 }
 
-function TwitterThreadPreview({ tweets, avatarUrl, onChangeTweet }: { tweets: Array<{ text: string }>; avatarUrl?: string | null; onChangeTweet?: (index: number, text: string) => void }) {
+function TwitterThreadPreview({ tweets, avatarUrl, onChangeTweet, displayName, username }: { tweets: Array<{ text: string }>; avatarUrl?: string | null; onChangeTweet?: (index: number, text: string) => void; displayName?: string; username?: string }) {
   const nonEmpty = tweets.filter((t) => t.text.trim());
   const items = nonEmpty.length > 0 ? nonEmpty : tweets;
 
@@ -389,7 +398,7 @@ function TwitterThreadPreview({ tweets, avatarUrl, onChangeTweet }: { tweets: Ar
                   paddingBottom: isLast ? 16 : 12,
                 }}
               >
-                <TwitterTweetHeader />
+                <TwitterTweetHeader displayName={displayName} username={username} />
                 <ContentEditable
                   text={tweet.text || ""}
                   onChange={onChangeTweet ? (t) => onChangeTweet(i, t) : undefined}
@@ -928,12 +937,16 @@ function SingleComposer({
   onPost,
   posting,
   avatarUrl,
+  displayName,
+  username,
 }: {
   text: string;
   onChange: (t: string) => void;
   onPost: () => void;
   posting: boolean;
   avatarUrl?: string | null;
+  displayName?: string;
+  username?: string;
 }) {
   const count = text.length;
   const isNearLimit = count > 240;
@@ -942,7 +955,7 @@ function SingleComposer({
   return (
     <div className="space-y-4">
       {/* Editable Twitter preview — click to edit */}
-      <TwitterTweetPreview text={text} avatarUrl={avatarUrl} onChange={onChange} />
+      <TwitterTweetPreview text={text} avatarUrl={avatarUrl} onChange={onChange} displayName={displayName} username={username} />
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <Twitter className="w-4 h-4" style={{ color: "#1d9bf0" }} />
@@ -994,6 +1007,8 @@ function ThreadComposer({
   onPost,
   posting,
   avatarUrl,
+  displayName,
+  username,
 }: {
   tweets: TweetBox[];
   onChange: (id: string, text: string) => void;
@@ -1004,6 +1019,8 @@ function ThreadComposer({
   onPost: () => void;
   posting: boolean;
   avatarUrl?: string | null;
+  displayName?: string;
+  username?: string;
 }) {
   const hasOverLimit = tweets.some((t) => t.text.length > 280);
   const hasEmpty = tweets.some((t) => !t.text.trim());
@@ -1018,6 +1035,8 @@ function ThreadComposer({
           const tweet = tweets[i];
           if (tweet) onChange(tweet.id, text);
         }}
+        displayName={displayName}
+        username={username}
       />
 
       <button
@@ -1086,15 +1105,31 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
   const [activeBatches, setActiveBatches] = useState<Suggestion[][]>(SUGGESTION_BATCHES);
   const [usingSkylar, setUsingSkylar] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<TwitterAccountInfo[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('blueprint_os');
   const composerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch real Twitter avatar on mount
+  // Fetch connected Twitter accounts on mount
   useEffect(() => {
-    fetch('/api/twitter/avatar')
+    fetch('/api/twitter/accounts')
+      .then(r => r.json())
+      .then((data: TwitterAccountInfo[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAccounts(data);
+          setSelectedAccountId(data[0]!.id);
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  // Fetch real Twitter avatar whenever selected account changes
+  useEffect(() => {
+    setAvatarUrl(null);
+    fetch(`/api/twitter/avatar?accountId=${selectedAccountId}`)
       .then(r => r.json())
       .then((d: { url?: string }) => { if (d.url) setAvatarUrl(d.url) })
       .catch(() => {})
-  }, [])
+  }, [selectedAccountId])
 
   // Load Skylar's suggestions on mount
   useEffect(() => {
@@ -1165,17 +1200,19 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
     if (!singleText.trim()) return;
     setPosting(true);
     try {
+      const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+      const handle = selectedAccount?.username ?? 'blueprint_os';
       const res = await fetch("/api/twitter/post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: singleText }),
+        body: JSON.stringify({ text: singleText, accountId: selectedAccountId }),
       });
       const data = await res.json() as { id?: string; error?: string };
       if (!res.ok || data.error) throw new Error(data.error ?? "Post failed");
       showToast({
         message: "Posted! View on Twitter →",
         type: "success",
-        link: data.id ? `https://twitter.com/blueprint_os/status/${data.id}` : undefined,
+        link: data.id ? `https://twitter.com/${handle}/status/${data.id}` : undefined,
       });
       setSingleText("");
     } catch (err) {
@@ -1191,7 +1228,10 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
     try {
       let lastId: string | undefined;
       for (const tweet of threadTweets) {
-        const payload: { text: string; replyToId?: string } = { text: tweet.text };
+        const payload: { text: string; replyToId?: string; accountId: string } = {
+          text: tweet.text,
+          accountId: selectedAccountId,
+        };
         if (lastId) payload.replyToId = lastId;
         const res = await fetch("/api/twitter/post", {
           method: "POST",
@@ -1202,10 +1242,12 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
         if (!res.ok || data.error) throw new Error(data.error ?? "Post failed");
         lastId = data.id;
       }
+      const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+      const handle = selectedAccount?.username ?? 'blueprint_os';
       showToast({
         message: `Thread posted! (${threadTweets.length} tweets)`,
         type: "success",
-        link: `https://twitter.com/blueprint_os`,
+        link: `https://twitter.com/${handle}`,
       });
       setThreadTweets([{ id: makeId(), text: "" }, { id: makeId(), text: "" }]);
     } catch (err) {
@@ -1270,6 +1312,9 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
           </span>
         </div>
       )}
+
+      {/* Connect Accounts wizard */}
+      <OnboardingWizard />
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -1346,6 +1391,31 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
             border: "1px solid rgba(255,255,255,0.07)",
           }}
         >
+          {/* Account switcher — only shown when multiple accounts are connected */}
+          {accounts.length > 1 && (
+            <div className="mb-4">
+              <label className="text-[11px] font-semibold uppercase tracking-wider mb-2 block" style={{ color: "#636366", letterSpacing: "0.08em" }}>
+                Post as
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {accounts.map((account) => (
+                  <button
+                    key={account.id}
+                    onClick={() => setSelectedAccountId(account.id)}
+                    className="px-3 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150"
+                    style={
+                      selectedAccountId === account.id
+                        ? { background: "rgba(29,155,240,0.2)", border: "1px solid rgba(29,155,240,0.5)", color: "#1d9bf0" }
+                        : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#8e8e93" }
+                    }
+                  >
+                    @{account.username}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Mode toggle */}
           <div className="flex mb-5">
             <div
@@ -1369,27 +1439,36 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
             </div>
           </div>
 
-          {mode === "single" ? (
-            <SingleComposer
-              text={singleText}
-              onChange={setSingleText}
-              onPost={handlePostSingle}
-              posting={posting}
-              avatarUrl={avatarUrl}
-            />
-          ) : (
-            <ThreadComposer
-              tweets={threadTweets}
-              onChange={handleThreadChange}
-              onAdd={handleThreadAdd}
-              onRemove={handleThreadRemove}
-              onMoveUp={handleThreadMoveUp}
-              onMoveDown={handleThreadMoveDown}
-              onPost={handlePostThread}
-              posting={posting}
-              avatarUrl={avatarUrl}
-            />
-          )}
+          {(() => {
+            const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+            const displayName = selectedAccount?.displayName;
+            const username = selectedAccount?.username;
+            return mode === "single" ? (
+              <SingleComposer
+                text={singleText}
+                onChange={setSingleText}
+                onPost={handlePostSingle}
+                posting={posting}
+                avatarUrl={avatarUrl}
+                displayName={displayName}
+                username={username}
+              />
+            ) : (
+              <ThreadComposer
+                tweets={threadTweets}
+                onChange={handleThreadChange}
+                onAdd={handleThreadAdd}
+                onRemove={handleThreadRemove}
+                onMoveUp={handleThreadMoveUp}
+                onMoveDown={handleThreadMoveDown}
+                onPost={handlePostThread}
+                posting={posting}
+                avatarUrl={avatarUrl}
+                displayName={displayName}
+                username={username}
+              />
+            );
+          })()}
         </div>
       </div>
 
