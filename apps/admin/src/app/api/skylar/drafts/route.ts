@@ -28,13 +28,13 @@ function parseDraftFile(filepath: string, filename: string): Draft | null {
     // Must contain at least one "## Tweet N" section to be a thread draft
     if (!/^## Tweet \d+/m.test(content)) return null;
 
-    // Extract tweets — everything between "## Tweet N" and the next "## Tweet" or "---"
+    // Extract tweets — split on "## Tweet N" headers, grab content between them
     const tweets: string[] = [];
-    const tweetRegex = /^## Tweet \d+[^\n]*\n([\s\S]*?)(?=^## Tweet \d+|^---|^## Notes|$)/gm;
-    let match;
-    while ((match = tweetRegex.exec(content)) !== null) {
-      const text = match[1]!.trim();
-      if (text) tweets.push(text);
+    const sections = content.split(/^## Tweet \d+[^\n]*/m);
+    for (let i = 1; i < sections.length; i++) {
+      // Stop at --- or ## Notes
+      const section = sections[i]!.split(/^(?:---|## Notes)/m)[0]!.trim();
+      if (section) tweets.push(section);
     }
 
     if (tweets.length === 0) return null;
