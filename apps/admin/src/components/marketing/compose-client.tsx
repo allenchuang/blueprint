@@ -174,6 +174,302 @@ const SUGGESTION_BATCHES: Suggestion[][] = [
   ],
 ];
 
+// ─── Twitter-style Preview Components ────────────────────────────────────────
+
+function TwitterAvatar() {
+  return (
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: "50%",
+        background: "#1d9bf0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#fff",
+        fontWeight: 700,
+        fontSize: 16,
+        flexShrink: 0,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}
+    >
+      B
+    </div>
+  );
+}
+
+function TwitterTweetHeader() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3, flexWrap: "wrap" }}>
+      <span style={{ fontSize: 15, fontWeight: 700, color: "#e7e9ea", lineHeight: 1.3 }}>Blueprint OS</span>
+      <span style={{ fontSize: 15, color: "#71767b" }}>@blueprint_os</span>
+      <span style={{ color: "#71767b", fontSize: 15 }}>·</span>
+      <span style={{ fontSize: 15, color: "#71767b" }}>now</span>
+    </div>
+  );
+}
+
+function TwitterActions() {
+  return (
+    <div style={{ display: "flex", gap: 32, marginTop: 10, color: "#71767b", fontSize: 13, userSelect: "none" }}>
+      {[
+        { icon: "💬", label: "Reply" },
+        { icon: "🔁", label: "Repost" },
+        { icon: "❤️", label: "Like" },
+        { icon: "📊", label: "Views" },
+      ].map(({ icon, label }) => (
+        <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, cursor: "default" }}>
+          <span style={{ fontSize: 14 }}>{icon}</span>
+          <span style={{ fontSize: 13, color: "#71767b" }}>{label}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function TwitterTweetPreview({ text }: { text: string }) {
+  return (
+    <div>
+      <p
+        className="text-[10px] uppercase tracking-wider mb-2"
+        style={{ color: "#48484a", letterSpacing: "0.08em" }}
+      >
+        Preview
+      </p>
+      <div
+        style={{
+          background: "#000",
+          borderRadius: 12,
+          padding: "16px 16px 14px",
+          maxWidth: 598,
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        }}
+      >
+        <div style={{ display: "flex", gap: 12 }}>
+          <TwitterAvatar />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <TwitterTweetHeader />
+            <p
+              style={{
+                fontSize: 15,
+                lineHeight: 1.5,
+                color: "#e7e9ea",
+                whiteSpace: "pre-wrap",
+                margin: 0,
+                wordBreak: "break-word",
+              }}
+            >
+              {text}
+            </p>
+            <TwitterActions />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TwitterThreadPreview({ tweets }: { tweets: Array<{ text: string }> }) {
+  const nonEmpty = tweets.filter((t) => t.text.trim());
+  const items = nonEmpty.length > 0 ? nonEmpty : tweets;
+
+  return (
+    <div>
+      <p
+        className="text-[10px] uppercase tracking-wider mb-2"
+        style={{ color: "#48484a", letterSpacing: "0.08em" }}
+      >
+        Thread Preview
+      </p>
+      <div
+        style={{
+          background: "#000",
+          borderRadius: 12,
+          overflow: "hidden",
+          maxWidth: 598,
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        }}
+      >
+        {items.map((tweet, i) => {
+          const isLast = i === items.length - 1;
+          return (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                padding: "16px 16px 0 16px",
+              }}
+            >
+              {/* Left: avatar + connector line */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  flexShrink: 0,
+                  width: 40,
+                }}
+              >
+                <TwitterAvatar />
+                {!isLast && (
+                  <div
+                    style={{
+                      width: 2,
+                      flex: 1,
+                      background: "#2f3336",
+                      marginTop: 4,
+                      minHeight: 24,
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Right: tweet content */}
+              <div
+                style={{
+                  flex: 1,
+                  paddingLeft: 12,
+                  paddingBottom: isLast ? 16 : 12,
+                }}
+              >
+                <TwitterTweetHeader />
+                <p
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 1.5,
+                    color: "#e7e9ea",
+                    whiteSpace: "pre-wrap",
+                    margin: 0,
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {tweet.text || (
+                    <span style={{ color: "#71767b", fontStyle: "italic" }}>
+                      Tweet {i + 1}…
+                    </span>
+                  )}
+                </p>
+                {/* Compact actions row */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 20,
+                    marginTop: 10,
+                    color: "#71767b",
+                    fontSize: 13,
+                    userSelect: "none",
+                  }}
+                >
+                  <span style={{ cursor: "default" }}>💬</span>
+                  <span style={{ cursor: "default" }}>🔁</span>
+                  <span style={{ cursor: "default" }}>❤️</span>
+                  <span style={{ cursor: "default" }}>📊</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Skylar Thread Preview (for DraftCard expanded view) ─────────────────────
+
+function DraftThreadPreview({ tweets }: { tweets: string[] }) {
+  return (
+    <div
+      style={{
+        background: "#000",
+        borderRadius: 12,
+        overflow: "hidden",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}
+    >
+      {tweets.map((text, i) => {
+        const isLast = i === tweets.length - 1;
+        return (
+          <div key={i} style={{ display: "flex", padding: "14px 14px 0 14px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                flexShrink: 0,
+                width: 36,
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: "#1d9bf0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  flexShrink: 0,
+                }}
+              >
+                B
+              </div>
+              {!isLast && (
+                <div
+                  style={{
+                    width: 2,
+                    flex: 1,
+                    background: "#2f3336",
+                    marginTop: 3,
+                    minHeight: 20,
+                  }}
+                />
+              )}
+            </div>
+            <div style={{ flex: 1, paddingLeft: 10, paddingBottom: isLast ? 14 : 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#e7e9ea" }}>Blueprint OS</span>
+                <span style={{ fontSize: 12, color: "#71767b" }}>@blueprint_os</span>
+                <span style={{ color: "#71767b", fontSize: 12 }}>· now</span>
+              </div>
+              <p
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  color: "#e7e9ea",
+                  whiteSpace: "pre-wrap",
+                  margin: 0,
+                  wordBreak: "break-word",
+                }}
+              >
+                {text}
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 16,
+                  marginTop: 8,
+                  color: "#71767b",
+                  fontSize: 12,
+                  userSelect: "none",
+                }}
+              >
+                <span>💬</span>
+                <span>🔁</span>
+                <span>❤️</span>
+                <span>📊</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Skylar Drafts Panel ─────────────────────────────────────────────────────
 
 function DraftCard({
@@ -220,29 +516,10 @@ function DraftCard({
         </div>
       </div>
 
-      {/* Expanded tweets */}
+      {/* Expanded tweets — Twitter thread style */}
       {expanded && (
-        <div className="mt-3 mb-3 space-y-2">
-          {draft.tweets.map((tweet, i) => (
-            <div
-              key={i}
-              className="flex gap-2.5"
-            >
-              <div
-                className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold mt-0.5"
-                style={{
-                  background: "rgba(10,132,255,0.15)",
-                  border: "1px solid rgba(10,132,255,0.3)",
-                  color: "#5ac8fa",
-                }}
-              >
-                {i + 1}
-              </div>
-              <p className="text-[12px] leading-relaxed whitespace-pre-wrap flex-1" style={{ color: "#d1d1d6" }}>
-                {tweet}
-              </p>
-            </div>
-          ))}
+        <div className="mt-3 mb-3">
+          <DraftThreadPreview tweets={draft.tweets} />
         </div>
       )}
 
@@ -635,37 +912,8 @@ function SingleComposer({
         </div>
       </div>
 
-      {/* Tweet preview */}
-      {text.length > 0 && (
-        <div
-          className="rounded-xl p-4"
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: "#48484a", letterSpacing: "0.08em" }}>
-            Preview
-          </p>
-          <div className="flex gap-3">
-            <div
-              className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-[14px] font-bold"
-              style={{ background: "#1d9bf0", color: "#fff" }}
-            >
-              B
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-[13px] font-semibold" style={{ color: "#f5f5f7" }}>Blueprint OS</span>
-                <span className="text-[12px]" style={{ color: "#636366" }}>@blueprint_os</span>
-              </div>
-              <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#e5e5ea" }}>
-                {text}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Tweet preview — pixel-perfect Twitter style */}
+      {text.length > 0 && <TwitterTweetPreview text={text} />}
 
       {/* Actions */}
       <div className="flex items-center gap-2">
@@ -768,6 +1016,13 @@ function ThreadComposer({
           Schedule ▾
         </button>
       </div>
+
+      {/* Twitter thread preview */}
+      {tweets.some((t) => t.text.trim()) && (
+        <div className="mt-2">
+          <TwitterThreadPreview tweets={tweets} />
+        </div>
+      )}
     </div>
   );
 }
