@@ -275,40 +275,41 @@ export function validateDesktopConfig(
     return { valid: false, errors, warnings };
   }
 
-  for (const window of config.windows) {
-    if (!window.id) {
+  for (const win of config.windows) {
+    if (!win.id) {
       errors.push('Window is missing required "id" field');
       continue;
     }
 
-    if (windowIds.has(window.id)) {
-      errors.push(`Duplicate window ID: "${window.id}"`);
+    if (windowIds.has(win.id)) {
+      errors.push(`Duplicate window ID: "${win.id}"`);
     }
-    windowIds.add(window.id);
+    windowIds.add(win.id);
 
-    if (!window.title) {
-      warnings.push(`Window "${window.id}" is missing a title`);
+    if (!win.title) {
+      warnings.push(`Window "${win.id}" is missing a title`);
     }
 
-    if (!window.type) {
+    if (!(win as { type?: string }).type) {
       errors.push(
-        `Window "${window.id}" is missing required "type" field`
+        `Window "${win.id}" is missing required "type" field`
       );
-    } else if (window.type === "app") {
-      if (!window.component) {
+    } else if (win.type === "app") {
+      if (!win.component) {
         errors.push(
-          `App window "${window.id}" is missing required "component" field`
+          `App window "${win.id}" is missing required "component" field`
         );
       }
-    } else if (window.type === "browser") {
-      if (!window.url) {
+    } else if (win.type === "browser") {
+      if (!win.url) {
         errors.push(
-          `Browser window "${window.id}" is missing required "url" field`
+          `Browser window "${win.id}" is missing required "url" field`
         );
       }
     } else {
+      const anyWin = win as { id: string; type: string };
       errors.push(
-        `Window "${window.id}" has invalid type: "${(window as WindowConfig).type}"`
+        `Window "${anyWin.id}" has invalid type: "${anyWin.type}"`
       );
     }
   }

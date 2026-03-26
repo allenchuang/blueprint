@@ -1,5 +1,6 @@
 import { Composition, Folder } from "remotion";
 
+import { BlueprintIntro } from "./BlueprintIntro";
 import { HelloWorld } from "./HelloWorld";
 import { AeirDataViz } from "./AeirDataViz";
 import { SpringPhysics } from "./SpringPhysics";
@@ -20,6 +21,14 @@ const HEIGHT = 1080;
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Composition
+        id="BlueprintIntro"
+        component={BlueprintIntro}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
       <Composition
         id="HelloWorld"
         component={HelloWorld}

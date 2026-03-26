@@ -57,25 +57,63 @@ export async function listSessions(): Promise<SessionInfo[]> {
   const sessions: SessionInfo[] = [];
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const metaPath = join(sessionsDir, entry.name, "metadata.json");
+    // OpenClaw stores sessions as flat .jsonl files (not subdirectories)
+    if (!entry.isFile() || !entry.name.endsWith(".jsonl")) continue;
+    const filePath = join(sessionsDir, entry.name);
     try {
-      const raw = await readFile(metaPath, "utf-8");
-      const meta = JSON.parse(raw);
+      const raw = await readFile(filePath, "utf-8");
+      const lines = raw.trim().split("\n").filter(Boolean);
+
+      let sessionId = entry.name.replace(".jsonl", "");
+      let model = "unknown";
+      let createdAt = new Date().toISOString();
+      let updatedAt = new Date().toISOString();
+      let channel: string | undefined;
+      let tokensIn = 0;
+      let tokensOut = 0;
+      let costDollars = 0;
+      let messageCount = 0;
+
+      for (const line of lines) {
+        try {
+          const record = JSON.parse(line);
+          // First line is session header
+          if (record.type === "session") {
+            sessionId = record.id || sessionId;
+            createdAt = record.timestamp || createdAt;
+          }
+          // Message lines contain usage data
+          if (record.type === "message" && record.message?.usage) {
+            const usage = record.message.usage;
+            tokensIn += (usage.input || 0) + (usage.cacheRead || 0) + (usage.cacheWrite || 0);
+            tokensOut += usage.output || 0;
+            costDollars += usage.cost?.total || 0;
+            messageCount++;
+            updatedAt = record.timestamp || updatedAt;
+            if (!model || model === "unknown") {
+              model = record.message.model || model;
+            }
+            channel = channel || record.message.channel;
+          }
+        } catch {
+          // skip malformed lines
+        }
+      }
+
       sessions.push({
-        id: entry.name,
-        model: meta.model || "unknown",
-        status: meta.status || "idle",
-        tokensIn: meta.tokensIn || meta.inputTokens || 0,
-        tokensOut: meta.tokensOut || meta.outputTokens || 0,
-        costCents: meta.costCents || meta.cost || 0,
-        messageCount: meta.messageCount || meta.messages?.length || 0,
-        createdAt: meta.createdAt || meta.created || new Date().toISOString(),
-        updatedAt: meta.updatedAt || meta.updated || new Date().toISOString(),
-        channel: meta.channel,
+        id: sessionId,
+        model,
+        status: "idle",
+        tokensIn,
+        tokensOut,
+        costCents: Math.round(costDollars * 100),
+        messageCount,
+        createdAt,
+        updatedAt,
+        channel,
       });
     } catch {
-      // skip unreadable sessions
+      // skip unreadable files
     }
   }
 

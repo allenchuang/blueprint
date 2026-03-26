@@ -1,9 +1,11 @@
+import React from "react";
 import { appsRegistry, type AppEntry } from "@repo/app-config";
 import type { WindowConfig, DesktopIconConfig } from "@/types";
 
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+const APP_HOST = process.env.NEXT_PUBLIC_APP_HOST;
 
-const SVG_PATHS: Record<string, { desktop: JSX.Element; titleBar: JSX.Element }> = {
+const SVG_PATHS: Record<string, { desktop: React.ReactElement; titleBar: React.ReactElement }> = {
   globe: {
     desktop: (
       <>
@@ -90,7 +92,7 @@ const SVG_PATHS: Record<string, { desktop: JSX.Element; titleBar: JSX.Element }>
   },
 };
 
-const COLOR_MAP: Record<string, { from: string; to: string; text: string }> = {
+const COLOR_MAP: Record<string, { from: string; to: string; text: string } | undefined> & { zinc: { from: string; to: string; text: string } } = {
   cyan: { from: "from-cyan-500", to: "to-blue-600", text: "text-cyan-400" },
   orange: { from: "from-orange-500", to: "to-red-600", text: "text-orange-400" },
   violet: { from: "from-violet-500", to: "to-purple-700", text: "text-violet-400" },
@@ -100,11 +102,13 @@ const COLOR_MAP: Record<string, { from: string; to: string; text: string }> = {
 };
 
 function getAppUrl(app: AppEntry): string {
-  if (BASE_DOMAIN) {
-    const protocol = "https";
-    return `${protocol}://${app.subdomain}.${BASE_DOMAIN}`;
-  }
   const suffix = app.id === "server" ? "/docs" : "";
+  if (BASE_DOMAIN) {
+    return `https://${app.subdomain}.${BASE_DOMAIN}${suffix}`;
+  }
+  if (APP_HOST) {
+    return `http://${APP_HOST}:${app.port}${suffix}`;
+  }
   return `http://localhost:${app.port}${suffix}`;
 }
 
@@ -134,7 +138,7 @@ function TitleBarIcon({ app }: { app: AppEntry }) {
 
 export function getRegistryWindows(): WindowConfig[] {
   return appsRegistry
-    .filter((app) => app.id !== "os")
+    .filter((app) => app.id !== "os" && app.id !== "clawdash")
     .map((app) => ({
       id: app.id,
       type: "browser" as const,
@@ -151,7 +155,7 @@ export function getRegistryWindows(): WindowConfig[] {
 
 export function getRegistryIcons(): DesktopIconConfig[] {
   return appsRegistry
-    .filter((app) => app.id !== "os")
+    .filter((app) => app.id !== "os" && app.id !== "clawdash")
     .map((app) => ({
       id: `${app.id}-icon`,
       windowId: app.id,

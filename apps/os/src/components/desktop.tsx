@@ -142,7 +142,7 @@ function DesktopInner({
       getIconRef: getIconRef as (
         iconId: string
       ) => RefObject<HTMLDivElement> | null,
-      registerIconRef: registerIconRef as (
+      registerIconRef: registerIconRef as unknown as (
         iconId: string,
         ref: RefObject<HTMLDivElement>
       ) => void,
@@ -332,7 +332,7 @@ function DesktopIconWrapper({
   const ref = useRef<DesktopIconRef>(null);
 
   useEffect(() => {
-    onRegisterRef(config.id, ref);
+    onRegisterRef(config.id, ref as RefObject<DesktopIconRef>);
   }, [config.id, onRegisterRef]);
 
   return <DesktopIcon ref={ref} config={config} onClick={onClick} />;

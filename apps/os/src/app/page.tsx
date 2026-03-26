@@ -6,6 +6,9 @@ import { useTheme } from "@/contexts/theme-context";
 import { getRegistryWindows, getRegistryIcons } from "@/lib/registry-config";
 import type { DesktopConfig } from "@/types";
 
+const APP_HOST = process.env.NEXT_PUBLIC_APP_HOST;
+const CLAWDASH_URL = APP_HOST ? `http://${APP_HOST}:3005` : "http://localhost:3005";
+
 /* ==========================================================================
    APP WINDOW COMPONENTS (static, not from registry)
    ========================================================================== */
@@ -290,9 +293,9 @@ const desktopConfig: DesktopConfig = {
     {
       id: "clawdash",
       type: "browser",
-      title: "http://localhost:7778",
+      title: "ClawDash",
       icon: <ClawDashTitleIcon />,
-      url: "http://localhost:7778",
+      url: CLAWDASH_URL,
       showReloadButton: true,
       openMaximized: true,
     },
@@ -302,8 +305,8 @@ const desktopConfig: DesktopConfig = {
     { id: "terminal-icon", windowId: "terminal", icon: <TerminalIcon />, label: "Terminal" },
     { id: "notes-icon", windowId: "notes", icon: <NotesIcon />, label: "Notes" },
     { id: "settings-icon", windowId: "settings", icon: <SettingsIcon />, label: "Settings" },
-    { id: "clawdash-icon", windowId: "clawdash", icon: <ClawDashIcon />, label: "ClawDash" },
     { id: "openclaw-icon", windowId: "openclaw", icon: <OpenClawIcon />, label: "OpenClaw" },
+    { id: "clawdash-icon", windowId: "clawdash", icon: <ClawDashIcon />, label: "ClawDash" },
   ],
   darkBackground: {
     type: "image",

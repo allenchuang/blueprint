@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { appConfig } from "@repo/app-config";
+import { useState, useEffect, useCallback, useRef } from "react";
 
-const API_BASE = `${appConfig.urls.api}/api/openclaw`;
+const APP_HOST = process.env.NEXT_PUBLIC_APP_HOST;
+const API_BASE = APP_HOST
+  ? `http://${APP_HOST}:3001/api/openclaw`
+  : "http://localhost:3001/api/openclaw";
+
 const POLL_INTERVAL_MS = 5000;
 
 interface MessageEntry {
@@ -11,6 +14,13 @@ interface MessageEntry {
   role: "user" | "agent";
   content: string;
   timestamp: Date;
+  loading?: boolean;
+}
+
+function uid(): string {
+  return typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 export function OpenClawControl() {
@@ -18,6 +28,7 @@ export function OpenClawControl() {
   const [messages, setMessages] = useState<MessageEntry[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const checkStatus = useCallback(async () => {
     try {
@@ -34,57 +45,58 @@ export function OpenClawControl() {
     return () => clearInterval(id);
   }, [checkStatus]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || sending) return;
 
     const userMsg: MessageEntry = {
-      id: crypto.randomUUID(),
+      id: uid(),
       role: "user",
       content: text,
       timestamp: new Date(),
     };
-    setMessages((prev) => [...prev, userMsg]);
+
+    const agentMsgId = uid();
+    const agentMsg: MessageEntry = {
+      id: agentMsgId,
+      role: "agent",
+      content: "",
+      timestamp: new Date(),
+      loading: true,
+    };
+
+    setMessages((prev) => [...prev, userMsg, agentMsg]);
     setInput("");
     setSending(true);
 
     try {
-      const res = await fetch(`${API_BASE}/message`, {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, sessionKey: "agent:main:main" }),
       });
 
-      const data = (await res.json().catch(() => ({}))) as {
-        reply?: string;
-        error?: string;
-      };
+      const data = await res.json() as { reply?: string; error?: string };
 
-      if (res.ok && data.reply) {
-        const agentMsg: MessageEntry = {
-          id: crypto.randomUUID(),
-          role: "agent",
-          content: data.reply,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, agentMsg]);
-      } else {
-        const errMsg: MessageEntry = {
-          id: crypto.randomUUID(),
-          role: "agent",
-          content: data.error ?? `Error ${res.status}: ${res.statusText}`,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, errMsg]);
-      }
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === agentMsgId
+            ? { ...m, content: data.reply ?? data.error ?? "No response", loading: false }
+            : m
+        )
+      );
     } catch (err) {
-      const agentMsg: MessageEntry = {
-        id: crypto.randomUUID(),
-        role: "agent",
-        content: err instanceof Error ? err.message : "Failed to send message",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, agentMsg]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === agentMsgId
+            ? { ...m, content: err instanceof Error ? err.message : "Request failed", loading: false }
+            : m
+        )
+      );
     } finally {
       setSending(false);
     }
@@ -108,7 +120,6 @@ export function OpenClawControl() {
                   ? "bg-emerald-500"
                   : "bg-red-500"
             }`}
-            aria-hidden
           />
           <span className="text-zinc-400">
             {gatewayReachable === null
@@ -136,14 +147,19 @@ export function OpenClawControl() {
                 }`}
               >
                 <span className="text-zinc-500 text-xs">
-                  {msg.role === "user" ? "You" : "Agent"} ·{" "}
+                  {msg.role === "user" ? "You" : "Ash"} ·{" "}
                   {msg.timestamp.toLocaleTimeString()}
                 </span>
-                <pre className="mt-1 whitespace-pre-wrap font-mono text-sm wrap-break-word">
-                  {msg.content}
+                <pre className="mt-1 whitespace-pre-wrap font-mono text-sm break-words">
+                  {msg.loading ? (
+                    <span className="text-zinc-500 animate-pulse">thinking...</span>
+                  ) : (
+                    msg.content || "(no reply)"
+                  )}
                 </pre>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </section>
@@ -151,10 +167,7 @@ export function OpenClawControl() {
       {/* Input */}
       <footer className="border-t border-zinc-800 p-4">
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
+          onSubmit={(e) => { e.preventDefault(); handleSend(); }}
           className="flex gap-2"
         >
           <input
