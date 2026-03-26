@@ -32,7 +32,7 @@ function useDynamicAuth(): AuthState {
 
   return {
     user: {
-      id: user.userId,
+      id: user.userId ?? "",
       email: user.email,
     },
     isLoggedIn: true,
