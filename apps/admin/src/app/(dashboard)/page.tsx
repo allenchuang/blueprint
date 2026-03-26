@@ -28,11 +28,88 @@ import {
 import type { TwitterProfile } from "@/app/api/twitter/route";
 import type { TwitterTweet } from "@/app/api/twitter/tweets/route";
 import type { TwitterAnalytics } from "@/app/api/twitter/analytics/route";
+import type { TwitterUsage } from "@/app/api/twitter/usage/route";
 
 function formatNumber(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return n.toString();
+}
+
+function formatCommas(n: number) {
+  return n.toLocaleString("en-US");
+}
+
+function getOrdinal(n: number) {
+  const v = n % 100;
+  if (v >= 11 && v <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+function TwitterUsageCard({ usage }: { usage: TwitterUsage | null; loading?: boolean }) {
+  if (!usage) return null;
+
+  const { projectUsage, projectCap, capResetDay, percentUsed } = usage;
+  const barWidth = Math.max(percentUsed, 0.15); // minimum sliver so bar is visible
+
+  return (
+    <div
+      className="mac-card px-4 py-4 space-y-3 col-span-2 lg:col-span-4"
+      style={{ background: "#2c2c2e" }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(10,132,255,0.12)", color: "#0a84ff" }}
+          >
+            <Twitter className="w-4 h-4" />
+          </div>
+          <p className="text-[12px] font-medium" style={{ color: "#8e8e93" }}>
+            API Usage
+          </p>
+        </div>
+        <p className="text-[11px]" style={{ color: "#636366" }}>
+          Resets on the {getOrdinal(capResetDay)}
+        </p>
+      </div>
+      <div>
+        <p
+          className="text-[20px] font-bold leading-none"
+          style={{ color: "#f5f5f7", letterSpacing: "-0.02em" }}
+        >
+          {formatCommas(projectUsage)}{" "}
+          <span className="text-[14px] font-normal" style={{ color: "#636366" }}>
+            / {formatCommas(projectCap)}
+          </span>
+        </p>
+        <p className="text-[11px] mt-1" style={{ color: "#636366" }}>
+          tweet reads this month
+        </p>
+      </div>
+      {/* Progress bar */}
+      <div
+        className="h-1 rounded-full overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.08)" }}
+      >
+        <div
+          className="h-full rounded-full transition-all"
+          style={{
+            width: `${Math.min(barWidth, 100)}%`,
+            background: percentUsed > 80 ? "#ff453a" : percentUsed > 50 ? "#ff9f0a" : "#0a84ff",
+          }}
+        />
+      </div>
+      <p className="text-[11px]" style={{ color: "#48484a" }}>
+        {percentUsed < 0.01 ? "<0.01" : percentUsed.toFixed(2)}% of monthly cap used
+      </p>
+    </div>
+  );
 }
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -153,29 +230,34 @@ export default function MarketingOverviewPage() {
   const [profile, setProfile] = useState<TwitterProfile | null>(null);
   const [tweets, setTweets] = useState<TwitterTweet[] | null>(null);
   const [analytics, setAnalytics] = useState<TwitterAnalytics | null>(null);
+  const [usage, setUsage] = useState<TwitterUsage | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void (async () => {
       try {
-        const [profileRes, tweetsRes, analyticsRes] = await Promise.all([
+        const [profileRes, tweetsRes, analyticsRes, usageRes] = await Promise.all([
           fetch("/api/twitter"),
           fetch("/api/twitter/tweets"),
           fetch("/api/twitter/analytics?period=7d"),
+          fetch("/api/twitter/usage"),
         ]);
         type ProfileResponse = TwitterProfile & { fallback?: boolean; error?: string };
         type TweetsResponse = { tweets?: TwitterTweet[]; fallback?: boolean; error?: string };
         type AnalyticsResponse = TwitterAnalytics & { fallback?: boolean; error?: string };
+        type UsageResponse = TwitterUsage & { error?: string };
 
-        const [profileData, tweetsData, analyticsData] = await Promise.all([
+        const [profileData, tweetsData, analyticsData, usageData] = await Promise.all([
           profileRes.json() as Promise<ProfileResponse>,
           tweetsRes.json() as Promise<TweetsResponse>,
           analyticsRes.json() as Promise<AnalyticsResponse>,
+          usageRes.json() as Promise<UsageResponse>,
         ]);
 
         if (!profileData.fallback && !profileData.error) setProfile(profileData);
         if (!tweetsData.fallback && tweetsData.tweets) setTweets(tweetsData.tweets);
         if (!analyticsData.fallback && !analyticsData.error) setAnalytics(analyticsData);
+        if (!usageData.error) setUsage(usageData);
       } catch {
         // API unavailable — show empty states
       } finally {
@@ -254,6 +336,7 @@ export default function MarketingOverviewPage() {
             icon={<Zap className="w-4 h-4" />}
             color="emerald"
           />
+          {usage && <TwitterUsageCard usage={usage} />}
         </div>
       )}
 
