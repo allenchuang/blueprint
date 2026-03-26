@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, TrendingUp, Zap, Target, ArrowRight, Clock, ToggleLeft, ToggleRight } from "lucide-react";
+import { RefreshCw, TrendingUp, Zap, Target, ArrowRight, Clock, ToggleLeft, ToggleRight, Sun } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -243,6 +243,186 @@ function BestTrend({ trend, onCreatePost }: { trend: Trend | null; onCreatePost:
   );
 }
 
+// ─── Skylar's Brief ───────────────────────────────────────────────────────────
+
+interface BriefData {
+  content: string;
+  updatedAt: string | null;
+}
+
+function renderMarkdown(content: string): React.ReactNode[] {
+  const lines = content.split("\n");
+  const nodes: React.ReactNode[] = [];
+  let key = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+
+    if (line.startsWith("### ")) {
+      nodes.push(
+        <h3 key={key++} className="text-[14px] font-semibold mt-4 mb-1" style={{ color: "#f5f5f7" }}>
+          {line.slice(4)}
+        </h3>
+      );
+    } else if (line.startsWith("## ")) {
+      nodes.push(
+        <h2 key={key++} className="text-[15px] font-bold mt-5 mb-1.5" style={{ color: "#f5f5f7" }}>
+          {line.slice(3)}
+        </h2>
+      );
+    } else if (line.startsWith("# ")) {
+      nodes.push(
+        <h1 key={key++} className="text-[18px] font-bold mb-1" style={{ color: "#f5f5f7" }}>
+          {line.slice(2)}
+        </h1>
+      );
+    } else if (line.startsWith("---")) {
+      nodes.push(
+        <hr key={key++} style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.08)", margin: "12px 0" }} />
+      );
+    } else if (line.startsWith("**") && line.endsWith("**")) {
+      nodes.push(
+        <p key={key++} className="text-[13px] font-semibold mb-1" style={{ color: "#e5e5ea" }}>
+          {line.slice(2, -2)}
+        </p>
+      );
+    } else if (line.trim() === "") {
+      nodes.push(<div key={key++} style={{ height: 4 }} />);
+    } else {
+      // Inline bold handling
+      const parts = line.split(/(\*\*[^*]+\*\*)/g);
+      nodes.push(
+        <p key={key++} className="text-[13px] leading-relaxed" style={{ color: "#8e8e93" }}>
+          {parts.map((part, pi) =>
+            part.startsWith("**") && part.endsWith("**") ? (
+              <span key={pi} className="font-semibold" style={{ color: "#e5e5ea" }}>
+                {part.slice(2, -2)}
+              </span>
+            ) : (
+              part
+            )
+          )}
+        </p>
+      );
+    }
+  }
+
+  return nodes;
+}
+
+function SkylarBrief() {
+  const [brief, setBrief] = useState<BriefData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  const fetchBrief = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/skylar/brief", { cache: "no-store" });
+      const data = (await res.json()) as BriefData;
+      setBrief(data);
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchBrief();
+  }, [fetchBrief]);
+
+  if (loading) {
+    return (
+      <div
+        className="rounded-2xl p-5 animate-pulse"
+        style={{ background: "rgba(28,28,30,0.82)", border: "1px solid rgba(255,255,255,0.07)", height: 120 }}
+      />
+    );
+  }
+
+  if (!brief?.content) return null;
+
+  const updatedLabel = brief.updatedAt
+    ? new Date(brief.updatedAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  return (
+    <div
+      className="rounded-2xl"
+      style={{
+        background: "rgba(28,28,30,0.82)",
+        backdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,200,60,0.15)",
+        boxShadow: "0 0 0 1px rgba(255,200,60,0.05)",
+      }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-5 py-4 cursor-pointer"
+        onClick={() => setCollapsed((v) => !v)}
+        style={{ borderBottom: collapsed ? "none" : "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(255,200,60,0.15)", border: "1px solid rgba(255,200,60,0.25)" }}
+          >
+            <Sun className="w-3.5 h-3.5" style={{ color: "#ffc83c" }} />
+          </div>
+          <div>
+            <p className="text-[15px] font-semibold" style={{ color: "#f5f5f7" }}>
+              Skylar&apos;s Daily Brief
+            </p>
+            {updatedLabel && (
+              <p className="text-[11px]" style={{ color: "#48484a" }}>
+                Last updated {updatedLabel}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              void fetchBrief();
+            }}
+            disabled={refreshing}
+            className="p-1.5 rounded-lg transition-all duration-150 disabled:opacity-40"
+            style={{ background: "rgba(255,255,255,0.06)", color: "#8e8e93" }}
+            title="Refresh brief"
+          >
+            <RefreshCw
+              className="w-3.5 h-3.5"
+              style={{
+                transition: "transform 0.5s",
+                transform: refreshing ? "rotate(360deg)" : "rotate(0deg)",
+              }}
+            />
+          </button>
+          <span
+            className="text-[11px] px-2 py-0.5 rounded-full"
+            style={{ background: "rgba(255,200,60,0.12)", color: "#ffc83c", border: "1px solid rgba(255,200,60,0.2)" }}
+          >
+            {collapsed ? "Show" : "Hide"}
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      {!collapsed && (
+        <div className="px-5 py-4 max-h-[480px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
+          <div className="space-y-0.5">
+            {renderMarkdown(brief.content)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const AUTO_REFRESH_SECONDS = 300; // 5 minutes
@@ -332,6 +512,9 @@ export function TrendsClient() {
           Live Twitter trends with relevance scoring for Blueprint OS
         </p>
       </div>
+
+      {/* Skylar's Brief */}
+      <SkylarBrief />
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-5">

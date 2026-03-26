@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { RefreshCw, ChevronUp, ChevronDown, X, Plus, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -593,17 +593,46 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
   const [batchIndex, setBatchIndex] = useState(0);
   const [refreshSpinning, setRefreshSpinning] = useState(false);
   const [suggestionsVisible, setSuggestionsVisible] = useState(true);
+  const [activeBatches, setActiveBatches] = useState<Suggestion[][]>(SUGGESTION_BATCHES);
+  const [usingSkylar, setUsingSkylar] = useState(false);
+
+  // Load Skylar's suggestions on mount
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/skylar/suggestions", { cache: "no-store" });
+        if (!res.ok) throw new Error("fetch failed");
+        const raw = await res.json() as unknown[][];
+        // Normalize Skylar's JSON format to match internal Suggestion shape
+        const batches: Suggestion[][] = raw.map((batch) =>
+          (batch as Record<string, unknown>[]).map((item, idx) => ({
+            id: idx + 1,
+            type: (String(item.type ?? "Single").charAt(0).toUpperCase() + String(item.type ?? "Single").slice(1)) as "Single" | "Thread",
+            strategy: String(item.strategy ?? ""),
+            hook: String(item.hook ?? ""),
+            threadTweets: Array.isArray(item.content) ? (item.content as string[]) : undefined,
+          }))
+        );
+        if (batches.length > 0) {
+          setActiveBatches(batches);
+          setUsingSkylar(true);
+        }
+      } catch {
+        // Fall back to hardcoded batches silently
+      }
+    })();
+  }, []);
 
   const handleRefreshSuggestions = useCallback(() => {
     if (refreshSpinning) return;
     setRefreshSpinning(true);
     setSuggestionsVisible(false);
     setTimeout(() => {
-      setBatchIndex((prev) => (prev + 1) % SUGGESTION_BATCHES.length);
+      setBatchIndex((prev) => (prev + 1) % activeBatches.length);
       setSuggestionsVisible(true);
       setRefreshSpinning(false);
     }, 300);
-  }, [refreshSpinning]);
+  }, [refreshSpinning, activeBatches.length]);
 
   const showToast = (t: Omit<ToastProps, "onDismiss">) => {
     setToast({ ...t, onDismiss: () => setToast(null) });
@@ -744,7 +773,7 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
           }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="text-[15px] font-semibold" style={{ color: "#f5f5f7" }}>
                 Post Ideas
               </p>
@@ -755,8 +784,20 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
                   color: "#636366",
                 }}
               >
-                {batchIndex + 1}/{SUGGESTION_BATCHES.length}
+                {batchIndex + 1}/{activeBatches.length}
               </span>
+              {usingSkylar && (
+                <span
+                  className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                  style={{
+                    background: "rgba(255,200,60,0.12)",
+                    border: "1px solid rgba(255,200,60,0.2)",
+                    color: "#ffc83c",
+                  }}
+                >
+                  ☀️ Skylar&apos;s picks
+                </span>
+              )}
             </div>
             <button
               className="p-2 rounded-lg transition-all duration-150"
@@ -774,7 +815,7 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
             className="space-y-3 transition-opacity duration-200"
             style={{ opacity: suggestionsVisible ? 1 : 0 }}
           >
-            {SUGGESTION_BATCHES[batchIndex]!.map((s) => (
+            {(activeBatches[batchIndex] ?? activeBatches[0] ?? []).map((s) => (
               <SuggestionCard key={s.id} suggestion={s} onUse={handleUseSuggestion} />
             ))}
           </div>
