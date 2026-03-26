@@ -6,6 +6,8 @@ interface PostTweetBody {
   text: string;
   replyToId?: string;
   accountId?: string;
+  /** Public URL of an image to attach as media (e.g. a generated card) */
+  imageUrl?: string;
 }
 
 interface PostTweetResponse {
@@ -27,21 +29,15 @@ export async function POST(req: NextRequest) {
 
     let body: PostTweetBody;
     try {
-      body = await req.json() as PostTweetBody;
+      body = (await req.json()) as PostTweetBody;
     } catch {
-      return NextResponse.json(
-        { error: "Invalid request body" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { text, replyToId, accountId } = body;
+    const { text, replyToId, accountId, imageUrl } = body;
 
     if (!text || typeof text !== "string") {
-      return NextResponse.json(
-        { error: "Tweet text is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Tweet text is required" }, { status: 400 });
     }
 
     if (text.length > 280) {
@@ -84,9 +80,33 @@ export async function POST(req: NextRequest) {
       accessSecret: accessTokenSecret,
     });
 
-    const tweetPayload: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text };
+    // Upload image as media if imageUrl is provided
+    let mediaId: string | undefined;
+    if (imageUrl) {
+      const imageRes = await fetch(imageUrl);
+      if (!imageRes.ok) {
+        return NextResponse.json(
+          { error: "Failed to fetch imageUrl" },
+          { status: 400 }
+        );
+      }
+      const imageBuffer = Buffer.from(await imageRes.arrayBuffer());
+      const mimeType = imageRes.headers.get("content-type") ?? "image/png";
+      mediaId = await client.v1.uploadMedia(imageBuffer, { mimeType });
+    }
+
+    const tweetPayload: {
+      text: string;
+      reply?: { in_reply_to_tweet_id: string };
+      media?: { media_ids: [string] };
+    } = { text };
+
     if (replyToId) {
       tweetPayload.reply = { in_reply_to_tweet_id: replyToId };
+    }
+
+    if (mediaId) {
+      tweetPayload.media = { media_ids: [mediaId] };
     }
 
     const posted = await client.v2.tweet(tweetPayload);
@@ -112,9 +132,6 @@ export async function POST(req: NextRequest) {
     }
 
     console.error("[twitter/post] Error:", error.code ?? error.status);
-    return NextResponse.json(
-      { error: "Failed to post tweet" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to post tweet" }, { status: 500 });
   }
 }

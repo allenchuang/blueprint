@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Lightbulb, Globe2, TrendingUp, Zap, PenLine } from "lucide-react";
+import { BarChart3, Lightbulb, Globe2, TrendingUp, Zap, PenLine, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { label: "Socials", href: "/socials", icon: Globe2 },
   { label: "Hot Trends", href: "/trends", icon: TrendingUp },
   { label: "Compose", href: "/compose", icon: PenLine },
+  { label: "Card Preview", href: "/card-preview", icon: Image },
 ];
 
 
