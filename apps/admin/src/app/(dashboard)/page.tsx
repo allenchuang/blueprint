@@ -75,16 +75,29 @@ function SkeletonChart() {
   );
 }
 
-function EmptyChart({ message }: { message: string }) {
+function EmptyChart({ message, ctaHref, ctaLabel }: { message: string; ctaHref?: string; ctaLabel?: string }) {
   return (
     <div
-      className="flex flex-col items-center justify-center h-[200px] rounded-lg"
+      className="flex flex-col items-center justify-center h-[200px] rounded-lg gap-3"
       style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.08)" }}
     >
-      <Twitter className="w-6 h-6 mb-2 opacity-20" />
-      <p className="text-[13px]" style={{ color: "#48484a" }}>
+      <Twitter className="w-6 h-6 opacity-20" />
+      <p className="text-[13px] text-center" style={{ color: "#636366" }}>
         {message}
       </p>
+      {ctaHref && ctaLabel && (
+        <a
+          href={ctaHref}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all"
+          style={{
+            background: "rgba(10,132,255,0.12)",
+            color: "#0a84ff",
+            border: "1px solid rgba(10,132,255,0.2)",
+          }}
+        >
+          {ctaLabel} →
+        </a>
+      )}
     </div>
   );
 }
@@ -288,7 +301,7 @@ export default function MarketingOverviewPage() {
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <EmptyChart message="Connect your accounts to see analytics here" />
+                <EmptyChart message="Connect Twitter to see analytics" ctaHref="/socials" ctaLabel="Connect Twitter" />
               )}
             </div>
           </div>
@@ -309,7 +322,7 @@ export default function MarketingOverviewPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <EmptyChart message="Connect your accounts to see analytics here" />
+                <EmptyChart message="Connect Twitter to see analytics" ctaHref="/socials" ctaLabel="Connect Twitter" />
               )}
             </div>
           </div>
@@ -344,20 +357,32 @@ export default function MarketingOverviewPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span
-                      className="text-[11px] font-medium px-2 py-0.5 rounded-full"
-                      style={
-                        connected
-                          ? { background: "rgba(48,209,88,0.12)", color: "#30d158" }
-                          : { background: "rgba(255,255,255,0.06)", color: "#636366" }
-                      }
-                    >
-                      {connected ? "Connected" : "Not connected"}
-                    </span>
-                    {isTwitter && analytics && (
-                      <span className="text-[12px] font-semibold" style={{ color: "#f5f5f7" }}>
-                        {analytics.avgEngagementRate}% avg eng.
-                      </span>
+                    {connected ? (
+                      <>
+                        <span
+                          className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                          style={{ background: "rgba(48,209,88,0.12)", color: "#30d158" }}
+                        >
+                          Connected
+                        </span>
+                        {isTwitter && analytics && (
+                          <span className="text-[12px] font-semibold" style={{ color: "#f5f5f7" }}>
+                            {analytics.avgEngagementRate}% avg eng.
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <a
+                        href="/socials"
+                        className="text-[11px] font-medium px-2 py-0.5 rounded-full transition-all"
+                        style={{
+                          background: "rgba(10,132,255,0.1)",
+                          color: "#0a84ff",
+                          border: "1px solid rgba(10,132,255,0.2)",
+                        }}
+                      >
+                        Connect →
+                      </a>
                     )}
                   </div>
                 </div>
@@ -377,14 +402,42 @@ export default function MarketingOverviewPage() {
                 <TweetRow key={tweet.id} tweet={tweet} />
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Twitter className="w-8 h-8 mb-3 opacity-20" />
-                <p className="text-[15px] font-semibold mb-1" style={{ color: "#f5f5f7" }}>
-                  No tweets yet
-                </p>
-                <p className="text-[13px]" style={{ color: "#636366" }}>
-                  {profile ? "No recent tweets found" : "Connect Twitter to see your recent posts"}
-                </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+                <Twitter className="w-8 h-8 opacity-20" />
+                <div>
+                  <p className="text-[15px] font-semibold mb-1" style={{ color: "#f5f5f7" }}>
+                    No tweets yet
+                  </p>
+                  <p className="text-[13px]" style={{ color: "#636366" }}>
+                    {profile ? "No recent tweets found" : "Connect Twitter to see your recent posts"}
+                  </p>
+                </div>
+                {!profile && (
+                  <a
+                    href="/socials"
+                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all"
+                    style={{
+                      background: "rgba(10,132,255,0.12)",
+                      color: "#0a84ff",
+                      border: "1px solid rgba(10,132,255,0.2)",
+                    }}
+                  >
+                    Connect Twitter →
+                  </a>
+                )}
+                {profile && (
+                  <a
+                    href="/compose"
+                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all"
+                    style={{
+                      background: "rgba(48,209,88,0.1)",
+                      color: "#30d158",
+                      border: "1px solid rgba(48,209,88,0.2)",
+                    }}
+                  >
+                    Write your first tweet →
+                  </a>
+                )}
               </div>
             )}
           </div>
