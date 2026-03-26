@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import { ComposeClient } from "./compose-client";
 
 // Wrapper that reads the ?trend= query param and pre-fills the composer

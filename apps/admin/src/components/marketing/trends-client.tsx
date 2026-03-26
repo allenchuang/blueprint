@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { RefreshCw, TrendingUp, Zap, Target, ArrowRight, Clock, ToggleLeft, ToggleRight } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────

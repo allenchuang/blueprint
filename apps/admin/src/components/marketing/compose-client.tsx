@@ -575,9 +575,15 @@ function makeId() {
   return Math.random().toString(36).slice(2);
 }
 
-export function ComposeClient() {
+function makeTrendSuggestion(trend: string): string {
+  return `${trend} is trending right now — here's how Blueprint OS fits in 👇\n\n[Share your take on #${trend} and how Blueprint OS helps developers ship faster]`;
+}
+
+export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) {
   const [mode, setMode] = useState<"single" | "thread">("single");
-  const [singleText, setSingleText] = useState("");
+  const [singleText, setSingleText] = useState(
+    initialTrend ? makeTrendSuggestion(initialTrend) : ""
+  );
   const [threadTweets, setThreadTweets] = useState<TweetBox[]>([
     { id: makeId(), text: "" },
     { id: makeId(), text: "" },
@@ -710,6 +716,21 @@ export function ComposeClient() {
           AI-assisted post creation with thread support
         </p>
       </div>
+
+      {/* Trend banner */}
+      {initialTrend && (
+        <div
+          className="flex items-center gap-3 px-4 py-3 rounded-xl"
+          style={{
+            background: "rgba(10,132,255,0.1)",
+            border: "1px solid rgba(10,132,255,0.25)",
+          }}
+        >
+          <span className="text-[13px]" style={{ color: "#5ac8fa" }}>
+            🔥 Riding the <strong>#{initialTrend}</strong> trend — edit the draft below and post it while it&apos;s hot!
+          </span>
+        </div>
+      )}
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
