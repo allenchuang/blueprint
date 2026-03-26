@@ -1,5 +1,5 @@
-import { ComposeClient } from "@/components/marketing/compose-client";
+import { ComposeWithTrend } from "@/components/marketing/compose-with-trend";
 
 export default function ComposePage() {
-  return <ComposeClient />;
+  return <ComposeWithTrend />;
 }

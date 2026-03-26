@@ -9,6 +9,7 @@ const navItems = [
   { label: "Overview", href: "/", icon: BarChart3 },
   { label: "Strategies", href: "/strategies", icon: Lightbulb },
   { label: "Socials", href: "/socials", icon: Globe2 },
+  { label: "Hot Trends", href: "/trends", icon: TrendingUp },
   { label: "Compose", href: "/compose", icon: PenLine },
 ];
 
