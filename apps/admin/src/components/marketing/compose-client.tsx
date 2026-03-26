@@ -245,6 +245,48 @@ function TwitterActions() {
   );
 }
 
+function ContentEditable({ text, onChange, className, placeholder, style }: {
+  text: string;
+  onChange?: (t: string) => void;
+  className?: string;
+  placeholder?: string;
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isFocused = useRef(false);
+
+  // Set initial content on mount only
+  useEffect(() => {
+    if (ref.current && !isFocused.current) {
+      ref.current.innerHTML = text.replace(/\n/g, "<br>");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally empty — only run on mount
+
+  // Sync external changes (e.g. loading a draft) but not during typing
+  const prevText = useRef(text);
+  useEffect(() => {
+    if (ref.current && !isFocused.current && text !== prevText.current) {
+      ref.current.innerHTML = text.replace(/\n/g, "<br>");
+    }
+    prevText.current = text;
+  }, [text]);
+
+  return (
+    <div
+      ref={ref}
+      contentEditable={!!onChange}
+      suppressContentEditableWarning
+      className={className}
+      data-placeholder={placeholder}
+      onFocus={() => { isFocused.current = true; }}
+      onBlur={() => { isFocused.current = false; }}
+      onInput={onChange ? (e) => onChange((e.currentTarget as HTMLDivElement).innerText) : undefined}
+      style={style}
+    />
+  );
+}
+
 function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avatarUrl?: string | null; onChange?: (t: string) => void }) {
   return (
     <div
@@ -260,12 +302,11 @@ function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avat
         <TwitterAvatar url={avatarUrl} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <TwitterTweetHeader />
-          <div
-            contentEditable={!!onChange}
-            suppressContentEditableWarning
+          <ContentEditable
+            text={text}
+            onChange={onChange}
             className={onChange ? "tweet-editor" : ""}
-            data-placeholder="What's happening?"
-            onInput={onChange ? (e) => onChange((e.currentTarget as HTMLDivElement).innerText) : undefined}
+            placeholder="What's happening?"
             style={{
               fontSize: 15,
               lineHeight: 1.5,
@@ -277,7 +318,6 @@ function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avat
               caretColor: "#1d9bf0",
               outline: "none",
             }}
-            dangerouslySetInnerHTML={{ __html: text.replace(/\n/g, "<br>") }}
           />
           <TwitterActions />
         </div>
@@ -350,12 +390,11 @@ function TwitterThreadPreview({ tweets, avatarUrl, onChangeTweet }: { tweets: Ar
                 }}
               >
                 <TwitterTweetHeader />
-                <div
-                  contentEditable={!!onChangeTweet}
-                  suppressContentEditableWarning
+                <ContentEditable
+                  text={tweet.text || ""}
+                  onChange={onChangeTweet ? (t) => onChangeTweet(i, t) : undefined}
                   className={onChangeTweet ? "tweet-editor" : ""}
-                  data-placeholder={`Tweet ${i + 1}…`}
-                  onInput={onChangeTweet ? (e) => onChangeTweet(i, (e.currentTarget as HTMLDivElement).innerText) : undefined}
+                  placeholder={`Tweet ${i + 1}…`}
                   style={{
                     fontSize: 15,
                     lineHeight: 1.5,
@@ -367,7 +406,6 @@ function TwitterThreadPreview({ tweets, avatarUrl, onChangeTweet }: { tweets: Ar
                     caretColor: "#1d9bf0",
                     outline: "none",
                   }}
-                  dangerouslySetInnerHTML={{ __html: (tweet.text || "").replace(/\n/g, "<br>") }}
                 />
                 {/* Compact actions row */}
                 <div
