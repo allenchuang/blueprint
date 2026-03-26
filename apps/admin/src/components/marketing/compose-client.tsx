@@ -1,10 +1,19 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { RefreshCw, ChevronUp, ChevronDown, X, Plus, Twitter } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { RefreshCw, ChevronUp, ChevronDown, X, Plus, Twitter, ChevronRight, ChevronDown as ChevronDownIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Draft {
+  id: string;
+  filename: string;
+  title: string;
+  tweets: string[];
+  notes: string;
+  createdAt: string;
+}
 
 interface Suggestion {
   id: number;
@@ -164,6 +173,200 @@ const SUGGESTION_BATCHES: Suggestion[][] = [
     },
   ],
 ];
+
+// ─── Skylar Drafts Panel ─────────────────────────────────────────────────────
+
+function DraftCard({
+  draft,
+  onLoad,
+}: {
+  draft: Draft;
+  onLoad: (draft: Draft) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const preview = draft.tweets[0]
+    ? draft.tweets[0].slice(0, 100) + (draft.tweets[0].length > 100 ? "…" : "")
+    : "";
+
+  return (
+    <div
+      className="rounded-xl p-4"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
+      {/* Card header */}
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="text-[13px] font-semibold truncate" style={{ color: "#f5f5f7" }}>
+              {draft.title}
+            </span>
+            <span
+              className="text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0"
+              style={{
+                background: "rgba(10,132,255,0.12)",
+                border: "1px solid rgba(10,132,255,0.25)",
+                color: "#5ac8fa",
+              }}
+            >
+              {draft.tweets.length} tweet{draft.tweets.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <p className="text-[12px] leading-relaxed" style={{ color: "#8e8e93" }}>
+            {preview}
+          </p>
+        </div>
+      </div>
+
+      {/* Expanded tweets */}
+      {expanded && (
+        <div className="mt-3 mb-3 space-y-2">
+          {draft.tweets.map((tweet, i) => (
+            <div
+              key={i}
+              className="flex gap-2.5"
+            >
+              <div
+                className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold mt-0.5"
+                style={{
+                  background: "rgba(10,132,255,0.15)",
+                  border: "1px solid rgba(10,132,255,0.3)",
+                  color: "#5ac8fa",
+                }}
+              >
+                {i + 1}
+              </div>
+              <p className="text-[12px] leading-relaxed whitespace-pre-wrap flex-1" style={{ color: "#d1d1d6" }}>
+                {tweet}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 mt-3">
+        <button
+          onClick={() => onLoad(draft)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-150"
+          style={{
+            background: "rgba(10,132,255,0.15)",
+            border: "1px solid rgba(10,132,255,0.25)",
+            color: "#5ac8fa",
+          }}
+        >
+          Load Thread
+          <ChevronRight className="w-3 h-3" />
+        </button>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-150"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            color: "#8e8e93",
+          }}
+        >
+          {expanded ? "Hide" : "View"}
+          <ChevronDownIcon
+            className="w-3 h-3 transition-transform duration-200"
+            style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}
+          />
+        </button>
+        <span className="ml-auto text-[11px]" style={{ color: "#48484a" }}>
+          ☀️ Written by Skylar
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SkylarDraftsPanel({
+  onLoadDraft,
+}: {
+  onLoadDraft: (draft: Draft) => void;
+}) {
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [collapsed, setCollapsed] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/skylar/drafts", { cache: "no-store" });
+        if (!res.ok) throw new Error("fetch failed");
+        const data = await res.json() as Draft[];
+        setDrafts(Array.isArray(data) ? data : []);
+      } catch {
+        setDrafts([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (!loading && drafts.length === 0) return null;
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: "rgba(28,28,30,0.82)",
+        backdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,200,60,0.18)",
+      }}
+    >
+      {/* Header */}
+      <button
+        onClick={() => setCollapsed((v) => !v)}
+        className="w-full flex items-center justify-between px-5 py-4 transition-colors duration-150"
+        style={{ background: "transparent" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="text-[15px] font-semibold" style={{ color: "#f5f5f7" }}>
+            📋 Ready to Post
+          </span>
+          {!loading && (
+            <span
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+              style={{
+                background: "rgba(255,200,60,0.18)",
+                border: "1px solid rgba(255,200,60,0.3)",
+                color: "#ffc83c",
+              }}
+            >
+              {drafts.length}
+            </span>
+          )}
+        </div>
+        <ChevronDownIcon
+          className="w-4 h-4 transition-transform duration-200"
+          style={{
+            color: "#636366",
+            transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)",
+          }}
+        />
+      </button>
+
+      {/* Content */}
+      {!collapsed && (
+        <div className="px-5 pb-5 space-y-3">
+          {loading ? (
+            <div className="text-[13px] py-2" style={{ color: "#636366" }}>
+              Loading drafts…
+            </div>
+          ) : (
+            drafts.map((draft) => (
+              <DraftCard key={draft.id} draft={draft} onLoad={onLoadDraft} />
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 
@@ -595,6 +798,7 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
   const [suggestionsVisible, setSuggestionsVisible] = useState(true);
   const [activeBatches, setActiveBatches] = useState<Suggestion[][]>(SUGGESTION_BATCHES);
   const [usingSkylar, setUsingSkylar] = useState(false);
+  const composerRef = useRef<HTMLDivElement>(null);
 
   // Load Skylar's suggestions on mount
   useEffect(() => {
@@ -649,6 +853,16 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
       setMode("single");
       setSingleText(suggestion.hook);
     }
+  }, []);
+
+  const handleLoadDraft = useCallback((draft: Draft) => {
+    setMode("thread");
+    setThreadTweets(draft.tweets.map((text) => ({ id: makeId(), text })));
+    // Scroll to composer
+    setTimeout(() => {
+      composerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    showToast({ message: `"${draft.title}" loaded into composer`, type: "success" });
   }, []);
 
   const handlePostSingle = async () => {
@@ -763,8 +977,12 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Left: AI Suggestions */}
-        <div
+        {/* Left: Skylar Drafts + AI Suggestions */}
+        <div className="space-y-5">
+          <SkylarDraftsPanel onLoadDraft={handleLoadDraft} />
+
+          {/* AI Suggestions */}
+          <div
           className="rounded-2xl p-5"
           style={{
             background: "rgba(28,28,30,0.82)",
@@ -820,9 +1038,11 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
             ))}
           </div>
         </div>
+        </div>{/* end left column */}
 
         {/* Right: Composer */}
         <div
+          ref={composerRef}
           className="rounded-2xl p-5"
           style={{
             background: "rgba(28,28,30,0.82)",
