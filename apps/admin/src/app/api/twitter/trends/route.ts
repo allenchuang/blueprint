@@ -1,128 +1,145 @@
 import { NextResponse } from "next/server";
 
-// Mock fallback — realistic dev Twitter trends
-const MOCK_TRENDS = [
-  { name: "#ReactJS", tweet_volume: 45200 },
-  { name: "#BuildInPublic", tweet_volume: 28100 },
-  { name: "#AITools", tweet_volume: 156000 },
-  { name: "#NextJS", tweet_volume: 31400 },
-  { name: "#TypeScript", tweet_volume: 22800 },
-  { name: "#OpenSource", tweet_volume: 89300 },
-  { name: "#IndieHackers", tweet_volume: 18900 },
-  { name: "#WebDev", tweet_volume: 67400 },
-  { name: "#StartupLife", tweet_volume: 44100 },
-  { name: "#SideProject", tweet_volume: 15600 },
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+interface TechTrend {
+  name: string;
+  tweet_volume: number;
+  url: string;
+  source: "hackernews" | "reddit";
+  subreddit?: string;
+}
+
+// ─── Hacker News ───────────────────────────────────────────────────────────────
+
+interface HNItem {
+  id: number;
+  title: string;
+  score: number;
+  url?: string;
+  by: string;
+  time: number;
+  descendants?: number;
+}
+
+async function fetchHackerNews(): Promise<TechTrend[]> {
+  // Fetch top 20 story IDs (we'll filter down to those with score > 50)
+  const idsRes = await fetch(
+    "https://hacker-news.firebaseio.com/v0/topstories.json",
+    { signal: AbortSignal.timeout(8000) }
+  );
+  const ids = (await idsRes.json()) as number[];
+  const top20 = ids.slice(0, 20);
+
+  // Fetch each story in parallel
+  const items = await Promise.allSettled(
+    top20.map((id) =>
+      fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`, {
+        signal: AbortSignal.timeout(5000),
+      }).then((r) => r.json() as Promise<HNItem>)
+    )
+  );
+
+  const stories: TechTrend[] = [];
+  for (const result of items) {
+    if (result.status !== "fulfilled") continue;
+    const item = result.value;
+    if (!item || !item.title || item.score < 50) continue;
+    stories.push({
+      name: item.title.slice(0, 60),
+      tweet_volume: item.score,
+      url: item.url ?? `https://news.ycombinator.com/item?id=${item.id}`,
+      source: "hackernews",
+    });
+  }
+
+  return stories;
+}
+
+// ─── Reddit ───────────────────────────────────────────────────────────────────
+
+interface RedditPost {
+  title: string;
+  score: number;
+  subreddit: string;
+  url: string;
+  num_comments: number;
+  permalink: string;
+}
+
+interface RedditResponse {
+  data: {
+    children: Array<{ data: RedditPost }>;
+  };
+}
+
+const REDDIT_SUBS = [
+  { sub: "MachineLearning", limit: 5 },
+  { sub: "artificial", limit: 5 },
+  { sub: "programming", limit: 5 },
+  { sub: "startups", limit: 3 },
 ];
 
-export async function GET() {
-  const consumerKey = process.env.TWITTER_CONSUMER_KEY;
-  const consumerSecret = process.env.TWITTER_CONSUMER_SECRET;
-  const accessToken = process.env.TWITTER_ACCESS_TOKEN;
-  const accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
+async function fetchReddit(): Promise<TechTrend[]> {
+  const results = await Promise.allSettled(
+    REDDIT_SUBS.map(({ sub, limit }) =>
+      fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=${limit}`, {
+        headers: { "User-Agent": "BlueprintOS/1.0" },
+        signal: AbortSignal.timeout(8000),
+      }).then((r) => r.json() as Promise<RedditResponse>)
+    )
+  );
 
+  const posts: TechTrend[] = [];
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue;
+    const children = result.value?.data?.children ?? [];
+    for (const child of children) {
+      const post = child.data;
+      if (!post || post.score < 100) continue;
+      posts.push({
+        name: post.title.slice(0, 60),
+        tweet_volume: post.score,
+        url: post.url?.startsWith("http")
+          ? post.url
+          : `https://reddit.com${post.permalink}`,
+        source: "reddit",
+        subreddit: post.subreddit,
+      });
+    }
+  }
+
+  return posts;
+}
+
+// ─── Route ────────────────────────────────────────────────────────────────────
+
+export async function GET() {
   const fetchedAt = new Date().toISOString();
 
-  // If credentials are missing, return mock data immediately
-  if (!consumerKey || !consumerSecret || !accessToken || !accessTokenSecret) {
-    return NextResponse.json({ trends: MOCK_TRENDS, fetchedAt, mock: true });
-  }
-
   try {
-    // OAuth 1.0a manual signing for v1.1 endpoint
-    // Twitter API v1.1: GET https://api.twitter.com/1.1/trends/place.json?id=1
-    const url = "https://api.twitter.com/1.1/trends/place.json";
-    const params: Record<string, string> = { id: "1" };
+    const [hnResult, redditResult] = await Promise.allSettled([
+      fetchHackerNews(),
+      fetchReddit(),
+    ]);
 
-    const oauthHeader = buildOAuthHeader("GET", url, params, {
-      consumerKey,
-      consumerSecret,
-      accessToken,
-      accessTokenSecret,
-    });
+    const hnTrends = hnResult.status === "fulfilled" ? hnResult.value : [];
+    const redditTrends =
+      redditResult.status === "fulfilled" ? redditResult.value : [];
 
-    const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${url}?${queryString}`, {
-      headers: { Authorization: oauthHeader },
-      signal: AbortSignal.timeout(8000),
-    });
-
-    if (!response.ok) {
-      console.warn(`[twitter/trends] API returned ${response.status}, using mock data`);
-      return NextResponse.json({ trends: MOCK_TRENDS, fetchedAt, mock: true });
+    if (hnTrends.length === 0 && redditTrends.length === 0) {
+      console.warn("[tech/trends] Both HN and Reddit failed");
+      return NextResponse.json({ trends: [], fetchedAt });
     }
 
-    // Twitter returns an array: [{ trends: [...], ... }]
-    const data = (await response.json()) as Array<{
-      trends: Array<{ name: string; tweet_volume: number | null }>;
-    }>;
+    // Combine, sort by score, take top 15
+    const combined = [...hnTrends, ...redditTrends]
+      .sort((a, b) => b.tweet_volume - a.tweet_volume)
+      .slice(0, 15);
 
-    const rawTrends = data?.[0]?.trends ?? [];
-    const trends = rawTrends
-      .slice(0, 10)
-      .map((t) => ({ name: t.name, tweet_volume: t.tweet_volume ?? 0 }));
-
-    return NextResponse.json({ trends: trends.length > 0 ? trends : MOCK_TRENDS, fetchedAt, mock: false });
+    return NextResponse.json({ trends: combined, fetchedAt });
   } catch (err) {
-    console.error("[twitter/trends] Error:", err);
-    return NextResponse.json({ trends: MOCK_TRENDS, fetchedAt, mock: true });
+    console.error("[tech/trends] Unexpected error:", err);
+    return NextResponse.json({ trends: [], fetchedAt });
   }
-}
-
-// ─── OAuth 1.0a helper ────────────────────────────────────────────────────────
-
-function buildOAuthHeader(
-  method: string,
-  baseUrl: string,
-  queryParams: Record<string, string>,
-  creds: {
-    consumerKey: string;
-    consumerSecret: string;
-    accessToken: string;
-    accessTokenSecret: string;
-  }
-) {
-  const oauthNonce = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
-  const oauthTimestamp = Math.floor(Date.now() / 1000).toString();
-
-  const oauthParams: Record<string, string> = {
-    oauth_consumer_key: creds.consumerKey,
-    oauth_nonce: oauthNonce,
-    oauth_signature_method: "HMAC-SHA1",
-    oauth_timestamp: oauthTimestamp,
-    oauth_token: creds.accessToken,
-    oauth_version: "1.0",
-  };
-
-  // Combine query params + oauth params for signature base
-  const allParams = { ...queryParams, ...oauthParams };
-  const sortedParams = Object.keys(allParams)
-    .sort()
-    .map((k) => `${pct(k)}=${pct(allParams[k]!)}`)
-    .join("&");
-
-  const signatureBase = [method.toUpperCase(), pct(baseUrl), pct(sortedParams)].join("&");
-  const signingKey = `${pct(creds.consumerSecret)}&${pct(creds.accessTokenSecret)}`;
-
-  // HMAC-SHA1 using Node.js crypto
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const crypto = require("crypto") as typeof import("crypto");
-  const signature = crypto
-    .createHmac("sha1", signingKey)
-    .update(signatureBase)
-    .digest("base64");
-
-  oauthParams["oauth_signature"] = signature;
-
-  const headerValue =
-    "OAuth " +
-    Object.keys(oauthParams)
-      .sort()
-      .map((k) => `${pct(k)}="${pct(oauthParams[k]!)}"`)
-      .join(", ");
-
-  return headerValue;
-}
-
-function pct(str: string) {
-  return encodeURIComponent(str);
 }

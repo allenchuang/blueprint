@@ -9,58 +9,39 @@ import { RefreshCw, TrendingUp, Zap, Target, ArrowRight, Clock, ToggleLeft, Togg
 interface RawTrend {
   name: string;
   tweet_volume: number;
+  url: string;
+  source: "hackernews" | "reddit";
+  subreddit?: string;
 }
 
 interface Trend extends RawTrend {
   rank: number;
-  category: "Tech" | "AI" | "Dev" | "Startup" | "General";
   relevance: "high" | "medium" | "low";
 }
 
-// ─── Scoring & categorization ─────────────────────────────────────────────────
+// ─── Scoring ──────────────────────────────────────────────────────────────────
 
-const DEV_KEYWORDS = [
-  "react", "next", "typescript", "javascript", "python", "ai", "gpt",
-  "build", "dev", "code", "startup", "saas", "open source", "indie",
-  "ship", "launch", "product",
-];
-
-function scoreTrend(name: string): "high" | "medium" | "low" {
-  const lower = name.toLowerCase();
-  const matches = DEV_KEYWORDS.filter((k) => lower.includes(k)).length;
-  if (matches >= 2) return "high";
-  if (matches >= 1) return "medium";
+function scoreTrend(t: RawTrend): "high" | "medium" | "low" {
+  if (t.source === "hackernews") return "high";
+  if (t.tweet_volume > 500) return "high";
+  if (t.tweet_volume >= 100) return "medium";
   return "low";
-}
-
-const AI_KEYWORDS = ["ai", "gpt", "llm", "ml", "openai", "claude", "gemini", "neural", "aitools"];
-const TECH_KEYWORDS = ["react", "next", "typescript", "javascript", "python", "webdev", "frontend", "backend", "api", "node", "css", "html"];
-const DEV_KW = ["dev", "code", "build", "git", "github", "deploy", "open source", "opensource", "developer"];
-const STARTUP_KW = ["startup", "saas", "indie", "indie hackers", "buildinpublic", "launch", "product", "founder", "vc", "sideproject"];
-
-function categorizeTrend(name: string): "Tech" | "AI" | "Dev" | "Startup" | "General" {
-  const lower = name.toLowerCase();
-  if (AI_KEYWORDS.some((k) => lower.includes(k))) return "AI";
-  if (STARTUP_KW.some((k) => lower.includes(k))) return "Startup";
-  if (DEV_KW.some((k) => lower.includes(k))) return "Dev";
-  if (TECH_KEYWORDS.some((k) => lower.includes(k))) return "Tech";
-  return "General";
 }
 
 function enrichTrends(raw: RawTrend[]): Trend[] {
   return raw.map((t, i) => ({
     ...t,
     rank: i + 1,
-    category: categorizeTrend(t.name),
-    relevance: scoreTrend(t.name),
+    relevance: scoreTrend(t),
   }));
 }
 
-function formatVolume(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M tweets`;
-  if (v >= 1_000) return `${Math.round(v / 1_000)}K tweets`;
-  if (v === 0) return "trending";
-  return `${v} tweets`;
+function formatVolume(t: Trend): string {
+  const v = t.tweet_volume;
+  if (t.source === "hackernews") {
+    return v >= 1000 ? `${Math.round(v / 1000)}K pts` : `${v} pts`;
+  }
+  return v >= 1000 ? `${Math.round(v / 1000)}K upvotes` : `${v} upvotes`;
 }
 
 // ─── Placeholders ─────────────────────────────────────────────────────────────
@@ -69,19 +50,11 @@ const TREND_METHODOLOGY = `Trend-jacking is the art of inserting your brand into
 
 The strategy: identify which trending topics overlap with your audience's interests, then create authentic, value-adding content that rides the wave without feeling forced. The goal isn't to hijack — it's to genuinely participate.
 
-For Blueprint OS, we target developer and startup trends. When #TypeScript trends, we talk about how Blueprint simplifies TS setups. When #BuildInPublic trends, we share what we're shipping. When #AITools trends, we show how Blueprint integrates AI into workflows.
+For Blueprint OS, we target developer and startup trends. When TypeScript trends, we talk about how Blueprint simplifies TS setups. When #BuildInPublic trends, we share what we're shipping. When AI topics trend, we show how Blueprint integrates AI into workflows.
 
 **The window is narrow.** A trend peaks and fades in 2-6 hours. The "Best trend to act on" section shows you exactly what to post about right now.`;
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
-
-const CATEGORY_STYLES: Record<string, { bg: string; border: string; text: string }> = {
-  AI:      { bg: "rgba(191,90,242,0.12)", border: "rgba(191,90,242,0.3)", text: "#bf5af2" },
-  Tech:    { bg: "rgba(10,132,255,0.12)", border: "rgba(10,132,255,0.3)", text: "#5ac8fa" },
-  Dev:     { bg: "rgba(48,209,88,0.12)",  border: "rgba(48,209,88,0.3)",  text: "#30d158" },
-  Startup: { bg: "rgba(255,159,10,0.12)", border: "rgba(255,159,10,0.3)", text: "#ff9f0a" },
-  General: { bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.1)", text: "#8e8e93" },
-};
 
 const RELEVANCE_STYLES = {
   high:   { bg: "rgba(48,209,88,0.12)",  border: "rgba(48,209,88,0.3)",  text: "#30d158",  label: "High" },
@@ -89,22 +62,55 @@ const RELEVANCE_STYLES = {
   low:    { bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.1)", text: "#636366", label: "Low" },
 };
 
+function SourceBadge({ trend }: { trend: Trend }) {
+  if (trend.source === "hackernews") {
+    return (
+      <span
+        className="px-2 py-0.5 rounded-full text-[11px] font-semibold flex-shrink-0 hidden sm:block"
+        style={{
+          background: "rgba(255,102,0,0.14)",
+          border: "1px solid rgba(255,102,0,0.3)",
+          color: "#ff6600",
+        }}
+      >
+        HN
+      </span>
+    );
+  }
+  return (
+    <span
+      className="px-2 py-0.5 rounded-full text-[11px] font-semibold flex-shrink-0 hidden sm:block"
+      style={{
+        background: "rgba(10,132,255,0.12)",
+        border: "1px solid rgba(10,132,255,0.3)",
+        color: "#5ac8fa",
+      }}
+    >
+      r/{trend.subreddit ?? "reddit"}
+    </span>
+  );
+}
+
 // ─── Trend Card ───────────────────────────────────────────────────────────────
 
 function TrendCard({ trend, onCreatePost }: { trend: Trend; onCreatePost: (t: Trend) => void }) {
   const [hovered, setHovered] = useState(false);
-  const cat = CATEGORY_STYLES[trend.category] ?? CATEGORY_STYLES.General!;
   const rel = RELEVANCE_STYLES[trend.relevance];
+
+  const handleCardClick = () => {
+    window.open(trend.url, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 cursor-default"
+      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 cursor-pointer"
       style={{
         background: hovered ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)",
         border: `1px solid ${hovered ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.06)"}`,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={handleCardClick}
     >
       {/* Rank */}
       <span
@@ -114,23 +120,18 @@ function TrendCard({ trend, onCreatePost }: { trend: Trend; onCreatePost: (t: Tr
         #{trend.rank}
       </span>
 
-      {/* Name + badges */}
+      {/* Name + volume */}
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-medium truncate" style={{ color: "#f5f5f7" }}>
           {trend.name}
         </p>
         <p className="text-[12px] mt-0.5" style={{ color: "#636366" }}>
-          {formatVolume(trend.tweet_volume)}
+          {formatVolume(trend)}
         </p>
       </div>
 
-      {/* Category badge */}
-      <span
-        className="px-2 py-0.5 rounded-full text-[11px] font-semibold flex-shrink-0 hidden sm:block"
-        style={{ background: cat.bg, border: `1px solid ${cat.border}`, color: cat.text }}
-      >
-        {trend.category}
-      </span>
+      {/* Source badge */}
+      <SourceBadge trend={trend} />
 
       {/* Relevance badge */}
       <span
@@ -140,9 +141,12 @@ function TrendCard({ trend, onCreatePost }: { trend: Trend; onCreatePost: (t: Tr
         {rel.label}
       </span>
 
-      {/* CTA */}
+      {/* CTA — stops propagation so it doesn't open the URL */}
       <button
-        onClick={() => onCreatePost(trend)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onCreatePost(trend);
+        }}
         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-150 flex-shrink-0"
         style={{
           background: hovered ? "rgba(10,132,255,0.18)" : "rgba(255,255,255,0.05)",
@@ -221,7 +225,7 @@ function BestTrend({ trend, onCreatePost }: { trend: Trend | null; onCreatePost:
         {trend.name}
       </p>
       <p className="text-[12px] mb-3" style={{ color: "#8e8e93" }}>
-        {formatVolume(trend.tweet_volume)} · ranked #{trend.rank}
+        {formatVolume(trend)} · ranked #{trend.rank}
       </p>
       <div className="flex items-center gap-2">
         <span
@@ -289,7 +293,6 @@ function renderMarkdown(content: string): React.ReactNode[] {
     } else if (line.trim() === "") {
       nodes.push(<div key={key++} style={{ height: 4 }} />);
     } else {
-      // Inline bold handling
       const parts = line.split(/(\*\*[^*]+\*\*)/g);
       nodes.push(
         <p key={key++} className="text-[13px] leading-relaxed" style={{ color: "#8e8e93" }}>
@@ -359,7 +362,6 @@ function SkylarBrief() {
         boxShadow: "0 0 0 1px rgba(255,200,60,0.05)",
       }}
     >
-      {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4 cursor-pointer"
         onClick={() => setCollapsed((v) => !v)}
@@ -411,7 +413,6 @@ function SkylarBrief() {
         </div>
       </div>
 
-      {/* Content */}
       {!collapsed && (
         <div className="px-5 py-4 max-h-[480px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
           <div className="space-y-0.5">
@@ -419,6 +420,28 @@ function SkylarBrief() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Filter Pills ─────────────────────────────────────────────────────────────
+
+function FilterPills() {
+  return (
+    <div className="flex items-center gap-2 flex-wrap mt-3">
+      {["Hacker News", "Reddit", "Tech & AI"].map((label) => (
+        <span
+          key={label}
+          className="px-2.5 py-1 rounded-full text-[11px] font-medium"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#8e8e93",
+          }}
+        >
+          {label}
+        </span>
+      ))}
     </div>
   );
 }
@@ -447,7 +470,7 @@ export function TrendsClient() {
       setTrends(enrichTrends(data.trends));
       setFetchedAt(data.fetchedAt);
     } catch {
-      // silently fail — mock data will have loaded
+      // silently fail
     } finally {
       setLoading(false);
       setSpinning(false);
@@ -456,12 +479,10 @@ export function TrendsClient() {
     }
   }, []);
 
-  // Initial fetch
   useEffect(() => {
     void fetchTrends();
   }, [fetchTrends]);
 
-  // Countdown + auto-refresh tick
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoRefreshRef.current) return;
@@ -483,8 +504,7 @@ export function TrendsClient() {
 
   const handleCreatePost = useCallback(
     (trend: Trend) => {
-      const trendSlug = trend.name.replace(/^#/, "");
-      router.push(`/compose?trend=${encodeURIComponent(trendSlug)}`);
+      router.push(`/compose?trend=${encodeURIComponent(trend.name)}`);
     },
     [router]
   );
@@ -509,7 +529,7 @@ export function TrendsClient() {
           Hot Trends
         </h1>
         <p className="text-[13px] mt-0.5" style={{ color: "#636366" }}>
-          Live Twitter trends with relevance scoring for Blueprint OS
+          Real-time tech & AI trends from Hacker News and Reddit
         </p>
       </div>
 
@@ -533,7 +553,7 @@ export function TrendsClient() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" style={{ color: "#0a84ff" }} />
                 <p className="text-[16px] font-semibold" style={{ color: "#f5f5f7" }}>
-                  Trending Now
+                  Hot in Tech &amp; AI
                 </p>
               </div>
               {formattedTime && (
@@ -546,7 +566,6 @@ export function TrendsClient() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              {/* Auto-refresh toggle */}
               <button
                 onClick={handleToggleAutoRefresh}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150"
@@ -564,7 +583,6 @@ export function TrendsClient() {
                 Auto
               </button>
 
-              {/* Manual refresh */}
               <button
                 onClick={() => void fetchTrends()}
                 disabled={spinning}
@@ -580,9 +598,12 @@ export function TrendsClient() {
             </div>
           </div>
 
+          {/* Filter pills */}
+          <FilterPills />
+
           {/* Countdown */}
           {autoRefresh && (
-            <p className="text-[11px] mb-4" style={{ color: "#48484a" }}>
+            <p className="text-[11px] mt-2 mb-3" style={{ color: "#48484a" }}>
               Next refresh in {countdownMin}:{String(countdownSec).padStart(2, "0")}
             </p>
           )}
@@ -598,6 +619,11 @@ export function TrendsClient() {
                   style={{ background: "rgba(255,255,255,0.04)" }}
                 />
               ))}
+            </div>
+          ) : trends.length === 0 ? (
+            <div className="text-center py-12" style={{ color: "#636366" }}>
+              <p className="text-[14px]">No trends loaded yet.</p>
+              <p className="text-[12px] mt-1">Try refreshing — fetching live data from HN &amp; Reddit.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -618,7 +644,7 @@ export function TrendsClient() {
             <BestTrend trend={bestTrend} onCreatePost={handleCreatePost} />
           )}
 
-          {/* Why These Matter */}
+          {/* Trend Intelligence panel */}
           <div
             className="rounded-xl p-4"
             style={{
@@ -627,8 +653,11 @@ export function TrendsClient() {
               border: "1px solid rgba(255,255,255,0.07)",
             }}
           >
-            <p className="text-[13px] font-semibold mb-3" style={{ color: "#f5f5f7" }}>
-              Why These Matter
+            <p className="text-[13px] font-semibold mb-1" style={{ color: "#f5f5f7" }}>
+              Trend Intelligence
+            </p>
+            <p className="text-[11px] mb-3" style={{ color: "#48484a" }}>
+              Hot in Tech &amp; AI
             </p>
             <div className="space-y-2 text-[12px] leading-relaxed" style={{ color: "#8e8e93" }}>
               {TREND_METHODOLOGY.split("\n\n").map((para, i) => (
