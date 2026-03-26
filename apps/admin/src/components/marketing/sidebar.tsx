@@ -11,15 +11,7 @@ const navItems = [
   { label: "Socials", href: "/socials", icon: Globe2 },
 ];
 
-function TrafficLights() {
-  return (
-    <div className="flex items-center gap-1.5 mb-4">
-      <div className="w-3 h-3 rounded-full bg-[#ff5f57] shadow-[0_0_0_0.5px_rgba(0,0,0,0.3)]" />
-      <div className="w-3 h-3 rounded-full bg-[#febc2e] shadow-[0_0_0_0.5px_rgba(0,0,0,0.3)]" />
-      <div className="w-3 h-3 rounded-full bg-[#28c840] shadow-[0_0_0_0.5px_rgba(0,0,0,0.3)]" />
-    </div>
-  );
-}
+
 
 export function MarketingSidebar() {
   const pathname = usePathname();
@@ -34,11 +26,8 @@ export function MarketingSidebar() {
         borderRight: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      {/* Window chrome */}
+      {/* Brand */}
       <div className="px-4 pt-5 pb-3">
-        <TrafficLights />
-
-        {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
