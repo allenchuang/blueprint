@@ -30,6 +30,7 @@ import {
   PenSquare,
   Users,
   FlaskConical,
+  WifiOff,
 } from "lucide-react";
 
 type Tab = "aggregate" | Platform;
@@ -227,29 +228,40 @@ function TwitterPanel({
   loading,
 }: TwitterPanelProps) {
   const mockStats = platformStats.find((p) => p.platform === "twitter")!;
-  const mockPosts = recentPosts.filter((p) => p.platform === "twitter");
 
   const followers = profile?.publicMetrics.followersCount ?? mockStats.followers;
   const tweetCount = profile?.publicMetrics.tweetCount ?? mockStats.totalPosts;
   const avgEr = analytics?.avgEngagementRate ?? mockStats.avgEngagementRate;
   const weeklyImpressions = analytics?.totalImpressions ?? mockStats.weeklyImpressions;
 
-  const isRealTweets = !!tweets;
-  const displayTweets = tweets ?? mockPosts;
-
-  const topPostData = (tweets ?? mockPosts).slice(0, 4).map((item) => {
-    if (isRealTweets) {
-      const t = item as TwitterTweet;
-      const imp = t.publicMetrics.impressionCount;
-      const eng = t.publicMetrics.likeCount + t.publicMetrics.retweetCount + t.publicMetrics.replyCount;
-      return {
-        name: t.text.slice(0, 18) + "…",
-        engagement: imp > 0 ? Math.round((eng / imp) * 10000) / 100 : 0,
-      };
-    }
-    const p = item as Post;
-    return { name: p.content.slice(0, 18) + "…", engagement: p.engagementRate };
+  const topPostData = (tweets ?? []).slice(0, 4).map((t) => {
+    const imp = t.publicMetrics.impressionCount;
+    const eng = t.publicMetrics.likeCount + t.publicMetrics.retweetCount + t.publicMetrics.replyCount;
+    return {
+      name: t.text.slice(0, 18) + "…",
+      engagement: imp > 0 ? Math.round((eng / imp) * 10000) / 100 : 0,
+    };
   });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-[13px]" style={{ color: "#636366" }}>Loading Twitter data…</p>
+      </div>
+    );
+  }
+
+  if (usingFallback && !profile && !tweets) {
+    return (
+      <div className="mac-card p-8 text-center" style={{ background: "#2c2c2e" }}>
+        <WifiOff className="w-10 h-10 mx-auto mb-3" style={{ color: "#636366" }} />
+        <p className="text-[15px] font-semibold mb-1" style={{ color: "#f5f5f7" }}>Twitter API unavailable</p>
+        <p className="text-[13px]" style={{ color: "#8e8e93" }}>
+          Could not connect to the Twitter API. Check your credentials.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -257,7 +269,7 @@ function TwitterPanel({
         <div className="flex items-center gap-2">
           <DemoBadge />
           <span className="text-[12px]" style={{ color: "#636366" }}>
-            Real Twitter data unavailable — showing demo data
+            Real Twitter data unavailable — showing partial data
           </span>
         </div>
       )}
@@ -269,113 +281,109 @@ function TwitterPanel({
         <StatBox label="Total Tweets" value={tweetCount} sub="all time" subColor="#8e8e93" />
       </div>
 
-      <div className="mac-card p-5" style={{ background: "#2c2c2e" }}>
-        <p className="text-[12px] font-semibold uppercase tracking-wider mb-4" style={{ color: "#636366", letterSpacing: "0.06em" }}>
-          Top Tweets by Engagement
-        </p>
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={topPostData} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_STYLE.gridStyle} />
-            <XAxis dataKey="name" tick={CHART_STYLE.axisStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={CHART_STYLE.axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-            <Tooltip {...CHART_STYLE} formatter={(v: number) => [`${v}%`, "Engagement"]} />
-            <Bar dataKey="engagement" fill="#0a84ff" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      {topPostData.length > 0 && (
+        <div className="mac-card p-5" style={{ background: "#2c2c2e" }}>
+          <p className="text-[12px] font-semibold uppercase tracking-wider mb-4" style={{ color: "#636366", letterSpacing: "0.06em" }}>
+            Top Tweets by Engagement
+          </p>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={topPostData} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_STYLE.gridStyle} />
+              <XAxis dataKey="name" tick={CHART_STYLE.axisStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={CHART_STYLE.axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+              <Tooltip {...CHART_STYLE} formatter={(v: number) => [`${v}%`, "Engagement"]} />
+              <Bar dataKey="engagement" fill="#0a84ff" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="mac-card p-5" style={{ background: "#2c2c2e" }}>
         <div className="flex items-center justify-between mb-3">
           <p className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: "#636366", letterSpacing: "0.06em" }}>
             Recent Tweets
           </p>
-          {usingFallback && <DemoBadge />}
         </div>
-        {loading && (
-          <p className="text-[13px] py-4 text-center" style={{ color: "#636366" }}>
-            Loading tweets…
-          </p>
-        )}
-        {!loading && (
-          isRealTweets
-            ? (displayTweets as TwitterTweet[]).map((t) => <TweetRow key={t.id} tweet={t} />)
-            : (displayTweets as Post[]).map((p) => <PostRow key={p.id} post={p} />)
-        )}
+        {tweets && tweets.length > 0
+          ? tweets.map((t) => <TweetRow key={t.id} tweet={t} />)
+          : (
+            <p className="text-[13px] py-4 text-center" style={{ color: "#636366" }}>
+              No tweets to display
+            </p>
+          )
+        }
       </div>
     </div>
   );
 }
 
-function PlatformStatsPanel({ platform }: { platform: Platform }) {
-  const stats = platformStats.find((p) => p.platform === platform)!;
-  const posts = recentPosts.filter((p) => p.platform === platform);
+function NotConnectedPanel({ platform }: { platform: "instagram" | "tiktok" }) {
+  const isInstagram = platform === "instagram";
+  const name = isInstagram ? "Instagram" : "TikTok";
 
-  const topPostData = posts
-    .sort((a, b) => b.engagementRate - a.engagementRate)
-    .slice(0, 4)
-    .map((p) => ({ name: p.content.slice(0, 18) + "…", engagement: p.engagementRate }));
+  const Icon = () =>
+    isInstagram ? (
+      <svg viewBox="0 0 24 24" fill="none" className="w-12 h-12" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="20" height="20" rx="5.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
+        <circle cx="12" cy="12" r="4" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
+        <circle cx="17.5" cy="6.5" r="1" fill="rgba(255,255,255,0.2)" />
+      </svg>
+    ) : (
+      <svg viewBox="0 0 24 24" fill="none" className="w-12 h-12" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 8v8l7-4-7-4z" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M14 5.5c0 0 1 .5 2.5.5S19 5 19 5v3s-1 .5-2.5.5S14 8 14 8V5.5z" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+    );
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center gap-2">
-        <DemoBadge />
-        <span className="text-[12px]" style={{ color: "#636366" }}>
-          {platform.charAt(0).toUpperCase() + platform.slice(1)} API not yet connected
-        </span>
+    <div
+      className="mac-card flex flex-col items-center justify-center py-20 text-center"
+      style={{ background: "#2c2c2e", minHeight: 300 }}
+    >
+      <div className="mb-4 opacity-50">
+        <Icon />
       </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatBox label="Followers" value={formatNumber(stats.followers)} sub={`+${stats.followersGrowth}% this month`} />
-        <StatBox label="Avg Engagement" value={`${stats.avgEngagementRate}%`} sub="per post" subColor="#0a84ff" />
-        <StatBox label="Weekly Impressions" value={formatNumber(stats.weeklyImpressions)} sub="this week" subColor="#ff9f0a" />
-        <StatBox label="Total Posts" value={stats.totalPosts} sub="all time" subColor="#8e8e93" />
-      </div>
-
-      <div className="mac-card p-5" style={{ background: "#2c2c2e" }}>
-        <p className="text-[12px] font-semibold uppercase tracking-wider mb-4" style={{ color: "#636366", letterSpacing: "0.06em" }}>
-          Top Posts by Engagement
-        </p>
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={topPostData} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_STYLE.gridStyle} />
-            <XAxis dataKey="name" tick={CHART_STYLE.axisStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={CHART_STYLE.axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-            <Tooltip {...CHART_STYLE} formatter={(v: number) => [`${v}%`, "Engagement"]} />
-            <Bar dataKey="engagement" fill={platform === "instagram" ? "#f472b6" : "#f87171"} radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="mac-card p-5" style={{ background: "#2c2c2e" }}>
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: "#636366", letterSpacing: "0.06em" }}>
-            Recent Posts
-          </p>
-          <DemoBadge />
-        </div>
-        {posts.map((post) => <PostRow key={post.id} post={post} />)}
-      </div>
+      <p className="text-[17px] font-semibold mb-2" style={{ color: "#f5f5f7" }}>
+        {name} not connected
+      </p>
+      <p className="text-[13px] mb-6 max-w-xs" style={{ color: "#8e8e93" }}>
+        Connect your account to start tracking analytics and posting
+      </p>
+      <button
+        disabled
+        className="px-4 py-2 rounded-lg text-[13px] font-medium cursor-not-allowed"
+        style={{
+          background: "rgba(255,255,255,0.06)",
+          color: "#48484a",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        Connect Account
+      </button>
     </div>
   );
 }
 
 function AggregateView() {
-  const allPosts = [...recentPosts].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
+  const twitterPosts = recentPosts.filter((p) => p.platform === "twitter");
+  const twitterStats = platformStats.find((p) => p.platform === "twitter")!;
 
-  const platformCompare = platformStats.map((p) => ({
-    name: p.platform === "twitter" ? "Twitter/X" : p.platform.charAt(0).toUpperCase() + p.platform.slice(1),
-    engagement: p.avgEngagementRate,
-    growth: p.followersGrowth,
-  }));
+  const platformCompare = [
+    {
+      name: "Twitter/X",
+      engagement: twitterStats.avgEngagementRate,
+      growth: twitterStats.followersGrowth,
+    },
+    { name: "Instagram", engagement: 0, growth: 0 },
+    { name: "TikTok", engagement: 0, growth: 0 },
+  ];
 
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
         <DemoBadge />
         <span className="text-[12px]" style={{ color: "#636366" }}>
-          Aggregate view uses demo data — switch to Twitter/X for live data
+          Aggregate view — switch to Twitter/X for live data
         </span>
       </div>
 
@@ -404,11 +412,11 @@ function AggregateView() {
       <div className="mac-card p-5" style={{ background: "#2c2c2e" }}>
         <div className="flex items-center justify-between mb-3">
           <p className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: "#636366", letterSpacing: "0.06em" }}>
-            All Recent Posts
+            Recent Twitter Posts
           </p>
           <DemoBadge />
         </div>
-        {allPosts.map((post) => <PostRow key={post.id} post={post} />)}
+        {twitterPosts.map((post) => <PostRow key={post.id} post={post} />)}
       </div>
     </div>
   );
@@ -538,8 +546,8 @@ export function SocialsClient() {
           loading={twitterLoading}
         />
       )}
-      {activeTab === "instagram" && <PlatformStatsPanel platform="instagram" />}
-      {activeTab === "tiktok" && <PlatformStatsPanel platform="tiktok" />}
+      {activeTab === "instagram" && <NotConnectedPanel platform="instagram" />}
+      {activeTab === "tiktok" && <NotConnectedPanel platform="tiktok" />}
     </div>
   );
 }
