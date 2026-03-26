@@ -1,8 +1,22 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import { RefreshCw, ChevronUp, ChevronDown, X, Plus, Twitter, ChevronRight, ChevronDown as ChevronDownIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// ─── Contenteditable placeholder styles ──────────────────────────────────────
+
+const TWEET_EDITOR_CSS = `
+.tweet-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #71767b;
+  pointer-events: none;
+}
+.tweet-editor:focus {
+  outline: 2px solid #1d9bf0;
+  border-radius: 4px;
+}
+`;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -176,7 +190,10 @@ const SUGGESTION_BATCHES: Suggestion[][] = [
 
 // ─── Twitter-style Preview Components ────────────────────────────────────────
 
-function TwitterAvatar() {
+function TwitterAvatar({ url }: { url?: string | null }) {
+  if (url) {
+    return <img src={url} alt="@blueprint_os" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />;
+  }
   return (
     <div
       style={{
@@ -228,7 +245,7 @@ function TwitterActions() {
   );
 }
 
-function TwitterTweetPreview({ text }: { text: string }) {
+function TwitterTweetPreview({ text, avatarUrl }: { text: string; avatarUrl?: string | null }) {
   return (
     <div>
       <p
@@ -247,7 +264,7 @@ function TwitterTweetPreview({ text }: { text: string }) {
         }}
       >
         <div style={{ display: "flex", gap: 12 }}>
-          <TwitterAvatar />
+          <TwitterAvatar url={avatarUrl} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <TwitterTweetHeader />
             <p
@@ -270,7 +287,7 @@ function TwitterTweetPreview({ text }: { text: string }) {
   );
 }
 
-function TwitterThreadPreview({ tweets }: { tweets: Array<{ text: string }> }) {
+function TwitterThreadPreview({ tweets, avatarUrl }: { tweets: Array<{ text: string }>; avatarUrl?: string | null }) {
   const nonEmpty = tweets.filter((t) => t.text.trim());
   const items = nonEmpty.length > 0 ? nonEmpty : tweets;
 
@@ -311,7 +328,7 @@ function TwitterThreadPreview({ tweets }: { tweets: Array<{ text: string }> }) {
                   width: 40,
                 }}
               >
-                <TwitterAvatar />
+                <TwitterAvatar url={avatarUrl} />
                 {!isLast && (
                   <div
                     style={{
@@ -870,11 +887,13 @@ function SingleComposer({
   onChange,
   onPost,
   posting,
+  avatarUrl,
 }: {
   text: string;
   onChange: (t: string) => void;
   onPost: () => void;
   posting: boolean;
+  avatarUrl?: string | null;
 }) {
   const count = text.length;
   const isNearLimit = count > 240;
@@ -913,7 +932,7 @@ function SingleComposer({
       </div>
 
       {/* Tweet preview — pixel-perfect Twitter style */}
-      {text.length > 0 && <TwitterTweetPreview text={text} />}
+      {text.length > 0 && <TwitterTweetPreview text={text} avatarUrl={avatarUrl} />}
 
       {/* Actions */}
       <div className="flex items-center gap-2">
@@ -953,6 +972,7 @@ function ThreadComposer({
   onMoveDown,
   onPost,
   posting,
+  avatarUrl,
 }: {
   tweets: TweetBox[];
   onChange: (id: string, text: string) => void;
@@ -962,6 +982,7 @@ function ThreadComposer({
   onMoveDown: (id: string) => void;
   onPost: () => void;
   posting: boolean;
+  avatarUrl?: string | null;
 }) {
   const hasOverLimit = tweets.some((t) => t.text.length > 280);
   const hasEmpty = tweets.some((t) => !t.text.trim());
@@ -1020,7 +1041,7 @@ function ThreadComposer({
       {/* Twitter thread preview */}
       {tweets.some((t) => t.text.trim()) && (
         <div className="mt-2">
-          <TwitterThreadPreview tweets={tweets} />
+          <TwitterThreadPreview tweets={tweets} avatarUrl={avatarUrl} />
         </div>
       )}
     </div>
@@ -1053,7 +1074,16 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
   const [suggestionsVisible, setSuggestionsVisible] = useState(true);
   const [activeBatches, setActiveBatches] = useState<Suggestion[][]>(SUGGESTION_BATCHES);
   const [usingSkylar, setUsingSkylar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const composerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch real Twitter avatar on mount
+  useEffect(() => {
+    fetch('/api/twitter/avatar')
+      .then(r => r.json())
+      .then((d: { url?: string }) => { if (d.url) setAvatarUrl(d.url) })
+      .catch(() => {})
+  }, [])
 
   // Load Skylar's suggestions on mount
   useEffect(() => {
@@ -1334,6 +1364,7 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
               onChange={setSingleText}
               onPost={handlePostSingle}
               posting={posting}
+              avatarUrl={avatarUrl}
             />
           ) : (
             <ThreadComposer
@@ -1345,6 +1376,7 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
               onMoveDown={handleThreadMoveDown}
               onPost={handlePostThread}
               posting={posting}
+              avatarUrl={avatarUrl}
             />
           )}
         </div>
