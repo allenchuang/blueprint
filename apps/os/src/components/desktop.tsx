@@ -22,6 +22,7 @@ import {
 } from "@/contexts/theme-context";
 import { useWindowManager } from "@/hooks/use-window-manager";
 import { DesktopIcon } from "@/components/desktop-icon";
+import { MobileIconCarousel } from "@/components/mobile-icon-carousel";
 import { Window } from "@/components/window";
 
 export interface DesktopProps {
@@ -271,32 +272,13 @@ function DesktopInner({
         />
 
         {isMobile ? (
-          // iOS-style grid layout for mobile
-          <div
-            className="absolute inset-0 z-10 overflow-y-auto"
-            style={{
-              padding: "60px 16px 100px",
-              transition: "opacity 0.4s ease-out",
-              opacity: showIcons ? 1 : 0,
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "24px 8px",
-              }}
-            >
-              {config.icons.map((iconConfig) => (
-                <DesktopIconWrapper
-                  key={iconConfig.id}
-                  config={iconConfig}
-                  onClick={() => handleIconClick(iconConfig.windowId)}
-                  onRegisterRef={registerIconRef}
-                  isMobile={isMobile}
-                />
-              ))}
-            </div>
+          // iOS-style paginated carousel for mobile
+          <div style={{ opacity: showIcons ? 1 : 0, transition: "opacity 0.4s ease-out", position: "absolute", inset: 0, zIndex: 10 }}>
+            <MobileIconCarousel
+              icons={config.icons}
+              onIconClick={handleIconClick}
+              onRegisterRef={registerIconRef}
+            />
           </div>
         ) : (
           // Desktop vertical sidebar
