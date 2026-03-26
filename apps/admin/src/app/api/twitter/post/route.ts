@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
+import { getTwitterAccounts } from "@/lib/twitter-accounts";
 
 interface PostTweetBody {
   text: string;
   replyToId?: string;
+  accountId?: string;
 }
 
 interface PostTweetResponse {
@@ -15,10 +17,8 @@ export async function POST(req: NextRequest) {
   try {
     const consumerKey = process.env.TWITTER_CONSUMER_KEY;
     const consumerSecret = process.env.TWITTER_CONSUMER_SECRET;
-    const accessToken = process.env.TWITTER_ACCESS_TOKEN;
-    const accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 
-    if (!consumerKey || !consumerSecret || !accessToken || !accessTokenSecret) {
+    if (!consumerKey || !consumerSecret) {
       return NextResponse.json(
         { error: "Twitter API not configured", fallback: true },
         { status: 500 }
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { text, replyToId } = body;
+    const { text, replyToId, accountId } = body;
 
     if (!text || typeof text !== "string") {
       return NextResponse.json(
@@ -48,6 +48,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Tweet exceeds 280 character limit" },
         { status: 400 }
+      );
+    }
+
+    // Resolve credentials: use accountId if provided, otherwise fall back to primary env vars
+    let accessToken: string | undefined;
+    let accessTokenSecret: string | undefined;
+
+    if (accountId) {
+      const accounts = getTwitterAccounts();
+      const account = accounts.find((a) => a.id === accountId);
+      if (account) {
+        accessToken = account.accessToken;
+        accessTokenSecret = account.accessTokenSecret;
+      }
+    }
+
+    // Fall back to default env vars
+    if (!accessToken) {
+      accessToken = process.env.TWITTER_ACCESS_TOKEN;
+      accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
+    }
+
+    if (!accessToken || !accessTokenSecret) {
+      return NextResponse.json(
+        { error: "Twitter credentials not configured", fallback: true },
+        { status: 500 }
       );
     }
 
