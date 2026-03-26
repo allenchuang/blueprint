@@ -66,6 +66,10 @@
           {
             "group": "Integrations",
             "pages": ["features/voice-agent", "features/video-generation"]
+          },
+          {
+            "group": "Marketing",
+            "pages": ["features/marketing-dashboard"]
           }
         ]
       },
