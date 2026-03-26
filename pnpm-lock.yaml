@@ -63,6 +63,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.0
         version: 3.5.0
+      twitter-api-v2:
+        specifier: ^1.29.0
+        version: 1.29.0
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -12778,6 +12781,9 @@ packages:
     resolution: {integrity: sha512-Rb4qk5YT8RUwwdXtkLpkVhNEe/lor6+WV7S5tTlLpxSz6MjV5Qi8jGNn4gS6NAvrYGA/rNrE6YUQM85sCZUDbQ==}
     hasBin: true
 
+  twitter-api-v2@1.29.0:
+    resolution: {integrity: sha512-v473q5bwme4N+DWSg6qY+JCvfg1nSJRWwui3HUALafxfqCvVkKiYmS/5x/pVeJwTmyeBxexMbzHwnzrH4h6oYQ==}
+
   twoslash-protocol@0.3.6:
     resolution: {integrity: sha512-FHGsJ9Q+EsNr5bEbgG3hnbkvEBdW5STgPU824AHUjB4kw0Dn4p8tABT7Ncg1Ie6V0+mDg3Qpy41VafZXcQhWMA==}
 
@@ -21621,7 +21627,7 @@ snapshots:
 
   '@vue/shared@3.5.30': {}
 
-  '@wagmi/connectors@6.2.0(b5e48701d0ea113237a6d5112bf5e7e8)':
+  '@wagmi/connectors@6.2.0(c056ee9cd822a6ea9663a517b636e043)':
     dependencies:
       '@base-org/account': 2.4.0(@types/react@19.2.14)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(immer@9.0.21)(react@19.2.4)(typescript@5.9.2)(use-sync-external-store@1.4.0(react@19.2.4))(utf-8-validate@6.0.6)(zod@3.25.76)
       '@coinbase/wallet-sdk': 4.3.6(@types/react@19.2.14)(bufferutil@4.1.0)(immer@9.0.21)(react@19.2.4)(typescript@5.9.2)(use-sync-external-store@1.4.0(react@19.2.4))(utf-8-validate@6.0.6)(zod@3.25.76)
@@ -21632,7 +21638,7 @@ snapshots:
       '@wagmi/core': 2.22.1(@tanstack/query-core@5.91.2)(@types/react@19.2.14)(immer@9.0.21)(react@19.2.4)(typescript@5.9.2)(use-sync-external-store@1.4.0(react@19.2.4))(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.2)(utf-8-validate@6.0.6)(zod@3.25.76))
       '@walletconnect/ethereum-provider': 2.21.1(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.4)(typescript@5.9.2)(utf-8-validate@6.0.6)(zod@3.25.76)
       cbw-sdk: '@coinbase/wallet-sdk@3.9.3'
-      porto: 0.2.35(663b4e893363033e85b80cb27e8b721c)
+      porto: 0.2.35(36dded7a4564ff06b8df4503fdbbd229)
       viem: 2.47.5(bufferutil@4.1.0)(typescript@5.9.2)(utf-8-validate@6.0.6)(zod@3.25.76)
     optionalDependencies:
       typescript: 5.9.2
@@ -28708,7 +28714,7 @@ snapshots:
 
   pony-cause@2.1.11: {}
 
-  porto@0.2.35(663b4e893363033e85b80cb27e8b721c):
+  porto@0.2.35(36dded7a4564ff06b8df4503fdbbd229):
     dependencies:
       '@wagmi/core': 2.22.1(@tanstack/query-core@5.91.2)(@types/react@19.2.14)(immer@9.0.21)(react@19.2.4)(typescript@5.9.2)(use-sync-external-store@1.4.0(react@19.2.4))(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.2)(utf-8-validate@6.0.6)(zod@3.25.76))
       hono: 4.12.8
@@ -31070,6 +31076,8 @@ snapshots:
       '@turbo/windows-64': 2.8.20
       '@turbo/windows-arm64': 2.8.20
 
+  twitter-api-v2@1.29.0: {}
+
   twoslash-protocol@0.3.6: {}
 
   twoslash@0.3.6(typescript@5.9.2):
@@ -31595,7 +31603,7 @@ snapshots:
   wagmi@2.19.5(a6006be91c0e330a14310aefc8bc8ef1):
     dependencies:
       '@tanstack/react-query': 5.91.2(react@19.2.4)
-      '@wagmi/connectors': 6.2.0(b5e48701d0ea113237a6d5112bf5e7e8)
+      '@wagmi/connectors': 6.2.0(c056ee9cd822a6ea9663a517b636e043)
       '@wagmi/core': 2.22.1(@tanstack/query-core@5.91.2)(@types/react@19.2.14)(immer@9.0.21)(react@19.2.4)(typescript@5.9.2)(use-sync-external-store@1.4.0(react@19.2.4))(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.2)(utf-8-validate@6.0.6)(zod@3.25.76))
       react: 19.2.4
       use-sync-external-store: 1.4.0(react@19.2.4)

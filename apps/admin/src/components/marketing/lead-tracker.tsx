@@ -2,19 +2,8 @@
 
 import { useState } from "react";
 import { leads } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
 import { PlatformBadge } from "./platform-badge";
-import {
-  X,
-  TrendingUp,
-  Users,
-  Zap,
-  Heart,
-  MessageSquare,
-  Repeat2,
-  AtSign,
-  Star,
-} from "lucide-react";
+import { X, Users, Zap, Heart, MessageSquare, Repeat2, AtSign, Star } from "lucide-react";
 
 interface LeadTrackerProps {
   onClose: () => void;
@@ -29,13 +18,16 @@ function formatNumber(n: number) {
 function ScoreBar({ score, color }: { score: number; color: string }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+      <div
+        className="flex-1 h-1.5 rounded-full overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.08)" }}
+      >
         <div
-          className={cn("h-full rounded-full", color)}
-          style={{ width: `${score}%` }}
+          className="h-full rounded-full"
+          style={{ width: `${score}%`, background: color }}
         />
       </div>
-      <span className="text-xs font-mono text-muted-foreground w-6 text-right">
+      <span className="text-[11px] font-mono w-6 text-right" style={{ color: "#636366" }}>
         {score}
       </span>
     </div>
@@ -49,9 +41,7 @@ function InteractionIcon({ type }: { type: string }) {
     share: <Repeat2 className="w-3 h-3" />,
     mention: <AtSign className="w-3 h-3" />,
   };
-  return (
-    <span className="text-muted-foreground">{icons[type] ?? <Zap className="w-3 h-3" />}</span>
-  );
+  return <span style={{ color: "#636366" }}>{icons[type] ?? <Zap className="w-3 h-3" />}</span>;
 }
 
 type SortKey = "totalScore" | "influenceScore" | "engagementScore" | "followers";
@@ -71,29 +61,39 @@ export function LeadTracker({ onClose }: LeadTrackerProps) {
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div
+      className="mac-card overflow-hidden"
+      style={{ background: "#2c2c2e" }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+      >
         <div>
-          <h3 className="text-sm font-semibold text-foreground">
+          <h3 className="text-[13px] font-semibold" style={{ color: "#f5f5f7" }}>
             Lead Tracker
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {leads.length} accounts repeatedly engaging — scored by influence &
-            engagement
+          <p className="text-[11px] mt-0.5" style={{ color: "#636366" }}>
+            {leads.length} accounts repeatedly engaging — scored by influence & engagement
           </p>
         </div>
         <button
           onClick={onClose}
-          className="text-muted-foreground hover:text-foreground transition-colors"
+          style={{ color: "#636366" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f5f7")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#636366")}
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Sort controls */}
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-muted/20">
-        <span className="text-xs text-muted-foreground">Sort by:</span>
+      <div
+        className="flex items-center gap-2 px-5 py-3 overflow-x-auto"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}
+      >
+        <span className="text-[12px] flex-shrink-0" style={{ color: "#636366" }}>Sort:</span>
         {(
           [
             { key: "totalScore", label: "Total Score" },
@@ -105,12 +105,12 @@ export function LeadTracker({ onClose }: LeadTrackerProps) {
           <button
             key={key}
             onClick={() => setSortBy(key)}
-            className={cn(
-              "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+            className="px-2.5 py-1 rounded-lg text-[12px] font-medium transition-colors flex-shrink-0 min-h-[28px]"
+            style={
               sortBy === key
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-            )}
+                ? { background: "#0a84ff", color: "#fff" }
+                : { color: "#8e8e93" }
+            }
           >
             {label}
           </button>
@@ -118,105 +118,85 @@ export function LeadTracker({ onClose }: LeadTrackerProps) {
       </div>
 
       {/* Lead list */}
-      <div className="divide-y divide-border">
+      <div>
         {sorted.map((lead, i) => (
           <div key={lead.id}>
             <button
-              onClick={() =>
-                setExpanded(expanded === lead.id ? null : lead.id)
-              }
-              className="w-full flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors text-left"
+              onClick={() => setExpanded(expanded === lead.id ? null : lead.id)}
+              className="w-full flex items-center gap-3 md:gap-4 px-5 py-3.5 text-left transition-colors min-h-[60px]"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              {/* Rank */}
-              <span className="text-xs font-mono text-muted-foreground w-4 flex-shrink-0">
+              <span className="text-[12px] font-mono w-4 flex-shrink-0" style={{ color: "#636366" }}>
                 {i + 1}
               </span>
-
-              {/* Platform */}
               <PlatformBadge platform={lead.platform} size="sm" />
-
-              {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">
+                  <span className="text-[13px] font-semibold" style={{ color: "#f5f5f7" }}>
                     {lead.handle}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[11px] hidden sm:inline" style={{ color: "#636366" }}>
                     {lead.displayName}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-3 mt-0.5">
+                  <span className="text-[11px]" style={{ color: "#636366" }}>
                     <Users className="w-3 h-3 inline mr-1" />
-                    {formatNumber(lead.followers)} followers
+                    {formatNumber(lead.followers)}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[11px] hidden sm:inline" style={{ color: "#636366" }}>
                     <Zap className="w-3 h-3 inline mr-1" />
-                    {lead.engagementCount} interactions
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    Last: {timeAgo(lead.lastEngaged)}
+                    {lead.engagementCount}x
                   </span>
                 </div>
               </div>
 
-              {/* Scores */}
-              <div className="flex-shrink-0 w-48 space-y-1">
+              <div className="flex-shrink-0 w-36 space-y-1 hidden md:block">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground w-14">
-                    Influence
-                  </span>
-                  <ScoreBar score={lead.influenceScore} color="bg-blue-500" />
+                  <span className="text-[10px] w-14" style={{ color: "#636366" }}>Influence</span>
+                  <ScoreBar score={lead.influenceScore} color="#0a84ff" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground w-14">
-                    Engagement
-                  </span>
-                  <ScoreBar
-                    score={lead.engagementScore}
-                    color="bg-emerald-500"
-                  />
+                  <span className="text-[10px] w-14" style={{ color: "#636366" }}>Engage</span>
+                  <ScoreBar score={lead.engagementScore} color="#30d158" />
                 </div>
               </div>
 
-              {/* Total Score */}
               <div className="flex-shrink-0 text-right">
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-lg font-bold text-foreground">
+                <div className="flex items-center gap-1 justify-end">
+                  <Star className="w-3 h-3" style={{ color: "#ff9f0a" }} />
+                  <span className="text-[16px] font-bold" style={{ color: "#f5f5f7" }}>
                     {lead.totalScore}
                   </span>
                 </div>
-                <span className="text-[11px] text-muted-foreground">
-                  total score
-                </span>
+                <span className="text-[11px]" style={{ color: "#636366" }}>score</span>
               </div>
             </button>
 
-            {/* Expanded: Interactions */}
             {expanded === lead.id && (
-              <div className="px-5 pb-4 bg-muted/10">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              <div
+                className="px-5 pb-4 pt-2"
+                style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "#636366" }}>
                   Recent Interactions
                 </p>
                 <div className="space-y-1.5">
                   {lead.interactions.slice(0, 5).map((interaction, j) => (
-                    <div
-                      key={j}
-                      className="flex items-center gap-2 text-xs text-muted-foreground"
-                    >
+                    <div key={j} className="flex items-center gap-2 text-[12px]" style={{ color: "#8e8e93" }}>
                       <InteractionIcon type={interaction.type} />
-                      <span className="capitalize font-medium">
-                        {interaction.type}
-                      </span>
+                      <span className="capitalize font-medium">{interaction.type}</span>
                       <span>on post {interaction.postId}</span>
-                      <span className="ml-auto">
-                        {timeAgo(interaction.date)}
-                      </span>
+                      <span className="ml-auto" style={{ color: "#636366" }}>{timeAgo(interaction.date)}</span>
                     </div>
                   ))}
                 </div>
-                <button className="mt-3 flex items-center gap-2 text-xs text-primary hover:text-primary/80 font-medium transition-colors">
+                <button
+                  className="mt-3 flex items-center gap-2 text-[12px] font-medium transition-colors"
+                  style={{ color: "#0a84ff" }}
+                >
                   <AtSign className="w-3.5 h-3.5" />
                   Draft outreach to {lead.handle}
                 </button>
