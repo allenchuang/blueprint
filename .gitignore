@@ -63,4 +63,4 @@ storage/temp/*
 # PM2
 ecosystem.config.cjs
 
-apps/remotion/build
+apps/remotion/build.env.local
