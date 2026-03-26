@@ -270,17 +270,48 @@ function DesktopInner({
           onClick={handleBackgroundClick}
         />
 
-        <div style={getIconContainerStyle()}>
-          {config.icons.map((iconConfig) => (
-            <DesktopIconWrapper
-              key={iconConfig.id}
-              config={iconConfig}
-              onClick={() => handleIconClick(iconConfig.windowId)}
-              onRegisterRef={registerIconRef}
-              isMobile={isMobile}
-            />
-          ))}
-        </div>
+        {isMobile ? (
+          // iOS-style grid layout for mobile
+          <div
+            className="absolute inset-0 z-10 overflow-y-auto"
+            style={{
+              padding: "60px 16px 100px",
+              transition: "opacity 0.4s ease-out",
+              opacity: showIcons ? 1 : 0,
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "24px 8px",
+              }}
+            >
+              {config.icons.map((iconConfig) => (
+                <DesktopIconWrapper
+                  key={iconConfig.id}
+                  config={iconConfig}
+                  onClick={() => handleIconClick(iconConfig.windowId)}
+                  onRegisterRef={registerIconRef}
+                  isMobile={isMobile}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          // Desktop vertical sidebar
+          <div style={getIconContainerStyle()}>
+            {config.icons.map((iconConfig) => (
+              <DesktopIconWrapper
+                key={iconConfig.id}
+                config={iconConfig}
+                onClick={() => handleIconClick(iconConfig.windowId)}
+                onRegisterRef={registerIconRef}
+                isMobile={isMobile}
+              />
+            ))}
+          </div>
+        )}
 
         {Array.from(windowManager.windows.values()).map((instance) => {
           const iconConfig = config.icons.find(
@@ -323,6 +354,7 @@ function DesktopIconWrapper({
   config,
   onClick,
   onRegisterRef,
+  isMobile,
 }: DesktopIconWrapperProps) {
   const ref = useRef<DesktopIconRef>(null);
 
@@ -330,5 +362,5 @@ function DesktopIconWrapper({
     onRegisterRef(config.id, ref);
   }, [config.id, onRegisterRef]);
 
-  return <DesktopIcon ref={ref} config={config} onClick={onClick} />;
+  return <DesktopIcon ref={ref} config={config} onClick={onClick} isMobile={isMobile} />;
 }
