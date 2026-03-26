@@ -14,10 +14,11 @@ export interface DesktopIconProps {
   config: DesktopIconConfig;
   onClick: () => void;
   className?: string;
+  isMobile?: boolean;
 }
 
 export const DesktopIcon = forwardRef<DesktopIconRef, DesktopIconProps>(
-  function DesktopIcon({ config, onClick, className = "" }, ref) {
+  function DesktopIcon({ config, onClick, className = "", isMobile = false }, ref) {
     const { icon, label, initialX = 0, initialY = 0 } = config;
 
     const [position, setPosition] = useState({ x: initialX, y: initialY });
@@ -87,6 +88,39 @@ export const DesktopIcon = forwardRef<DesktopIconRef, DesktopIconProps>(
     const isStringIcon = typeof icon === "string";
     const isElementIcon = isValidElement(icon);
 
+    // iOS-style mobile icon
+    if (isMobile) {
+      return (
+        <div
+          ref={iconRef}
+          onClick={onClick}
+          className="flex flex-col items-center gap-1 select-none active:opacity-70 transition-opacity"
+          style={{ cursor: "pointer" }}
+        >
+          <div
+            className={`pointer-events-none ${isStringIcon ? "text-4xl" : "w-14 h-14 flex items-center justify-center"}`}
+            style={{ filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }}
+          >
+            {isStringIcon && icon}
+            {isElementIcon && icon}
+          </div>
+          <span
+            className="text-xs text-white text-center font-medium leading-tight pointer-events-none"
+            style={{
+              textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+              maxWidth: "72px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {label}
+          </span>
+        </div>
+      );
+    }
+
+    // Desktop icon (draggable)
     return (
       <div
         ref={iconRef}
