@@ -48,7 +48,8 @@ export function useVoiceAgent() {
     setMessages([]);
     await conversation.startSession({
       agentId: ELEVENLABS_AGENT_ID,
-    });
+      connectionType: "webrtc",
+    } as Parameters<typeof conversation.startSession>[0]);
   }, [conversation, micPermission, requestMicPermission]);
 
   const stop = useCallback(async () => {
