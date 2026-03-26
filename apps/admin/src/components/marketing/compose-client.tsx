@@ -1,8 +1,22 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import { RefreshCw, ChevronUp, ChevronDown, X, Plus, Twitter, ChevronRight, ChevronDown as ChevronDownIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// ─── Contenteditable placeholder styles ──────────────────────────────────────
+
+const TWEET_EDITOR_CSS = `
+.tweet-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #71767b;
+  pointer-events: none;
+}
+.tweet-editor:focus {
+  outline: 2px solid #1d9bf0;
+  border-radius: 4px;
+}
+`;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -176,7 +190,10 @@ const SUGGESTION_BATCHES: Suggestion[][] = [
 
 // ─── Twitter-style Preview Components ────────────────────────────────────────
 
-function TwitterAvatar() {
+function TwitterAvatar({ url }: { url?: string | null }) {
+  if (url) {
+    return <img src={url} alt="@blueprint_os" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />;
+  }
   return (
     <div
       style={{
@@ -228,49 +245,48 @@ function TwitterActions() {
   );
 }
 
-function TwitterTweetPreview({ text }: { text: string }) {
+function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avatarUrl?: string | null; onChange?: (t: string) => void }) {
   return (
-    <div>
-      <p
-        className="text-[10px] uppercase tracking-wider mb-2"
-        style={{ color: "#48484a", letterSpacing: "0.08em" }}
-      >
-        Preview
-      </p>
-      <div
-        style={{
-          background: "#000",
-          borderRadius: 12,
-          padding: "16px 16px 14px",
-          maxWidth: 598,
-          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", gap: 12 }}>
-          <TwitterAvatar />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <TwitterTweetHeader />
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.5,
-                color: "#e7e9ea",
-                whiteSpace: "pre-wrap",
-                margin: 0,
-                wordBreak: "break-word",
-              }}
-            >
-              {text}
-            </p>
-            <TwitterActions />
-          </div>
+    <div
+      style={{
+        background: "#000",
+        borderRadius: 12,
+        padding: "16px 16px 14px",
+        maxWidth: 598,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", gap: 12 }}>
+        <TwitterAvatar url={avatarUrl} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <TwitterTweetHeader />
+          <div
+            contentEditable={!!onChange}
+            suppressContentEditableWarning
+            className={onChange ? "tweet-editor" : ""}
+            data-placeholder="What's happening?"
+            onInput={onChange ? (e) => onChange((e.currentTarget as HTMLDivElement).innerText) : undefined}
+            style={{
+              fontSize: 15,
+              lineHeight: 1.5,
+              color: "#e7e9ea",
+              whiteSpace: "pre-wrap",
+              margin: 0,
+              wordBreak: "break-word",
+              minHeight: "1.5em",
+              caretColor: "#1d9bf0",
+              outline: "none",
+            }}
+            dangerouslySetInnerHTML={{ __html: text.replace(/\n/g, "<br>") }}
+          />
+          <TwitterActions />
         </div>
       </div>
     </div>
   );
 }
 
-function TwitterThreadPreview({ tweets }: { tweets: Array<{ text: string }> }) {
+function TwitterThreadPreview({ tweets, avatarUrl, onChangeTweet }: { tweets: Array<{ text: string }>; avatarUrl?: string | null; onChangeTweet?: (index: number, text: string) => void }) {
   const nonEmpty = tweets.filter((t) => t.text.trim());
   const items = nonEmpty.length > 0 ? nonEmpty : tweets;
 
@@ -311,7 +327,7 @@ function TwitterThreadPreview({ tweets }: { tweets: Array<{ text: string }> }) {
                   width: 40,
                 }}
               >
-                <TwitterAvatar />
+                <TwitterAvatar url={avatarUrl} />
                 {!isLast && (
                   <div
                     style={{
@@ -334,7 +350,12 @@ function TwitterThreadPreview({ tweets }: { tweets: Array<{ text: string }> }) {
                 }}
               >
                 <TwitterTweetHeader />
-                <p
+                <div
+                  contentEditable={!!onChangeTweet}
+                  suppressContentEditableWarning
+                  className={onChangeTweet ? "tweet-editor" : ""}
+                  data-placeholder={`Tweet ${i + 1}…`}
+                  onInput={onChangeTweet ? (e) => onChangeTweet(i, (e.currentTarget as HTMLDivElement).innerText) : undefined}
                   style={{
                     fontSize: 15,
                     lineHeight: 1.5,
@@ -342,14 +363,12 @@ function TwitterThreadPreview({ tweets }: { tweets: Array<{ text: string }> }) {
                     whiteSpace: "pre-wrap",
                     margin: 0,
                     wordBreak: "break-word",
+                    minHeight: "1.5em",
+                    caretColor: "#1d9bf0",
+                    outline: "none",
                   }}
-                >
-                  {tweet.text || (
-                    <span style={{ color: "#71767b", fontStyle: "italic" }}>
-                      Tweet {i + 1}…
-                    </span>
-                  )}
-                </p>
+                  dangerouslySetInnerHTML={{ __html: (tweet.text || "").replace(/\n/g, "<br>") }}
+                />
                 {/* Compact actions row */}
                 <div
                   style={{
@@ -870,11 +889,13 @@ function SingleComposer({
   onChange,
   onPost,
   posting,
+  avatarUrl,
 }: {
   text: string;
   onChange: (t: string) => void;
   onPost: () => void;
   posting: boolean;
+  avatarUrl?: string | null;
 }) {
   const count = text.length;
   const isNearLimit = count > 240;
@@ -882,38 +903,17 @@ function SingleComposer({
 
   return (
     <div className="space-y-4">
-      {/* Textarea */}
-      <div
-        className="rounded-xl p-4"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: `1px solid ${isOver ? "rgba(255,69,58,0.4)" : "rgba(255,255,255,0.08)"}`,
-        }}
-      >
-        <textarea
-          value={text}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="What's happening with Blueprint OS?"
-          rows={5}
-          className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none"
-          style={{ color: "#f5f5f7" }}
-        />
-        <div className="flex items-center justify-between mt-3 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="flex items-center gap-2">
-            <Twitter className="w-4 h-4" style={{ color: "#1d9bf0" }} />
-            <span className="text-[12px]" style={{ color: "#636366" }}>Twitter / X</span>
-          </div>
-          <span
-            className="text-[12px] font-medium"
-            style={{ color: isOver ? "#ff453a" : isNearLimit ? "#ff9f0a" : "#636366" }}
-          >
-            {count} / 280
-          </span>
+      {/* Editable Twitter preview — click to edit */}
+      <TwitterTweetPreview text={text} avatarUrl={avatarUrl} onChange={onChange} />
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Twitter className="w-4 h-4" style={{ color: "#1d9bf0" }} />
+          <span className="text-[12px]" style={{ color: "#636366" }}>Twitter / X</span>
         </div>
+        <span className="text-[12px] font-medium" style={{ color: isOver ? "#ff453a" : isNearLimit ? "#ff9f0a" : "#636366" }}>
+          {count} / 280
+        </span>
       </div>
-
-      {/* Tweet preview — pixel-perfect Twitter style */}
-      {text.length > 0 && <TwitterTweetPreview text={text} />}
 
       {/* Actions */}
       <div className="flex items-center gap-2">
@@ -953,6 +953,7 @@ function ThreadComposer({
   onMoveDown,
   onPost,
   posting,
+  avatarUrl,
 }: {
   tweets: TweetBox[];
   onChange: (id: string, text: string) => void;
@@ -962,24 +963,22 @@ function ThreadComposer({
   onMoveDown: (id: string) => void;
   onPost: () => void;
   posting: boolean;
+  avatarUrl?: string | null;
 }) {
   const hasOverLimit = tweets.some((t) => t.text.length > 280);
   const hasEmpty = tweets.some((t) => !t.text.trim());
 
   return (
     <div className="space-y-2">
-      {tweets.map((tweet, index) => (
-        <ThreadTweetBox
-          key={tweet.id}
-          tweet={tweet}
-          index={index}
-          total={tweets.length}
-          onChange={onChange}
-          onRemove={onRemove}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-        />
-      ))}
+      {/* Twitter thread preview — editable inline */}
+      <TwitterThreadPreview
+        tweets={tweets}
+        avatarUrl={avatarUrl}
+        onChangeTweet={(i, text) => {
+          const tweet = tweets[i];
+          if (tweet) onChange(tweet.id, text);
+        }}
+      />
 
       <button
         onClick={onAdd}
@@ -1016,13 +1015,6 @@ function ThreadComposer({
           Schedule ▾
         </button>
       </div>
-
-      {/* Twitter thread preview */}
-      {tweets.some((t) => t.text.trim()) && (
-        <div className="mt-2">
-          <TwitterThreadPreview tweets={tweets} />
-        </div>
-      )}
     </div>
   );
 }
@@ -1053,7 +1045,16 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
   const [suggestionsVisible, setSuggestionsVisible] = useState(true);
   const [activeBatches, setActiveBatches] = useState<Suggestion[][]>(SUGGESTION_BATCHES);
   const [usingSkylar, setUsingSkylar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const composerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch real Twitter avatar on mount
+  useEffect(() => {
+    fetch('/api/twitter/avatar')
+      .then(r => r.json())
+      .then((d: { url?: string }) => { if (d.url) setAvatarUrl(d.url) })
+      .catch(() => {})
+  }, [])
 
   // Load Skylar's suggestions on mount
   useEffect(() => {
@@ -1334,6 +1335,7 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
               onChange={setSingleText}
               onPost={handlePostSingle}
               posting={posting}
+              avatarUrl={avatarUrl}
             />
           ) : (
             <ThreadComposer
@@ -1345,6 +1347,7 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
               onMoveDown={handleThreadMoveDown}
               onPost={handlePostThread}
               posting={posting}
+              avatarUrl={avatarUrl}
             />
           )}
         </div>
