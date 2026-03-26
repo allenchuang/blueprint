@@ -6,6 +6,9 @@ import { useTheme } from "@/contexts/theme-context";
 import { getRegistryWindows, getRegistryIcons } from "@/lib/registry-config";
 import type { DesktopConfig } from "@/types";
 
+const APP_HOST = process.env.NEXT_PUBLIC_APP_HOST;
+const CLAWDASH_URL = APP_HOST ? `http://${APP_HOST}:7778` : "http://localhost:7778";
+
 /* ==========================================================================
    APP WINDOW COMPONENTS (static, not from registry)
    ========================================================================== */
@@ -290,9 +293,9 @@ const desktopConfig: DesktopConfig = {
     {
       id: "clawdash",
       type: "browser",
-      title: "http://localhost:7778",
+      title: CLAWDASH_URL,
       icon: <ClawDashTitleIcon />,
-      url: "http://localhost:7778",
+      url: CLAWDASH_URL,
       showReloadButton: true,
       openMaximized: true,
     },
