@@ -916,6 +916,7 @@ function SingleComposer({
       </div>
 
 
+
       {/* Actions */}
       <div className="flex items-center gap-2">
         <button
@@ -1016,6 +1017,20 @@ function ThreadComposer({
           Schedule ▾
         </button>
       </div>
+
+      {/* Twitter thread preview — editable inline */}
+      {tweets.some((t) => t.text.trim()) && (
+        <div className="mt-2">
+          <TwitterThreadPreview
+            tweets={tweets}
+            avatarUrl={avatarUrl}
+            onChangeTweet={(i, text) => {
+              const tweet = tweets[i];
+              if (tweet) onChange(tweet.id, text);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
