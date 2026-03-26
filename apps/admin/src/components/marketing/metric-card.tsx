@@ -1,9 +1,7 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
-
 interface MetricCardProps {
   label: string;
   value: string;
-  change: number;
+  change?: number;
   icon: React.ReactNode;
   color: "blue" | "amber" | "purple" | "emerald";
 }
@@ -15,8 +13,7 @@ const colorMap = {
   emerald: { bg: "rgba(48,209,88,0.12)", icon: "#30d158" },
 };
 
-export function MetricCard({ label, value, change, icon, color }: MetricCardProps) {
-  const isPositive = change >= 0;
+export function MetricCard({ label, value, icon, color }: MetricCardProps) {
   const c = colorMap[color];
 
   return (
@@ -38,27 +35,10 @@ export function MetricCard({ label, value, change, icon, color }: MetricCardProp
       <div>
         <p
           className="text-[26px] font-bold leading-none"
-          style={{ color: "#f5f5f7", letterSpacing: "-0.02em" }}
+          style={{ color: value === "—" ? "#48484a" : "#f5f5f7", letterSpacing: "-0.02em" }}
         >
           {value}
         </p>
-        <div className="flex items-center gap-1 mt-2">
-          {isPositive ? (
-            <TrendingUp className="w-3 h-3" style={{ color: "#30d158" }} />
-          ) : (
-            <TrendingDown className="w-3 h-3" style={{ color: "#ff453a" }} />
-          )}
-          <span
-            className="text-[11px] font-medium"
-            style={{ color: isPositive ? "#30d158" : "#ff453a" }}
-          >
-            {isPositive ? "+" : ""}
-            {change}%
-          </span>
-          <span className="text-[11px]" style={{ color: "#636366" }}>
-            vs last month
-          </span>
-        </div>
       </div>
     </div>
   );

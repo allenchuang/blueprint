@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PlatformPill } from "./platform-badge";
-import type { Platform } from "@/lib/mock-data";
+import type { Platform } from "@/lib/types";
 import { X, Send, Image, Link, Hash, CheckCircle2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 

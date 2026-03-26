@@ -1,4 +1,4 @@
-import { strategies } from "@/lib/mock-data";
+import { strategies } from "@/lib/strategies";
 import { cn } from "@/lib/utils";
 import {
   ArrowUpCircle,

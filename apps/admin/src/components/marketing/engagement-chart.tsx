@@ -10,7 +10,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { EngagementDataPoint } from "@/lib/mock-data";
+
+export interface EngagementDataPoint {
+  date: string;
+  twitter: number;
+  instagram?: number;
+  tiktok?: number;
+  total?: number;
+}
 
 interface EngagementChartProps {
   data: EngagementDataPoint[];
@@ -44,10 +51,17 @@ export function EngagementChart({ data }: EngagementChartProps) {
           labelStyle={{ color: "#f5f5f7", marginBottom: "4px" }}
           formatter={(value: number) => [`${value}%`, ""]}
         />
-        <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "12px", color: "#8e8e93" }} />
-        <Line type="monotone" dataKey="twitter" stroke="#0a84ff" strokeWidth={2} dot={false} name="Twitter/X" />
-        <Line type="monotone" dataKey="instagram" stroke="#bf5af2" strokeWidth={2} dot={false} name="Instagram" />
-        <Line type="monotone" dataKey="tiktok" stroke="#ff375f" strokeWidth={2} dot={false} name="TikTok" />
+        <Legend
+          wrapperStyle={{ fontSize: "11px", paddingTop: "12px", color: "#8e8e93" }}
+        />
+        <Line
+          type="monotone"
+          dataKey="twitter"
+          stroke="#0a84ff"
+          strokeWidth={2}
+          dot={false}
+          name="Twitter/X"
+        />
       </LineChart>
     </ResponsiveContainer>
   );
