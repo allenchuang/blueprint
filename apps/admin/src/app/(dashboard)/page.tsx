@@ -28,11 +28,88 @@ import {
 import type { TwitterProfile } from "@/app/api/twitter/route";
 import type { TwitterTweet } from "@/app/api/twitter/tweets/route";
 import type { TwitterAnalytics } from "@/app/api/twitter/analytics/route";
+import type { TwitterUsage } from "@/app/api/twitter/usage/route";
 
 function formatNumber(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return n.toString();
+}
+
+function formatCommas(n: number) {
+  return n.toLocaleString("en-US");
+}
+
+function getOrdinal(n: number) {
+  const v = n % 100;
+  if (v >= 11 && v <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+function TwitterUsageCard({ usage }: { usage: TwitterUsage | null; loading?: boolean }) {
+  if (!usage) return null;
+
+  const { projectUsage, projectCap, capResetDay, percentUsed } = usage;
+  const barWidth = Math.max(percentUsed, 0.15); // minimum sliver so bar is visible
+
+  return (
+    <div
+      className="mac-card px-4 py-4 space-y-3 col-span-2 lg:col-span-4"
+      style={{ background: "#2c2c2e" }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(10,132,255,0.12)", color: "#0a84ff" }}
+          >
+            <Twitter className="w-4 h-4" />
+          </div>
+          <p className="text-[12px] font-medium" style={{ color: "#8e8e93" }}>
+            API Usage
+          </p>
+        </div>
+        <p className="text-[11px]" style={{ color: "#636366" }}>
+          Resets on the {getOrdinal(capResetDay)}
+        </p>
+      </div>
+      <div>
+        <p
+          className="text-[20px] font-bold leading-none"
+          style={{ color: "#f5f5f7", letterSpacing: "-0.02em" }}
+        >
+          {formatCommas(projectUsage)}{" "}
+          <span className="text-[14px] font-normal" style={{ color: "#636366" }}>
+            / {formatCommas(projectCap)}
+          </span>
+        </p>
+        <p className="text-[11px] mt-1" style={{ color: "#636366" }}>
+          tweet reads this month
+        </p>
+      </div>
+      {/* Progress bar */}
+      <div
+        className="h-1 rounded-full overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.08)" }}
+      >
+        <div
+          className="h-full rounded-full transition-all"
+          style={{
+            width: `${Math.min(barWidth, 100)}%`,
+            background: percentUsed > 80 ? "#ff453a" : percentUsed > 50 ? "#ff9f0a" : "#0a84ff",
+          }}
+        />
+      </div>
+      <p className="text-[11px]" style={{ color: "#48484a" }}>
+        {percentUsed < 0.01 ? "<0.01" : percentUsed.toFixed(2)}% of monthly cap used
+      </p>
+    </div>
+  );
 }
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -75,16 +152,29 @@ function SkeletonChart() {
   );
 }
 
-function EmptyChart({ message }: { message: string }) {
+function EmptyChart({ message, ctaHref, ctaLabel }: { message: string; ctaHref?: string; ctaLabel?: string }) {
   return (
     <div
-      className="flex flex-col items-center justify-center h-[200px] rounded-lg"
+      className="flex flex-col items-center justify-center h-[200px] rounded-lg gap-3"
       style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.08)" }}
     >
-      <Twitter className="w-6 h-6 mb-2 opacity-20" />
-      <p className="text-[13px]" style={{ color: "#48484a" }}>
+      <Twitter className="w-6 h-6 opacity-20" />
+      <p className="text-[13px] text-center" style={{ color: "#636366" }}>
         {message}
       </p>
+      {ctaHref && ctaLabel && (
+        <a
+          href={ctaHref}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all"
+          style={{
+            background: "rgba(10,132,255,0.12)",
+            color: "#0a84ff",
+            border: "1px solid rgba(10,132,255,0.2)",
+          }}
+        >
+          {ctaLabel} →
+        </a>
+      )}
     </div>
   );
 }
@@ -153,29 +243,34 @@ export default function MarketingOverviewPage() {
   const [profile, setProfile] = useState<TwitterProfile | null>(null);
   const [tweets, setTweets] = useState<TwitterTweet[] | null>(null);
   const [analytics, setAnalytics] = useState<TwitterAnalytics | null>(null);
+  const [usage, setUsage] = useState<TwitterUsage | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void (async () => {
       try {
-        const [profileRes, tweetsRes, analyticsRes] = await Promise.all([
+        const [profileRes, tweetsRes, analyticsRes, usageRes] = await Promise.all([
           fetch("/api/twitter"),
           fetch("/api/twitter/tweets"),
           fetch("/api/twitter/analytics?period=7d"),
+          fetch("/api/twitter/usage"),
         ]);
         type ProfileResponse = TwitterProfile & { fallback?: boolean; error?: string };
         type TweetsResponse = { tweets?: TwitterTweet[]; fallback?: boolean; error?: string };
         type AnalyticsResponse = TwitterAnalytics & { fallback?: boolean; error?: string };
+        type UsageResponse = TwitterUsage & { error?: string };
 
-        const [profileData, tweetsData, analyticsData] = await Promise.all([
+        const [profileData, tweetsData, analyticsData, usageData] = await Promise.all([
           profileRes.json() as Promise<ProfileResponse>,
           tweetsRes.json() as Promise<TweetsResponse>,
           analyticsRes.json() as Promise<AnalyticsResponse>,
+          usageRes.json() as Promise<UsageResponse>,
         ]);
 
         if (!profileData.fallback && !profileData.error) setProfile(profileData);
         if (!tweetsData.fallback && tweetsData.tweets) setTweets(tweetsData.tweets);
         if (!analyticsData.fallback && !analyticsData.error) setAnalytics(analyticsData);
+        if (!usageData.error) setUsage(usageData);
       } catch {
         // API unavailable — show empty states
       } finally {
@@ -254,6 +349,7 @@ export default function MarketingOverviewPage() {
             icon={<Zap className="w-4 h-4" />}
             color="emerald"
           />
+          {usage && <TwitterUsageCard usage={usage} />}
         </div>
       )}
 
@@ -288,7 +384,7 @@ export default function MarketingOverviewPage() {
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <EmptyChart message="Connect your accounts to see analytics here" />
+                <EmptyChart message="Connect Twitter to see analytics" ctaHref="/socials" ctaLabel="Connect Twitter" />
               )}
             </div>
           </div>
@@ -309,7 +405,7 @@ export default function MarketingOverviewPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <EmptyChart message="Connect your accounts to see analytics here" />
+                <EmptyChart message="Connect Twitter to see analytics" ctaHref="/socials" ctaLabel="Connect Twitter" />
               )}
             </div>
           </div>
@@ -344,20 +440,32 @@ export default function MarketingOverviewPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span
-                      className="text-[11px] font-medium px-2 py-0.5 rounded-full"
-                      style={
-                        connected
-                          ? { background: "rgba(48,209,88,0.12)", color: "#30d158" }
-                          : { background: "rgba(255,255,255,0.06)", color: "#636366" }
-                      }
-                    >
-                      {connected ? "Connected" : "Not connected"}
-                    </span>
-                    {isTwitter && analytics && (
-                      <span className="text-[12px] font-semibold" style={{ color: "#f5f5f7" }}>
-                        {analytics.avgEngagementRate}% avg eng.
-                      </span>
+                    {connected ? (
+                      <>
+                        <span
+                          className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                          style={{ background: "rgba(48,209,88,0.12)", color: "#30d158" }}
+                        >
+                          Connected
+                        </span>
+                        {isTwitter && analytics && (
+                          <span className="text-[12px] font-semibold" style={{ color: "#f5f5f7" }}>
+                            {analytics.avgEngagementRate}% avg eng.
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <a
+                        href="/socials"
+                        className="text-[11px] font-medium px-2 py-0.5 rounded-full transition-all"
+                        style={{
+                          background: "rgba(10,132,255,0.1)",
+                          color: "#0a84ff",
+                          border: "1px solid rgba(10,132,255,0.2)",
+                        }}
+                      >
+                        Connect →
+                      </a>
                     )}
                   </div>
                 </div>
@@ -377,14 +485,42 @@ export default function MarketingOverviewPage() {
                 <TweetRow key={tweet.id} tweet={tweet} />
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Twitter className="w-8 h-8 mb-3 opacity-20" />
-                <p className="text-[15px] font-semibold mb-1" style={{ color: "#f5f5f7" }}>
-                  No tweets yet
-                </p>
-                <p className="text-[13px]" style={{ color: "#636366" }}>
-                  {profile ? "No recent tweets found" : "Connect Twitter to see your recent posts"}
-                </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+                <Twitter className="w-8 h-8 opacity-20" />
+                <div>
+                  <p className="text-[15px] font-semibold mb-1" style={{ color: "#f5f5f7" }}>
+                    No tweets yet
+                  </p>
+                  <p className="text-[13px]" style={{ color: "#636366" }}>
+                    {profile ? "No recent tweets found" : "Connect Twitter to see your recent posts"}
+                  </p>
+                </div>
+                {!profile && (
+                  <a
+                    href="/socials"
+                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all"
+                    style={{
+                      background: "rgba(10,132,255,0.12)",
+                      color: "#0a84ff",
+                      border: "1px solid rgba(10,132,255,0.2)",
+                    }}
+                  >
+                    Connect Twitter →
+                  </a>
+                )}
+                {profile && (
+                  <a
+                    href="/compose"
+                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all"
+                    style={{
+                      background: "rgba(48,209,88,0.1)",
+                      color: "#30d158",
+                      border: "1px solid rgba(48,209,88,0.2)",
+                    }}
+                  >
+                    Write your first tweet →
+                  </a>
+                )}
               </div>
             )}
           </div>
