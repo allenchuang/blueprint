@@ -970,18 +970,15 @@ function ThreadComposer({
 
   return (
     <div className="space-y-2">
-      {tweets.map((tweet, index) => (
-        <ThreadTweetBox
-          key={tweet.id}
-          tweet={tweet}
-          index={index}
-          total={tweets.length}
-          onChange={onChange}
-          onRemove={onRemove}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-        />
-      ))}
+      {/* Twitter thread preview — editable inline */}
+      <TwitterThreadPreview
+        tweets={tweets}
+        avatarUrl={avatarUrl}
+        onChangeTweet={(i, text) => {
+          const tweet = tweets[i];
+          if (tweet) onChange(tweet.id, text);
+        }}
+      />
 
       <button
         onClick={onAdd}
@@ -1018,20 +1015,6 @@ function ThreadComposer({
           Schedule ▾
         </button>
       </div>
-
-      {/* Twitter thread preview — editable inline */}
-      {tweets.some((t) => t.text.trim()) && (
-        <div className="mt-2">
-          <TwitterThreadPreview
-            tweets={tweets}
-            avatarUrl={avatarUrl}
-            onChangeTweet={(i, text) => {
-              const tweet = tweets[i];
-              if (tweet) onChange(tweet.id, text);
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
