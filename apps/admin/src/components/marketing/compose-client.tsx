@@ -245,49 +245,48 @@ function TwitterActions() {
   );
 }
 
-function TwitterTweetPreview({ text, avatarUrl }: { text: string; avatarUrl?: string | null }) {
+function TwitterTweetPreview({ text, avatarUrl, onChange }: { text: string; avatarUrl?: string | null; onChange?: (t: string) => void }) {
   return (
-    <div>
-      <p
-        className="text-[10px] uppercase tracking-wider mb-2"
-        style={{ color: "#48484a", letterSpacing: "0.08em" }}
-      >
-        Preview
-      </p>
-      <div
-        style={{
-          background: "#000",
-          borderRadius: 12,
-          padding: "16px 16px 14px",
-          maxWidth: 598,
-          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", gap: 12 }}>
-          <TwitterAvatar url={avatarUrl} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <TwitterTweetHeader />
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.5,
-                color: "#e7e9ea",
-                whiteSpace: "pre-wrap",
-                margin: 0,
-                wordBreak: "break-word",
-              }}
-            >
-              {text}
-            </p>
-            <TwitterActions />
-          </div>
+    <div
+      style={{
+        background: "#000",
+        borderRadius: 12,
+        padding: "16px 16px 14px",
+        maxWidth: 598,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", gap: 12 }}>
+        <TwitterAvatar url={avatarUrl} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <TwitterTweetHeader />
+          <div
+            contentEditable={!!onChange}
+            suppressContentEditableWarning
+            className={onChange ? "tweet-editor" : ""}
+            data-placeholder="What's happening?"
+            onInput={onChange ? (e) => onChange((e.currentTarget as HTMLDivElement).innerText) : undefined}
+            style={{
+              fontSize: 15,
+              lineHeight: 1.5,
+              color: "#e7e9ea",
+              whiteSpace: "pre-wrap",
+              margin: 0,
+              wordBreak: "break-word",
+              minHeight: "1.5em",
+              caretColor: "#1d9bf0",
+              outline: "none",
+            }}
+            dangerouslySetInnerHTML={{ __html: text.replace(/\n/g, "<br>") }}
+          />
+          <TwitterActions />
         </div>
       </div>
     </div>
   );
 }
 
-function TwitterThreadPreview({ tweets, avatarUrl }: { tweets: Array<{ text: string }>; avatarUrl?: string | null }) {
+function TwitterThreadPreview({ tweets, avatarUrl, onChangeTweet }: { tweets: Array<{ text: string }>; avatarUrl?: string | null; onChangeTweet?: (index: number, text: string) => void }) {
   const nonEmpty = tweets.filter((t) => t.text.trim());
   const items = nonEmpty.length > 0 ? nonEmpty : tweets;
 
@@ -351,7 +350,12 @@ function TwitterThreadPreview({ tweets, avatarUrl }: { tweets: Array<{ text: str
                 }}
               >
                 <TwitterTweetHeader />
-                <p
+                <div
+                  contentEditable={!!onChangeTweet}
+                  suppressContentEditableWarning
+                  className={onChangeTweet ? "tweet-editor" : ""}
+                  data-placeholder={`Tweet ${i + 1}…`}
+                  onInput={onChangeTweet ? (e) => onChangeTweet(i, (e.currentTarget as HTMLDivElement).innerText) : undefined}
                   style={{
                     fontSize: 15,
                     lineHeight: 1.5,
@@ -359,14 +363,12 @@ function TwitterThreadPreview({ tweets, avatarUrl }: { tweets: Array<{ text: str
                     whiteSpace: "pre-wrap",
                     margin: 0,
                     wordBreak: "break-word",
+                    minHeight: "1.5em",
+                    caretColor: "#1d9bf0",
+                    outline: "none",
                   }}
-                >
-                  {tweet.text || (
-                    <span style={{ color: "#71767b", fontStyle: "italic" }}>
-                      Tweet {i + 1}…
-                    </span>
-                  )}
-                </p>
+                  dangerouslySetInnerHTML={{ __html: (tweet.text || "").replace(/\n/g, "<br>") }}
+                />
                 {/* Compact actions row */}
                 <div
                   style={{
@@ -901,38 +903,17 @@ function SingleComposer({
 
   return (
     <div className="space-y-4">
-      {/* Textarea */}
-      <div
-        className="rounded-xl p-4"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: `1px solid ${isOver ? "rgba(255,69,58,0.4)" : "rgba(255,255,255,0.08)"}`,
-        }}
-      >
-        <textarea
-          value={text}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="What's happening with Blueprint OS?"
-          rows={5}
-          className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none"
-          style={{ color: "#f5f5f7" }}
-        />
-        <div className="flex items-center justify-between mt-3 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="flex items-center gap-2">
-            <Twitter className="w-4 h-4" style={{ color: "#1d9bf0" }} />
-            <span className="text-[12px]" style={{ color: "#636366" }}>Twitter / X</span>
-          </div>
-          <span
-            className="text-[12px] font-medium"
-            style={{ color: isOver ? "#ff453a" : isNearLimit ? "#ff9f0a" : "#636366" }}
-          >
-            {count} / 280
-          </span>
+      {/* Editable Twitter preview — click to edit */}
+      <TwitterTweetPreview text={text} avatarUrl={avatarUrl} onChange={onChange} />
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Twitter className="w-4 h-4" style={{ color: "#1d9bf0" }} />
+          <span className="text-[12px]" style={{ color: "#636366" }}>Twitter / X</span>
         </div>
+        <span className="text-[12px] font-medium" style={{ color: isOver ? "#ff453a" : isNearLimit ? "#ff9f0a" : "#636366" }}>
+          {count} / 280
+        </span>
       </div>
-
-      {/* Tweet preview — pixel-perfect Twitter style */}
-      {text.length > 0 && <TwitterTweetPreview text={text} avatarUrl={avatarUrl} />}
 
       {/* Actions */}
       <div className="flex items-center gap-2">
@@ -1038,10 +1019,17 @@ function ThreadComposer({
         </button>
       </div>
 
-      {/* Twitter thread preview */}
+      {/* Twitter thread preview — editable inline */}
       {tweets.some((t) => t.text.trim()) && (
         <div className="mt-2">
-          <TwitterThreadPreview tweets={tweets} avatarUrl={avatarUrl} />
+          <TwitterThreadPreview
+            tweets={tweets}
+            avatarUrl={avatarUrl}
+            onChangeTweet={(i, text) => {
+              const tweet = tweets[i];
+              if (tweet) onChange(tweet.id, text);
+            }}
+          />
         </div>
       )}
     </div>
