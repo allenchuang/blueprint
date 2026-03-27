@@ -60,6 +60,9 @@ storage/documents/*
 storage/temp/*
 !storage/**/.gitkeep
 
+# Runtime storage (agent-generated data, not committed)
+storage/skylar/
+
 # PM2
 ecosystem.config.cjs
 

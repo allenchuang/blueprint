@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
+// Drafts remain in Skylar's workspace since they are markdown files authored by Skylar,
+// not structured data shared with the server.
 const DRAFTS_DIR = "/home/deploy/.openclaw/workspace-skylar";
 
 interface Draft {

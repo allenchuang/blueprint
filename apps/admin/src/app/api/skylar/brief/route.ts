@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const BRIEF_PATH = "/home/deploy/.openclaw/workspace-skylar/industry-brief.md";
+const BRIEF_PATH = process.env.BLUEPRINT_STORAGE_PATH
+  ? `${process.env.BLUEPRINT_STORAGE_PATH}/skylar/industry-brief.md`
+  : "/home/deploy/repos/blueprint/storage/skylar/industry-brief.md";
 
 export async function GET() {
   try {
