@@ -8,12 +8,12 @@ import { appConfig } from "@repo/app-config";
 const CARD_WIDTH = 1200;
 const CARD_HEIGHT = 630;
 
-const BG = "#0a0f1e";
-const ACCENT = appConfig.colors.primary; // #38BDF8 sky blue
-const ACCENT_MUTED = `${appConfig.colors.primary}26`; // ~15% opacity
 const WHITE = "#ffffff";
-const MUTED = "rgba(255,255,255,0.55)";
-const BORDER = `${appConfig.colors.primary}40`; // ~25% opacity
+const MUTED = "rgba(255,255,255,0.85)";
+
+// Blueprint gradient: darker at bottom, lighter at top (derived from primary #38BDF8)
+const GRADIENT_TOP = "#7dd3fc"; // lighter sky blue
+const GRADIENT_BOTTOM = "#0369a1"; // deep blueprint blue
 
 type CardType = "announcement" | "feature" | "quote" | "stat";
 
@@ -64,7 +64,7 @@ function loadFont(): ArrayBuffer {
   );
 }
 
-/** Blueprint "B" logo mark — indigo circle */
+/** Blueprint "B" logo mark — white circle with blue letter on blueprint bg */
 function logoMark(size = 56) {
   return {
     type: "div",
@@ -73,18 +73,18 @@ function logoMark(size = 56) {
         width: size,
         height: size,
         borderRadius: "50%",
-        background: ACCENT,
+        background: "rgba(255,255,255,0.9)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        boxShadow: `0 0 0 2px ${BORDER}, 0 8px 32px rgba(56,189,248,0.35)`,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
       },
       children: {
         type: "span",
         props: {
           style: {
-            color: WHITE,
+            color: GRADIENT_BOTTOM,
             fontSize: size * 0.5,
             fontWeight: 700,
             lineHeight: 1,
@@ -96,33 +96,111 @@ function logoMark(size = 56) {
   };
 }
 
-/** Shared dot-grid background decoration */
-function dotGrid() {
+/** Blueprint gradient background — lighter at top, darker at bottom */
+function blueprintBackground() {
   return {
     type: "div",
     props: {
       style: {
         position: "absolute",
-        inset: 0,
-        backgroundImage:
-          "radial-gradient(rgba(56,189,248,0.12) 1px, transparent 1px)",
-        backgroundSize: "32px 32px",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `linear-gradient(180deg, ${GRADIENT_TOP} 0%, ${GRADIENT_BOTTOM} 100%)`,
       },
     },
   };
 }
 
-/** Shared gradient overlay */
-function gradientOverlay() {
+/** Blueprint grid overlay — major lines (120px, brighter) + minor lines (30px, barely visible) */
+function blueprintGrid() {
+  const majorStep = 120;
+  const minorStep = 30;
+  const children: Record<string, unknown>[] = [];
+
+  // Minor horizontal lines
+  for (let y = 0; y <= CARD_HEIGHT; y += minorStep) {
+    if (y % majorStep === 0) continue;
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: y,
+          left: 0,
+          width: CARD_WIDTH,
+          height: 1,
+          background: "rgba(255,255,255,0.05)",
+        },
+      },
+    });
+  }
+
+  // Minor vertical lines
+  for (let x = 0; x <= CARD_WIDTH; x += minorStep) {
+    if (x % majorStep === 0) continue;
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: 0,
+          left: x,
+          width: 1,
+          height: CARD_HEIGHT,
+          background: "rgba(255,255,255,0.05)",
+        },
+      },
+    });
+  }
+
+  // Major horizontal lines
+  for (let y = 0; y <= CARD_HEIGHT; y += majorStep) {
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: y,
+          left: 0,
+          width: CARD_WIDTH,
+          height: 1,
+          background: "rgba(255,255,255,0.12)",
+        },
+      },
+    });
+  }
+
+  // Major vertical lines
+  for (let x = 0; x <= CARD_WIDTH; x += majorStep) {
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: 0,
+          left: x,
+          width: 1,
+          height: CARD_HEIGHT,
+          background: "rgba(255,255,255,0.12)",
+        },
+      },
+    });
+  }
+
   return {
     type: "div",
     props: {
       style: {
         position: "absolute",
-        inset: 0,
-        background:
-          "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(56,189,248,0.18) 0%, transparent 70%)",
+        top: 0,
+        left: 0,
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+        display: "flex",
       },
+      children,
     },
   };
 }
@@ -134,15 +212,14 @@ function buildAnnouncementCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
         fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
-        dotGrid(),
-        gradientOverlay(),
+        blueprintBackground(),
+        blueprintGrid(),
         {
           type: "div",
           props: {
@@ -189,8 +266,8 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                         style: {
                           display: "flex",
                           padding: "6px 16px",
-                          background: ACCENT_MUTED,
-                          border: `1px solid ${BORDER}`,
+                          background: "rgba(255,255,255,0.15)",
+                          border: "1px solid rgba(255,255,255,0.25)",
                           borderRadius: 99,
                           marginBottom: 8,
                         },
@@ -198,7 +275,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                           type: "span",
                           props: {
                             style: {
-                              color: ACCENT,
+                              color: WHITE,
                               fontSize: 14,
                               fontWeight: 600,
                               letterSpacing: "0.06em",
@@ -249,8 +326,8 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                         alignItems: "center",
                         gap: 12,
                         padding: "14px 24px",
-                        background: ACCENT_MUTED,
-                        border: `1px solid ${BORDER}`,
+                        background: "rgba(255,255,255,0.15)",
+                        border: "1px solid rgba(255,255,255,0.25)",
                         borderRadius: 12,
                         alignSelf: "flex-start",
                       },
@@ -258,7 +335,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                         type: "span",
                         props: {
                           style: {
-                            color: ACCENT,
+                            color: WHITE,
                             fontSize: 18,
                             fontWeight: 600,
                           },
@@ -283,15 +360,14 @@ function buildFeatureCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
         fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
-        dotGrid(),
-        gradientOverlay(),
+        blueprintBackground(),
+        blueprintGrid(),
         {
           type: "div",
           props: {
@@ -323,15 +399,15 @@ function buildFeatureCard(body: GenerateCardBody) {
                         style: {
                           display: "flex",
                           padding: "6px 16px",
-                          background: ACCENT_MUTED,
-                          border: `1px solid ${BORDER}`,
+                          background: "rgba(255,255,255,0.15)",
+                          border: "1px solid rgba(255,255,255,0.25)",
                           borderRadius: 99,
                         },
                         children: {
                           type: "span",
                           props: {
                             style: {
-                              color: ACCENT,
+                              color: WHITE,
                               fontSize: 13,
                               fontWeight: 600,
                               letterSpacing: "0.06em",
@@ -381,7 +457,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     type: "div",
                     props: {
                       style: {
-                        color: ACCENT,
+                        color: "rgba(255,255,255,0.8)",
                         fontSize: 18,
                         fontWeight: 500,
                       },
@@ -404,26 +480,14 @@ function buildQuoteCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
         fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
-        dotGrid(),
-        // Centered radial glow
-        {
-          type: "div",
-          props: {
-            style: {
-              position: "absolute",
-              inset: 0,
-              background:
-                "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(56,189,248,0.14) 0%, transparent 70%)",
-            },
-          },
-        },
+        blueprintBackground(),
+        blueprintGrid(),
         {
           type: "div",
           props: {
@@ -444,11 +508,11 @@ function buildQuoteCard(body: GenerateCardBody) {
                 type: "div",
                 props: {
                   style: {
-                    color: ACCENT,
+                    color: WHITE,
                     fontSize: 120,
                     fontWeight: 700,
                     lineHeight: 0.8,
-                    opacity: 0.4,
+                    opacity: 0.3,
                   },
                   children: "\u201C",
                 },
@@ -485,8 +549,8 @@ function buildQuoteCard(body: GenerateCardBody) {
                             style: {
                               width: 40,
                               height: 1,
-                              background: ACCENT,
-                              opacity: 0.5,
+                              background: WHITE,
+                              opacity: 0.4,
                             },
                           },
                         },
@@ -551,16 +615,15 @@ function buildStatCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
         fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
-        dotGrid(),
-        gradientOverlay(),
-        // Vertical accent bar left
+        blueprintBackground(),
+        blueprintGrid(),
+        // Vertical accent bar left — white on blueprint bg
         {
           type: "div",
           props: {
@@ -570,7 +633,7 @@ function buildStatCard(body: GenerateCardBody) {
               top: "20%",
               bottom: "20%",
               width: 4,
-              background: `linear-gradient(to bottom, transparent, ${ACCENT}, transparent)`,
+              background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.6), transparent)",
               borderRadius: "0 4px 4px 0",
             },
           },
@@ -628,7 +691,8 @@ function buildStatCard(body: GenerateCardBody) {
                       style: {
                         display: "flex",
                         padding: "12px 28px",
-                        background: ACCENT,
+                        background: "rgba(255,255,255,0.2)",
+                        border: "1px solid rgba(255,255,255,0.3)",
                         borderRadius: 10,
                         marginTop: 8,
                       },
