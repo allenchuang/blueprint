@@ -522,13 +522,13 @@ const Scene3WhatIf: React.FC = () => {
                 key={i}
                 style={{
                   fontFamily,
-                  fontSize: i === 0 ? 106 : 72,
+                  fontSize: i === 0 ? 106 : 80,
                   letterSpacing: "-0.03em",
                   color: "#0c2340",
                   textShadow:
                     "0 2px 12px rgba(255, 255, 255, 0.4), 0 1px 4px rgba(255, 255, 255, 0.2)",
                   lineHeight: 1.4,
-                  textAlign: (i === 0 ? "left" : "right") as const,
+                  textAlign: (i === 0 ? "left" : "center") as const,
                   marginTop: i === 1 ? 100 : 0,
                   opacity,
                   transform: `translateY(${translateY}px)`,
