@@ -1137,17 +1137,25 @@ export function ComposeClient({ initialTrend }: { initialTrend?: string } = {}) 
       try {
         const res = await fetch("/api/skylar/suggestions", { cache: "no-store" });
         if (!res.ok) throw new Error("fetch failed");
-        const raw = await res.json() as unknown[][];
-        // Normalize Skylar's JSON format to match internal Suggestion shape
-        const batches: Suggestion[][] = raw.map((batch) =>
-          (batch as Record<string, unknown>[]).map((item, idx) => ({
-            id: idx + 1,
-            type: (String(item.type ?? "Single").charAt(0).toUpperCase() + String(item.type ?? "Single").slice(1)) as "Single" | "Thread",
-            strategy: String(item.strategy ?? ""),
-            hook: String(item.hook ?? ""),
-            threadTweets: Array.isArray(item.content) ? (item.content as string[]) : undefined,
-          }))
-        );
+        const flat = await res.json() as Array<Record<string, unknown>>;
+        if (!Array.isArray(flat) || flat.length === 0) return;
+
+        // Convert flat PostSuggestion[] → Suggestion[][] (chunk into batches of 5)
+        const suggestions: Suggestion[] = flat.map((item, idx) => ({
+          id: idx + 1,
+          type: (String(item.type ?? "single") === "thread" ? "Thread" : "Single") as "Single" | "Thread",
+          strategy: String(item.account ?? (Array.isArray(item.tags) ? item.tags[0] : undefined) ?? "Skylar"),
+          hook: String(item.hook ?? ""),
+          threadTweets: Array.isArray(item.thread) ? (item.thread as string[]) : undefined,
+        }));
+
+        // Chunk into batches of 5 for the suggestions carousel
+        const BATCH_SIZE = 5;
+        const batches: Suggestion[][] = [];
+        for (let i = 0; i < suggestions.length; i += BATCH_SIZE) {
+          batches.push(suggestions.slice(i, i + BATCH_SIZE));
+        }
+
         if (batches.length > 0) {
           setActiveBatches(batches);
           setUsingSkylar(true);
