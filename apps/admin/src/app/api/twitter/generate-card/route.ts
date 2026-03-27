@@ -310,6 +310,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                       type: "div",
                       props: {
                         style: {
+                          display: "flex",
                           padding: "6px 16px",
                           background: ACCENT_MUTED,
                           border: `1px solid ${BORDER}`,
@@ -614,6 +615,7 @@ function buildStatCard(body: GenerateCardBody) {
                     type: "div",
                     props: {
                       style: {
+                        display: "flex",
                         padding: "12px 28px",
                         background: ACCENT,
                         borderRadius: 10,
