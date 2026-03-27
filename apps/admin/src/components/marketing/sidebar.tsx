@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Lightbulb, Globe2, TrendingUp, Zap, PenLine, Image, Sparkles, Settings } from "lucide-react";
+import { BarChart3, Lightbulb, Globe2, TrendingUp, Zap, PenLine, Image, Sparkles, Settings, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Overview", href: "/", icon: BarChart3 },
+  { label: "Growth Activity", href: "/growth", icon: Activity },
   { label: "Strategies", href: "/strategies", icon: Lightbulb },
   { label: "Socials", href: "/socials", icon: Globe2 },
   { label: "Suggestions", href: "/suggestions", icon: Sparkles },
