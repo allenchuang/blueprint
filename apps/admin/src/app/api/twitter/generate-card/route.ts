@@ -9,11 +9,11 @@ const CARD_WIDTH = 1200;
 const CARD_HEIGHT = 630;
 
 const BG = "#0a0f1e";
-const ACCENT = "#6366f1";
-const ACCENT_MUTED = "rgba(99,102,241,0.15)";
+const ACCENT = appConfig.colors.primary; // #38BDF8 sky blue
+const ACCENT_MUTED = `${appConfig.colors.primary}26`; // ~15% opacity
 const WHITE = "#ffffff";
 const MUTED = "rgba(255,255,255,0.55)";
-const BORDER = "rgba(99,102,241,0.25)";
+const BORDER = `${appConfig.colors.primary}40`; // ~25% opacity
 
 type CardType = "announcement" | "feature" | "quote" | "stat";
 
@@ -26,6 +26,27 @@ interface GenerateCardBody {
 }
 
 function loadFont(): ArrayBuffer {
+  // Prefer the centralized heading font (Instrument Serif)
+  const headingFont = resolve(
+    process.cwd(),
+    "../../packages/app-config/assets/heading-font.ttf"
+  );
+  if (existsSync(headingFont)) {
+    const buf = readFileSync(headingFont);
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  }
+
+  // Fallback: og-font.ttf
+  const ogFont = resolve(
+    process.cwd(),
+    "../../packages/app-config/assets/og-font.ttf"
+  );
+  if (existsSync(ogFont)) {
+    const buf = readFileSync(ogFont);
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  }
+
+  // Last resort: system fonts
   const paths = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
@@ -38,18 +59,8 @@ function loadFont(): ArrayBuffer {
     }
   }
 
-  // Try app-config custom font
-  const customFont = resolve(
-    process.cwd(),
-    "../../packages/app-config/assets/og-font.ttf"
-  );
-  if (existsSync(customFont)) {
-    const buf = readFileSync(customFont);
-    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-  }
-
   throw new Error(
-    "No font found. Place a .ttf file at packages/app-config/assets/og-font.ttf"
+    "No font found. Place heading-font.ttf at packages/app-config/assets/"
   );
 }
 
@@ -67,7 +78,7 @@ function logoMark(size = 56) {
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        boxShadow: `0 0 0 2px ${BORDER}, 0 8px 32px rgba(99,102,241,0.35)`,
+        boxShadow: `0 0 0 2px ${BORDER}, 0 8px 32px rgba(56,189,248,0.35)`,
       },
       children: {
         type: "span",
@@ -94,7 +105,7 @@ function dotGrid() {
         position: "absolute",
         inset: 0,
         backgroundImage:
-          "radial-gradient(rgba(99,102,241,0.12) 1px, transparent 1px)",
+          "radial-gradient(rgba(56,189,248,0.12) 1px, transparent 1px)",
         backgroundSize: "32px 32px",
       },
     },
@@ -110,7 +121,7 @@ function gradientOverlay() {
         position: "absolute",
         inset: 0,
         background:
-          "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.18) 0%, transparent 70%)",
+          "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(56,189,248,0.18) 0%, transparent 70%)",
       },
     },
   };
@@ -127,7 +138,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Brand, system-ui, sans-serif",
+        fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
         dotGrid(),
@@ -276,7 +287,7 @@ function buildFeatureCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Brand, system-ui, sans-serif",
+        fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
         dotGrid(),
@@ -397,7 +408,7 @@ function buildQuoteCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Brand, system-ui, sans-serif",
+        fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
         dotGrid(),
@@ -409,7 +420,7 @@ function buildQuoteCard(body: GenerateCardBody) {
               position: "absolute",
               inset: 0,
               background:
-                "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(99,102,241,0.14) 0%, transparent 70%)",
+                "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(56,189,248,0.14) 0%, transparent 70%)",
             },
           },
         },
@@ -544,7 +555,7 @@ function buildStatCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Brand, system-ui, sans-serif",
+        fontFamily: "Instrument Serif, system-ui, sans-serif",
       },
       children: [
         dotGrid(),
@@ -687,8 +698,8 @@ export async function POST(req: NextRequest) {
       width: CARD_WIDTH,
       height: CARD_HEIGHT,
       fonts: [
-        { name: "Brand", data: fontData, weight: 400, style: "normal" },
-        { name: "Brand", data: fontData, weight: 700, style: "normal" },
+        { name: "Instrument Serif", data: fontData, weight: 400, style: "normal" },
+        { name: "Instrument Serif", data: fontData, weight: 700, style: "normal" },
       ],
     });
 
