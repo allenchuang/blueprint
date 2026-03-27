@@ -462,8 +462,8 @@ const Scene2WrongPath: React.FC = () => {
 
 const SCENE3_LINES = [
   "What if...",
-  "there's a magical workspace",
-  "that agents call home",
+  "There's a Magical Workspace",
+  "That Agents call Home?",
 ];
 const SCENE3_LINE_DELAY = 35; // frames between each line appearing
 const SCENE3_FIRST_LINE_DELAY = 20; // delay before first line appears
@@ -489,12 +489,13 @@ const Scene3WhatIf: React.FC = () => {
       {/* Text overlay — right 1/3 of screen */}
       <AbsoluteFill
         style={{
-          justifyContent: "center",
+          justifyContent: "flex-start",
           alignItems: "flex-end",
           paddingRight: 120,
+          paddingTop: 160,
         }}
       >
-        <div style={{ textAlign: "right" }}>
+        <div style={{ textAlign: "left" }}>
           {SCENE3_LINES.map((line, i) => {
             const lineStart = SCENE3_FIRST_LINE_DELAY + i * SCENE3_LINE_DELAY;
             const progress = spring({
@@ -505,16 +506,20 @@ const Scene3WhatIf: React.FC = () => {
             const opacity = interpolate(progress, [0, 1], [0, 1], {
               extrapolateRight: "clamp",
             });
-            const translateY = interpolate(progress, [0, 1], [30, 0], {
-              extrapolateRight: "clamp",
-            });
+            // Line 1 keeps slide-up animation; lines 2 & 3 just fade in
+            const translateY =
+              i === 0
+                ? interpolate(progress, [0, 1], [30, 0], {
+                    extrapolateRight: "clamp",
+                  })
+                : 0;
 
             return (
               <div
                 key={i}
                 style={{
                   fontFamily,
-                  fontSize: i === 0 ? 76 : 62,
+                  fontSize: i === 0 ? 106 : 87,
                   color: "#0c2340",
                   textShadow:
                     "0 2px 12px rgba(255, 255, 255, 0.4), 0 1px 4px rgba(255, 255, 255, 0.2)",
