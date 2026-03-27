@@ -1,25 +1,17 @@
 "use client";
 
 import { MarketingSidebar, MobileTabBar } from "@/components/marketing/sidebar";
-import { OnboardingWizard, useOnboarding } from "@/components/marketing/onboarding-wizard";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { showOnboarding, completeOnboarding, checked } = useOnboarding();
-
   return (
     <div
       className="flex h-screen overflow-hidden"
       style={{ background: "#1c1c1e" }}
     >
-      {/* Onboarding wizard — shown to first-time users */}
-      {checked && showOnboarding && (
-        <OnboardingWizard onComplete={completeOnboarding} />
-      )}
-
       {/* Sidebar — desktop only */}
       <MarketingSidebar />
 

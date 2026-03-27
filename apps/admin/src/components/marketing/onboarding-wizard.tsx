@@ -224,7 +224,7 @@ export function useOnboarding() {
   return { showOnboarding, completeOnboarding, checked };
 }
 
-export function OnboardingWizard({ onComplete }: { onComplete?: () => void }) {
+export function OnboardingWizard() {
   const [accounts, setAccounts] = useState<TwitterAccountInfo[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
