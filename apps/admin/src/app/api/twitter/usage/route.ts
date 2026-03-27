@@ -29,43 +29,14 @@ export async function GET() {
     const data = await res.json() as {
       data?: {
         cap_reset_day?: number;
-        daily_project_usage?: Array<{
-          app_id?: string;
-          usage?: Array<{
-            usage_result_count?: number;
-            request_type?: string;
-          }>;
-        }>;
+        project_cap?: string | number;
+        project_usage?: string | number;
       };
     };
 
-    // Extract usage — the API returns daily usage per app
-    // We sum up all tweet reads across apps for the current cycle
     const capResetDay: number = data.data?.cap_reset_day ?? 1;
-
-    let projectUsage = 0;
-    if (data.data?.daily_project_usage) {
-      for (const appEntry of data.data.daily_project_usage) {
-        if (appEntry.usage) {
-          for (const usageEntry of appEntry.usage) {
-            // Count tweet reads (search, timeline, lookup)
-            if (
-              usageEntry.request_type &&
-              (usageEntry.request_type.includes("search") ||
-                usageEntry.request_type.includes("timeline") ||
-                usageEntry.request_type.includes("lookup") ||
-                usageEntry.request_type.includes("read"))
-            ) {
-              projectUsage += usageEntry.usage_result_count ?? 0;
-            }
-          }
-        }
-      }
-    }
-
-    // Free tier cap: 1,500,000 tweet reads/month; Basic: 10,000; paid plans vary
-    // Most common: 500,000 for Basic app-level reads, 2,000,000 project cap
-    const projectCap = 2_000_000;
+    const projectCap = parseInt(String(data.data?.project_cap ?? 2_000_000), 10);
+    const projectUsage = parseInt(String(data.data?.project_usage ?? 0), 10);
     const percentUsed = projectCap > 0 ? (projectUsage / projectCap) * 100 : 0;
 
     const usage: TwitterUsage = {

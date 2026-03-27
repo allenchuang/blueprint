@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
+import { getTwitterAccounts } from "@/lib/twitter-accounts";
 
 interface PostTweetBody {
   text: string;
   replyToId?: string;
+  accountId?: string;
+  /** Public URL of an image to attach as media (e.g. a generated card) */
+  imageUrl?: string;
 }
 
 interface PostTweetResponse {
@@ -15,10 +19,8 @@ export async function POST(req: NextRequest) {
   try {
     const consumerKey = process.env.TWITTER_CONSUMER_KEY;
     const consumerSecret = process.env.TWITTER_CONSUMER_SECRET;
-    const accessToken = process.env.TWITTER_ACCESS_TOKEN;
-    const accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 
-    if (!consumerKey || !consumerSecret || !accessToken || !accessTokenSecret) {
+    if (!consumerKey || !consumerSecret) {
       return NextResponse.json(
         { error: "Twitter API not configured", fallback: true },
         { status: 500 }
@@ -27,27 +29,47 @@ export async function POST(req: NextRequest) {
 
     let body: PostTweetBody;
     try {
-      body = await req.json() as PostTweetBody;
+      body = (await req.json()) as PostTweetBody;
     } catch {
-      return NextResponse.json(
-        { error: "Invalid request body" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { text, replyToId } = body;
+    const { text, replyToId, accountId, imageUrl } = body;
 
     if (!text || typeof text !== "string") {
-      return NextResponse.json(
-        { error: "Tweet text is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Tweet text is required" }, { status: 400 });
     }
 
     if (text.length > 280) {
       return NextResponse.json(
         { error: "Tweet exceeds 280 character limit" },
         { status: 400 }
+      );
+    }
+
+    // Resolve credentials: use accountId if provided, otherwise fall back to primary env vars
+    let accessToken: string | undefined;
+    let accessTokenSecret: string | undefined;
+
+    if (accountId) {
+      const accounts = getTwitterAccounts();
+      const account = accounts.find((a) => a.id === accountId);
+      if (account) {
+        accessToken = account.accessToken;
+        accessTokenSecret = account.accessTokenSecret;
+      }
+    }
+
+    // Fall back to default env vars
+    if (!accessToken) {
+      accessToken = process.env.TWITTER_ACCESS_TOKEN;
+      accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
+    }
+
+    if (!accessToken || !accessTokenSecret) {
+      return NextResponse.json(
+        { error: "Twitter credentials not configured", fallback: true },
+        { status: 500 }
       );
     }
 
@@ -58,9 +80,33 @@ export async function POST(req: NextRequest) {
       accessSecret: accessTokenSecret,
     });
 
-    const tweetPayload: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text };
+    // Upload image as media if imageUrl is provided
+    let mediaId: string | undefined;
+    if (imageUrl) {
+      const imageRes = await fetch(imageUrl);
+      if (!imageRes.ok) {
+        return NextResponse.json(
+          { error: "Failed to fetch imageUrl" },
+          { status: 400 }
+        );
+      }
+      const imageBuffer = Buffer.from(await imageRes.arrayBuffer());
+      const mimeType = imageRes.headers.get("content-type") ?? "image/png";
+      mediaId = await client.v1.uploadMedia(imageBuffer, { mimeType });
+    }
+
+    const tweetPayload: {
+      text: string;
+      reply?: { in_reply_to_tweet_id: string };
+      media?: { media_ids: [string] };
+    } = { text };
+
     if (replyToId) {
       tweetPayload.reply = { in_reply_to_tweet_id: replyToId };
+    }
+
+    if (mediaId) {
+      tweetPayload.media = { media_ids: [mediaId] };
     }
 
     const posted = await client.v2.tweet(tweetPayload);
@@ -86,9 +132,6 @@ export async function POST(req: NextRequest) {
     }
 
     console.error("[twitter/post] Error:", error.code ?? error.status);
-    return NextResponse.json(
-      { error: "Failed to post tweet" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to post tweet" }, { status: 500 });
   }
 }
