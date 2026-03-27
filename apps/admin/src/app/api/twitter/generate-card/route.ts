@@ -64,33 +64,22 @@ function loadFont(): ArrayBuffer {
   );
 }
 
-/** Blueprint "B" logo mark — white circle with blue letter on blueprint bg */
-function logoMark(size = 56) {
+/** Twemoji 🧢 billed cap SVG as data URI (avoids emoji font requirement in Satori) */
+const CAP_SVG_DATA_URI =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PGVsbGlwc2UgdHJhbnNmb3JtPSJyb3RhdGUoLTg3LjQ5NSAyMS4yNSA1LjAxOCkiIGZpbGw9IiMyQjdCQjkiIGN4PSIyMS4yNDkiIGN5PSI1LjAxOCIgcng9Ii45NDQiIHJ5PSIxLjU2NSIvPjxwYXRoIGZpbGw9IiMyOTJGMzMiIGQ9Ik0yOS44MzEgMjcuNzRzMy41MjMgMS4zODUgNS4xODUuMDg4Yy4xMjUtMS4xNy0zLjMxMS0yLjAzNS0zLjMxMS0yLjAzNWwtMS44NzQgMS45NDd6TTcuNTI3IDI1LjU0OVMyLjI3MSAzMy4zNzUuNzcgMzIuMDMxYzAgMC0uNDI1LTEuMzk3IDEuMjMtNC4yMTggMS42NTYtMi44MjIgNS41MjctMi4yNjQgNS41MjctMi4yNjR6Ii8+PHBhdGggZmlsbD0iIzFDNjM5OSIgZD0iTTE5Ljc2NiA0Ljgycy04LjUzNy40My0xMy43MzUgMTYuMzQ4YzcuNDk0IDAgMTYuNzg1LjU1NSAxNi43ODUuNTU1czcuNzk5IDMuOTgyIDguODg5IDQuNDY5YzEuMDg5LjQ4NyAzLjMxMSAxLjYzNyAzLjMxMSAxLjYzN3MxLjA4OS01LjUzMS4zMDUtOS42OVMzMC43OSA0Ljk5NyAxOS43NjYgNC44MnoiLz48cGF0aCBmaWxsPSIjMUM2Mzk5IiBkPSJNMy4zNTQgMjUuMTY3QzEuNTIxIDI4LjIwOS4xMzggMzAuOTg4Ljc3IDMyLjAzMWMwIDAtLjIwMy0uNzYxLjc3NS0xLjYzMy44OTItLjc5NSAyLjgwNS0xLjUyMiA2LjQ2MS0xLjUyMiA1LjUzNCAwIDEzLjAwNiA0LjQ5OCAxNi4xMTkgNS41NjIgMi4zNzUuODEyIDIuODc1LjE4OCA0LjE4OC0xLjI1IDEuNC0xLjUzNCAzLjcxNi02LjkwNCAzLjcxNi02LjkwNHMtNy40Ny00LjEwNy0xMS44NzEtNS43MjYtNS4zNTgtMS40MjctNi43NTItMS40MDFjLTMuMDU2LjA1Ny01LjMxNC42NzEtNy4zNzUgMi4wMTEgMCAwLTEuNDk0IDIuMDM2LTIuNjc3IDMuOTk5eiIvPjxwYXRoIGZpbGw9IiM1MEE1RTYiIGQ9Ik0zMC41ODggMTEuMzM5Yy0uNjEtMy40NDMtNC4wMTEtNS4wNzYtNC4wMTEtNS4wNzYtMS44OTUtLjg4My00LjE1OC0xLjQ0OC02Ljg2NC0xLjQ5MSAwIDAtMTIuMTkyLS4xMDUtMTMuNjgxIDE2LjM5NSAwIDAgMi41NDEtMS4xMTUgNy45Mi0uNzkzIDcuMjk5LjQzOCAxNC40MTQgNC4xMTcgMTUuOTg2IDQuODEyLjgzLTIuNzc5IDEuMzY3LTkuNzk4LjY1LTEzLjg0N3oiLz48L3N2Zz4=";
+
+/** Blueprint 🧢 logo mark — cap emoji rendered as Twemoji SVG image */
+function logoMark(size = 84) {
   return {
-    type: "div",
+    type: "img",
     props: {
+      src: CAP_SVG_DATA_URI,
+      width: size,
+      height: size,
       style: {
         width: size,
         height: size,
-        borderRadius: "50%",
-        background: "rgba(255,255,255,0.9)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         flexShrink: 0,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-      },
-      children: {
-        type: "span",
-        props: {
-          style: {
-            color: GRADIENT_BOTTOM,
-            fontSize: size * 0.5,
-            fontWeight: 700,
-            lineHeight: 1,
-          },
-          children: "B",
-        },
       },
     },
   };
@@ -238,13 +227,13 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                 props: {
                   style: { display: "flex", alignItems: "center", gap: 16 },
                   children: [
-                    logoMark(48),
+                    logoMark(72),
                     {
                       type: "span",
                       props: {
                         style: {
                           color: WHITE,
-                          fontSize: 22,
+                          fontSize: 33,
                           fontWeight: 700,
                           letterSpacing: "-0.02em",
                         },
@@ -276,7 +265,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                           props: {
                             style: {
                               color: WHITE,
-                              fontSize: 14,
+                              fontSize: 21,
                               fontWeight: 600,
                               letterSpacing: "0.06em",
                               textTransform: "uppercase",
@@ -291,7 +280,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                       props: {
                         style: {
                           color: WHITE,
-                          fontSize: 62,
+                          fontSize: 93,
                           fontWeight: 700,
                           lineHeight: 1.1,
                           letterSpacing: "-0.03em",
@@ -305,7 +294,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                           props: {
                             style: {
                               color: MUTED,
-                              fontSize: 28,
+                              fontSize: 42,
                               fontWeight: 400,
                               lineHeight: 1.4,
                             },
@@ -336,7 +325,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                         props: {
                           style: {
                             color: WHITE,
-                            fontSize: 18,
+                            fontSize: 27,
                             fontWeight: 600,
                           },
                           children: body.cta,
@@ -392,7 +381,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(40),
+                    logoMark(60),
                     {
                       type: "div",
                       props: {
@@ -408,7 +397,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                           props: {
                             style: {
                               color: WHITE,
-                              fontSize: 13,
+                              fontSize: 20,
                               fontWeight: 600,
                               letterSpacing: "0.06em",
                               textTransform: "uppercase",
@@ -427,7 +416,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                 props: {
                   style: {
                     color: WHITE,
-                    fontSize: 72,
+                    fontSize: 108,
                     fontWeight: 700,
                     lineHeight: 1.05,
                     letterSpacing: "-0.04em",
@@ -442,7 +431,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     props: {
                       style: {
                         color: MUTED,
-                        fontSize: 26,
+                        fontSize: 39,
                         fontWeight: 400,
                         lineHeight: 1.5,
                         maxWidth: 700,
@@ -458,10 +447,10 @@ function buildFeatureCard(body: GenerateCardBody) {
                     props: {
                       style: {
                         color: "rgba(255,255,255,0.8)",
-                        fontSize: 18,
+                        fontSize: 27,
                         fontWeight: 500,
                       },
-                      children: `→ ${body.cta}`,
+                      children: body.cta,
                     },
                   }
                 : null,
@@ -509,7 +498,7 @@ function buildQuoteCard(body: GenerateCardBody) {
                 props: {
                   style: {
                     color: WHITE,
-                    fontSize: 120,
+                    fontSize: 180,
                     fontWeight: 700,
                     lineHeight: 0.8,
                     opacity: 0.3,
@@ -523,7 +512,7 @@ function buildQuoteCard(body: GenerateCardBody) {
                 props: {
                   style: {
                     color: WHITE,
-                    fontSize: 44,
+                    fontSize: 66,
                     fontWeight: 600,
                     lineHeight: 1.35,
                     letterSpacing: "-0.02em",
@@ -559,7 +548,7 @@ function buildQuoteCard(body: GenerateCardBody) {
                           props: {
                             style: {
                               color: MUTED,
-                              fontSize: 20,
+                              fontSize: 30,
                               fontWeight: 400,
                             },
                             children: body.subtitle,
@@ -582,13 +571,13 @@ function buildQuoteCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(32),
+                    logoMark(48),
                     {
                       type: "span",
                       props: {
                         style: {
                           color: MUTED,
-                          fontSize: 16,
+                          fontSize: 24,
                           fontWeight: 600,
                         },
                         children: appConfig.name,
@@ -653,14 +642,14 @@ function buildStatCard(body: GenerateCardBody) {
               textAlign: "center",
             },
             children: [
-              logoMark(52),
+              logoMark(78),
               // Big stat
               {
                 type: "div",
                 props: {
                   style: {
                     color: WHITE,
-                    fontSize: 100,
+                    fontSize: 150,
                     fontWeight: 700,
                     lineHeight: 1,
                     letterSpacing: "-0.05em",
@@ -675,7 +664,7 @@ function buildStatCard(body: GenerateCardBody) {
                     props: {
                       style: {
                         color: MUTED,
-                        fontSize: 28,
+                        fontSize: 42,
                         fontWeight: 400,
                         letterSpacing: "0.01em",
                       },
@@ -701,7 +690,7 @@ function buildStatCard(body: GenerateCardBody) {
                         props: {
                           style: {
                             color: WHITE,
-                            fontSize: 18,
+                            fontSize: 27,
                             fontWeight: 700,
                           },
                           children: body.cta,
