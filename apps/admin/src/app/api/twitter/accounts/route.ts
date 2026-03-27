@@ -1,10 +1,10 @@
 import { getTwitterAccounts } from '@/lib/twitter-accounts'
 
 export async function GET() {
-  const accounts = getTwitterAccounts().map(({ id, username, displayName }) => ({
+  const accounts = getTwitterAccounts().map(({ id, handle, name }) => ({
     id,
-    username,
-    displayName,
+    username: handle,
+    displayName: name,
   }))
   return Response.json(accounts)
 }

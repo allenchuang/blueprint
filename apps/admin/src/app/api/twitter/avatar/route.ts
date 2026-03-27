@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const accounts = getTwitterAccounts()
     const account = accounts.find((a) => a.id === accountId)
     if (account) {
-      username = account.username
+      username = account.handle
     }
   } else {
     // Primary account: check env for configured username

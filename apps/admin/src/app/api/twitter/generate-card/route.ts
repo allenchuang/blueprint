@@ -176,7 +176,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                       type: "div",
                       props: {
                         style: {
-                          display: "inline-flex",
+                          display: "flex",
                           padding: "6px 16px",
                           background: ACCENT_MUTED,
                           border: `1px solid ${BORDER}`,
