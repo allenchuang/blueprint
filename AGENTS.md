@@ -380,7 +380,7 @@ Also valid: `blocked`, `cancelled`
 
 ### Infrastructure
 
-- **URL:** http://54.151.66.76:3100
+- **URL:** http://<YOUR_SERVER_IP>:3100
 - **Company ID:** `e74c5621-fdd3-4004-bd6a-a10a861018f6`
 - **Auth:** POST `/api/auth/sign-in/email` → `better-auth.session_token` cookie
 - **Note:** Use public IP (not localhost) — Node.js fetch strips Origin on same-origin requests, breaking better-auth's origin validation.
