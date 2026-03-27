@@ -10,7 +10,7 @@ export interface AppEntry {
   /** "public" apps are exposed via Caddy; "private" are Tailscale-only */
   access: "public" | "private";
   /** Whether this is a Next.js app managed by PM2 */
-  type: "nextjs" | "fastify" | "mintlify" | "remotion" | "expo";
+  type: "nextjs" | "fastify" | "mintlify" | "remotion" | "expo" | "standalone";
 }
 
 export const appsRegistry: AppEntry[] = [
@@ -73,6 +73,18 @@ export const appsRegistry: AppEntry[] = [
     openMaximized: true,
     access: "private",
     type: "remotion",
+  },
+  {
+    id: "clawdash",
+    name: "ClawDash",
+    port: 7778,
+    description: "OpenClaw diagnostics and agent dashboard",
+    icon: "activity",
+    color: "amber",
+    subdomain: "clawdash",
+    openMaximized: true,
+    access: "private",
+    type: "nextjs",
   },
   {
     id: "os",

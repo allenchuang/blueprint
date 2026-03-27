@@ -90,6 +90,10 @@ const SVG_PATHS: Record<string, { desktop: ReactNode; titleBar: ReactNode }> = {
       </>
     ),
   },
+  activity: {
+    desktop: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
+    titleBar: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
+  },
 };
 
 const DEFAULT_COLORS = { from: "from-zinc-600", to: "to-zinc-800", text: "text-zinc-400" } as const;
@@ -100,6 +104,7 @@ const COLOR_MAP: Record<string, { from: string; to: string; text: string }> = {
   violet: { from: "from-violet-500", to: "to-purple-700", text: "text-violet-400" },
   emerald: { from: "from-emerald-500", to: "to-teal-600", text: "text-emerald-400" },
   pink: { from: "from-pink-500", to: "to-rose-600", text: "text-pink-400" },
+  amber: { from: "from-amber-500", to: "to-orange-600", text: "text-amber-400" },
   zinc: DEFAULT_COLORS,
 };
 
