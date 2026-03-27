@@ -486,7 +486,7 @@ const Scene3WhatIf: React.FC = () => {
         style={{
           justifyContent: "flex-start",
           alignItems: "flex-end",
-          paddingRight: 120,
+          paddingRight: 300,
           paddingTop: 160,
         }}
       >
