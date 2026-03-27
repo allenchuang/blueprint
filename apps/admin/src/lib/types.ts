@@ -2,6 +2,20 @@
 
 export type Platform = "twitter" | "instagram" | "tiktok";
 
+export interface PostSuggestion {
+  id: string;
+  type: "thread" | "single" | "quote-tweet";
+  priority: "high" | "medium" | "low";
+  hook: string;
+  thread?: string[];
+  timing: string;
+  tags: string[];
+  replyTo?: string;
+  quoteOf?: string;
+  status?: "pending" | "approved" | "rejected" | "posted";
+  account?: "blueprint_os" | "blueprintIntern";
+}
+
 export interface Strategy {
   id: string;
   title: string;
