@@ -1,0 +1,240 @@
+---
+title: "Existing OpenClaw Users"
+description: "Already have OpenClaw installed? Point it at Blueprint in 5 minutes."
+---
+
+## Overview
+
+If you already have OpenClaw running (on your Mac, a VPS, or any machine), you can make Blueprint your agent's operating system by pointing the workspace at the repo. No reinstall needed.
+
+<Note>
+  This guide assumes OpenClaw is already installed and the Gateway is running.
+  If you need to install from scratch, see [OpenClaw Setup](/deployment/openclaw-setup).
+</Note>
+
+## Prerequisites
+
+- OpenClaw installed and Gateway running (`openclaw gateway status` returns healthy)
+- Blueprint repo cloned somewhere on the same machine
+- Node.js 23+ and pnpm 10+ installed
+
+## Quick Setup
+
+<Steps>
+  <Step title="Clone and build Blueprint">
+    Skip this if you already have the repo cloned.
+
+    ```bash
+    mkdir -p ~/repos
+    cd ~/repos
+    git clone https://github.com/YOUR_USER/blueprint.git
+    cd blueprint
+    pnpm install
+    pnpm build
+    ```
+  </Step>
+
+  <Step title="Point your workspace at the repo">
+    Back up your current workspace (if you have one), then symlink:
+
+    ```bash
+    # Back up existing workspace
+    mv ~/.openclaw/workspace ~/.openclaw/workspace-backup
+
+    # Symlink to Blueprint
+    ln -s /path/to/blueprint ~/.openclaw/workspace
+    ```
+
+    Replace `/path/to/blueprint` with the actual path (e.g., `~/repos/blueprint` or `/home/deploy/repos/blueprint`).
+
+    <Tip>
+      The repo's `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `BOOT.md`, and `HEARTBEAT.md`
+      are now automatically loaded by OpenClaw on every session start. These files define
+      the agent's rules, personality, and operating context.
+    </Tip>
+  </Step>
+
+  <Step title="Restart the Gateway">
+    ```bash
+    openclaw gateway restart
+    ```
+
+    The agent now operates inside the Blueprint repo. It reads `AGENTS.md` for governance
+    rules and has access to all monorepo files and commands.
+  </Step>
+
+  <Step title="Verify it works">
+    Send a message to your agent (via Telegram, WhatsApp, or the Control UI):
+
+    ```
+    What is your workspace? List the top-level files.
+    ```
+
+    The agent should respond with the Blueprint repo structure, including `apps/`, `packages/`,
+    `AGENTS.md`, `SOUL.md`, etc.
+  </Step>
+</Steps>
+
+## What the Agent Gets
+
+Once the workspace is pointed at Blueprint, the agent automatically has:
+
+| File | Purpose |
+|------|---------|
+| `AGENTS.md` | Repository map, build commands, core rules, governance boundaries |
+| `SOUL.md` | Agent personality and tone |
+| `USER.md` | Who you are and your preferences |
+| `TOOLS.md` | Available tools (pnpm, git, PM2, Caddy) and key paths |
+| `BOOT.md` | Startup checklist (git status, PM2 status, read memory) |
+| `HEARTBEAT.md` | Periodic health check tasks |
+| `storage/` | Directory for downloaded assets (images, videos, documents) |
+
+## Optional: Multi-Agent Setup
+
+If you want separate agents for different tasks, configure them in `~/.openclaw/openclaw.json`:
+
+```json5
+{
+  agents: {
+    list: [
+      {
+        id: "os-admin",
+        name: "OS Admin",
+        default: true,
+        workspace: "/path/to/blueprint",
+      },
+      {
+        id: "dev-ops",
+        name: "DevOps",
+        workspace: "/path/to/repos",
+      },
+    ],
+  },
+  bindings: [
+    { agentId: "os-admin", match: { channel: "telegram" } },
+    { agentId: "dev-ops", match: { channel: "slack" } },
+  ],
+}
+```
+
+See [Custom Agents](/extending/custom-agents) for full configuration options.
+
+## Optional: Run the Apps
+
+If you want the full OS experience (desktop environment, admin panel, etc.):
+
+<Steps>
+  <Step title="Set up environment variables">
+    ```bash
+    cd /path/to/blueprint
+    cp .env.example .env
+    # Edit .env with your DATABASE_URL
+    ```
+  </Step>
+
+  <Step title="Start apps with PM2">
+    ```bash
+    pm2 start ecosystem.config.cjs
+    pm2 save
+    ```
+
+    <Warning>
+      If `ecosystem.config.cjs` doesn't exist yet, create it:
+
+      ```bash
+      cat > ecosystem.config.cjs << 'EOF'
+      module.exports = {
+        apps: [
+          { name: "web",    cwd: "./apps/web",    interpreter: "node", script: "../../node_modules/next/dist/bin/next", args: "start -p 3000" },
+          { name: "server", cwd: "./apps/server", script: "dist/index.js" },
+          { name: "admin",  cwd: "./apps/admin",  interpreter: "node", script: "../../node_modules/next/dist/bin/next", args: "start -p 3002" },
+          { name: "os",     cwd: "./apps/os",     interpreter: "node", script: "../../node_modules/next/dist/bin/next", args: "start -p 7777" },
+        ],
+      };
+      EOF
+      ```
+    </Warning>
+  </Step>
+
+  <Step title="Access the OS desktop">
+    Open `http://localhost:7777` in your browser. You'll see the desktop environment with
+    windows for each app. The OpenClaw Control window lets you chat with the agent directly
+    from the desktop.
+  </Step>
+</Steps>
+
+## Optional: Set Up Git Push Access
+
+If you want the agent to commit and push changes:
+
+```bash
+# Generate a deploy key (on the machine running OpenClaw)
+ssh-keygen -t ed25519 -C "openclaw-agent" -f ~/.ssh/openclaw_blueprint -N ""
+
+# Add to your GitHub repo: Settings > Deploy keys > Add (with write access)
+cat ~/.ssh/openclaw_blueprint.pub
+
+# Configure SSH
+cat >> ~/.ssh/config << 'EOF'
+Host github.com
+  IdentityFile ~/.ssh/openclaw_blueprint
+  IdentitiesOnly yes
+EOF
+
+# Set git identity
+git config --global user.name "OpenClaw Agent"
+git config --global user.email "agent@yourdomain.com"
+```
+
+See [GitHub Deploy Keys](/deployment/github-deploy-keys) for the full guide.
+
+## Governance Rules
+
+The agent follows strict governance rules defined in `AGENTS.md`. Key boundaries:
+
+- **Cannot** delete, rename, or restructure existing apps or packages
+- **Cannot** push directly to `main` — always uses feature branches
+- **Cannot** commit secrets or `.env` files
+- **Can** add new apps, edit code, run builds, download assets to `storage/`
+
+To customize these rules, edit `AGENTS.md` in the repo root. Changes take effect on the
+next agent session.
+
+## Troubleshooting
+
+<Tip>
+  **Agent doesn't see the repo files?**
+
+  Verify the symlink: `ls -la ~/.openclaw/workspace`
+
+  It should point to your Blueprint directory. If it shows the old workspace,
+  re-run the symlink command.
+</Tip>
+
+<Tip>
+  **Agent ignores AGENTS.md rules?**
+
+  OpenClaw injects `AGENTS.md` into the system prompt, but rules are advisory to the model.
+  For hard enforcement, use tool policy in `openclaw.json`:
+
+  ```json5
+  {
+    agents: {
+      list: [{
+        id: "os-admin",
+        tools: {
+          deny: ["browser"],  // example: deny browser tool
+        },
+      }],
+    },
+  }
+  ```
+</Tip>
+
+<Tip>
+  **Gateway doesn't restart?**
+
+  Check logs: `openclaw logs --follow`
+
+  Common issue: invalid `openclaw.json` syntax. Run `openclaw doctor` to diagnose.
+</Tip>

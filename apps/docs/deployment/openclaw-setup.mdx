@@ -1,0 +1,162 @@
+---
+title: "OpenClaw Setup"
+description: "Install and configure the AI agent gateway"
+---
+
+## What Is OpenClaw?
+
+[OpenClaw](https://docs.openclaw.ai/) is a self-hosted gateway that connects messaging apps (Telegram, WhatsApp, Slack) to AI coding agents. It runs on your VPS alongside the monorepo and gives AI agents access to the codebase as their workspace.
+
+## Install OpenClaw
+
+```bash
+curl -fsSL https://get.openclaw.ai | bash
+```
+
+This installs the `openclaw` CLI to `~/.openclaw/bin/`. Add it to your PATH:
+
+```bash
+echo 'export PATH="$HOME/.openclaw/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Verify:
+
+```bash
+openclaw --version
+```
+
+## Run the Onboard Wizard
+
+```bash
+openclaw onboard
+```
+
+The wizard walks you through:
+1. Setting up the gateway bind address
+2. Configuring authentication
+3. Creating your first agent
+
+## Symlink the Workspace
+
+OpenClaw needs a workspace directory — a folder the agent can read and write. Point it at the monorepo:
+
+```bash
+ln -s /home/deploy/your-repo ~/.openclaw/workspaces/main
+```
+
+This tells OpenClaw that the `main` workspace is your monorepo.
+
+## Configure openclaw.json
+
+The main configuration file lives at `~/.openclaw/openclaw.json`. Here's a reference configuration:
+
+```json
+{
+  "gateway": {
+    "bind": "127.0.0.1:9111",
+    "auth": {
+      "type": "token",
+      "token": "your-secure-token-here"
+    }
+  },
+  "agents": [
+    {
+      "id": "os-admin",
+      "name": "OS Admin",
+      "workspace": "main",
+      "description": "Manages the monorepo apps, UI, and features",
+      "tools": ["shell", "file", "git", "browser"],
+      "model": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-20250514"
+      }
+    },
+    {
+      "id": "dev-ops",
+      "name": "DevOps",
+      "workspace": "main",
+      "description": "Handles deployments, infrastructure, and server maintenance",
+      "tools": ["shell", "file", "git"],
+      "model": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-20250514"
+      }
+    }
+  ],
+  "bindings": []
+}
+```
+
+### Configuration Breakdown
+
+| Field | Purpose |
+|-------|---------|
+| `gateway.bind` | Address and port the gateway listens on (keep on localhost) |
+| `gateway.auth` | Authentication method for API access |
+| `agents[].id` | Unique identifier for the agent |
+| `agents[].workspace` | Which workspace symlink to use |
+| `agents[].tools` | Which tools the agent has access to |
+| `agents[].model` | AI model provider and model name |
+| `bindings` | Maps messaging channels to specific agents |
+
+<Note>
+The `bindings` array is populated when you connect messaging channels. Each binding maps a channel (Telegram chat, WhatsApp number, Slack channel) to a specific agent.
+</Note>
+
+## Set API Keys
+
+Export your AI provider API key:
+
+```bash
+echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.bashrc
+source ~/.bashrc
+```
+
+## Start the Gateway
+
+```bash
+openclaw start
+```
+
+For production, run it under PM2:
+
+```bash
+pm2 start openclaw -- start
+pm2 save
+```
+
+## Verify
+
+Check gateway status:
+
+```bash
+openclaw status
+```
+
+Test the API (from the VPS):
+
+```bash
+curl -H "Authorization: Bearer your-secure-token-here" \
+  http://127.0.0.1:9111/api/status
+```
+
+<Tip>
+For remote access to the OpenClaw API, expose port 9111 through Tailscale (never on the public internet).
+</Tip>
+
+## Next Step
+
+Connect a messaging channel so you can talk to your agents.
+
+<CardGroup cols={3}>
+  <Card title="Telegram" icon="paper-plane" href="/deployment/connect-telegram">
+    Create a Telegram bot
+  </Card>
+  <Card title="WhatsApp" icon="whatsapp" href="/deployment/connect-whatsapp">
+    Link via QR code
+  </Card>
+  <Card title="Slack" icon="slack" href="/deployment/connect-slack">
+    Create a Slack bot app
+  </Card>
+</CardGroup>

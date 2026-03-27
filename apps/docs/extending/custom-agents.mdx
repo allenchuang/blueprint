@@ -1,0 +1,211 @@
+---
+title: "Custom Agents"
+description: "Create specialized AI agents with their own workspaces"
+---
+
+## Overview
+
+OpenClaw supports multiple agents, each with its own workspace, tools, model, and personality. Instead of one general-purpose agent, you can create specialists — a frontend developer, a DevOps engineer, a content writer — and route messages to the right one.
+
+## Multi-Agent Config
+
+Agents are defined in `~/.openclaw/openclaw.json` under the `agents` array:
+
+```json
+{
+  "agents": [
+    {
+      "id": "os-admin",
+      "name": "OS Admin",
+      "workspace": "main",
+      "description": "Manages the monorepo apps, UI, and features",
+      "tools": ["shell", "file", "git", "browser"],
+      "model": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-20250514"
+      }
+    },
+    {
+      "id": "dev-ops",
+      "name": "DevOps",
+      "workspace": "main",
+      "description": "Handles deployments, infrastructure, and maintenance",
+      "tools": ["shell", "file", "git"],
+      "model": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-20250514"
+      }
+    }
+  ]
+}
+```
+
+## Adding a New Agent
+
+<Steps>
+  <Step title="Define the workspace">
+    If the agent operates on a separate repo, create a workspace symlink:
+
+    ```bash
+    ln -s /home/deploy/repos/my-project ~/.openclaw/workspaces/my-project
+    ```
+
+    If it shares the main monorepo workspace, use `"workspace": "main"`.
+  </Step>
+  <Step title="Add the agent entry">
+    Edit `~/.openclaw/openclaw.json`:
+
+    ```json
+    {
+      "id": "content-writer",
+      "name": "Content Writer",
+      "workspace": "main",
+      "description": "Writes blog posts, documentation, and marketing copy",
+      "tools": ["file", "git"],
+      "model": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-20250514"
+      }
+    }
+    ```
+  </Step>
+  <Step title="Configure personality (optional)">
+    Create a `SOUL.md` in the workspace root to shape the agent's communication style:
+
+    ```markdown
+    # Content Writer Personality
+
+    You are a professional content writer. You write clear, engaging prose.
+    Keep paragraphs short. Use active voice. Avoid jargon unless the audience
+    expects it.
+    ```
+  </Step>
+  <Step title="Restart OpenClaw">
+    ```bash
+    openclaw restart
+    ```
+  </Step>
+</Steps>
+
+## Binding Agents to Channels
+
+Route specific messaging channels to specific agents:
+
+```json
+{
+  "bindings": [
+    {
+      "channel_type": "telegram",
+      "channel_id": "chat-main",
+      "agent": "os-admin"
+    },
+    {
+      "channel_type": "slack",
+      "channel_id": "C-devops",
+      "agent": "dev-ops"
+    },
+    {
+      "channel_type": "slack",
+      "channel_id": "C-content",
+      "agent": "content-writer"
+    }
+  ]
+}
+```
+
+| Pattern | Use Case |
+|---------|----------|
+| One Telegram chat → one agent | Personal assistant setup |
+| Multiple Slack channels → different agents | Team collaboration |
+| One WhatsApp → default agent | Quick access from phone |
+
+## Per-Agent Tool Restrictions
+
+Control which tools each agent can access:
+
+| Tool | Description | Risk Level |
+|------|-------------|------------|
+| `shell` | Execute bash commands | High — can run any command |
+| `file` | Read and write files | Medium — can modify code |
+| `git` | Git operations (commit, push, branch) | Medium — can push code |
+| `browser` | Web automation and testing | Low — read-only web access |
+
+### Principle of Least Privilege
+
+Give each agent only the tools it needs:
+
+```json
+{
+  "id": "content-writer",
+  "tools": ["file", "git"]
+}
+```
+
+A content writer doesn't need `shell` access. It only needs to read/write files and commit changes.
+
+```json
+{
+  "id": "dev-ops",
+  "tools": ["shell", "file", "git"]
+}
+```
+
+A DevOps agent needs `shell` to run PM2, Caddy, and system commands.
+
+<Warning>
+An agent with `shell` access can execute any command the `deploy` user can. Restrict this to agents that genuinely need it (infrastructure, deployment tasks).
+</Warning>
+
+## Example Configurations
+
+### Frontend Developer
+
+```json
+{
+  "id": "frontend-dev",
+  "name": "Frontend Developer",
+  "workspace": "main",
+  "description": "Builds UI components, pages, and frontend features using Next.js and shadcn/ui",
+  "tools": ["shell", "file", "git", "browser"],
+  "model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514"
+  }
+}
+```
+
+### Database Admin
+
+```json
+{
+  "id": "db-admin",
+  "name": "Database Admin",
+  "workspace": "main",
+  "description": "Manages Drizzle schema, migrations, and database queries",
+  "tools": ["shell", "file", "git"],
+  "model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514"
+  }
+}
+```
+
+### Research Assistant
+
+```json
+{
+  "id": "researcher",
+  "name": "Research Assistant",
+  "workspace": "main",
+  "description": "Searches the web, summarizes information, and saves findings to storage/documents/",
+  "tools": ["file", "browser"],
+  "model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514"
+  }
+}
+```
+
+<Tip>
+Start with two agents (`os-admin` and `dev-ops`) and add specialists as your workflow demands it. Too many agents can be harder to manage than too few.
+</Tip>

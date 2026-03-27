@@ -1,0 +1,95 @@
+---
+title: "How It Works"
+description: "The big picture: a monorepo that doubles as an AI agent's operating system"
+---
+
+## What Is This Project?
+
+This is a **Turborepo monorepo** containing a suite of web applications — a main site, admin panel, API server, mobile app, documentation, video generator, and a browser-based desktop environment — all sharing a database, design system, and configuration layer.
+
+What makes it unique: the entire repo also functions as an **AI agent's operating system**. An AI coding agent (powered by [OpenClaw](https://docs.openclaw.ai/)) reads the repo's rules, edits its code, runs its commands, and deploys its apps — all triggered by a message from your phone.
+
+<CardGroup cols={2}>
+  <Card title="Monorepo" icon="folder-tree">
+    7 apps and 5 shared packages in a single Turborepo workspace, managed with pnpm
+  </Card>
+  <Card title="Agent OS" icon="robot">
+    AGENTS.md defines the rules. The repo is the agent's workspace, command center, and filesystem.
+  </Card>
+  <Card title="Self-Hosted" icon="server">
+    Runs on a single VPS with PM2, Caddy (auto-HTTPS), and Tailscale (private access)
+  </Card>
+  <Card title="Messaging-First" icon="message">
+    Control everything from Telegram, WhatsApp, or Slack — no SSH required
+  </Card>
+</CardGroup>
+
+## The Stack
+
+```
+apps/
+├── web/            → Next.js 15 + shadcn/ui + Tailwind CSS v4    :3000
+├── admin/          → Next.js 15 + shadcn/ui + Tailwind CSS v4    :3002
+├── docs/           → Mintlify documentation                       :3003
+├── react-native/   → Expo + Expo Router + NativeWind
+├── remotion/       → Remotion video generation                    :3004
+├── os/             → Browser-based desktop environment            :7777
+└── server/         → Fastify + Swagger API server                 :3001
+
+packages/
+├── app-config/     → Centralized app metadata, branding, assets
+├── blueprint-cli/  → npx blueprint CLI
+├── db/             → Drizzle ORM + Neon PostgreSQL
+├── eslint-config/  → Shared ESLint configs
+└── typescript-config/ → Shared TypeScript configs
+```
+
+## OpenClaw: The Agent Gateway
+
+[OpenClaw](https://docs.openclaw.ai/) is a self-hosted gateway that connects messaging apps (Telegram, WhatsApp, Slack) to AI coding agents. It runs on the same VPS as your monorepo and:
+
+- Receives messages from your chat apps
+- Routes them to the correct AI agent
+- Gives the agent access to your repo as its workspace
+- Streams responses back to your chat
+
+Think of it as a bridge between "send a text message" and "an AI edits your codebase."
+
+## High-Level Flow
+
+<Steps>
+  <Step title="You send a message">
+    From Telegram, WhatsApp, or Slack: *"Add a contact form to the web app"*
+  </Step>
+  <Step title="OpenClaw receives it">
+    The gateway authenticates you, selects the right agent, and forwards the instruction along with the repo context.
+  </Step>
+  <Step title="The agent reads AGENTS.md">
+    Before making any changes, the agent loads `AGENTS.md` at the repo root. This file defines what it can and cannot do — the governance contract.
+  </Step>
+  <Step title="The agent edits code">
+    It creates a feature branch, writes components, updates routes, adds translations, and commits with conventional commit messages.
+  </Step>
+  <Step title="Apps rebuild">
+    On the VPS, a `pnpm build` rebuilds the affected apps. PM2 restarts the processes. Caddy serves the updated site with auto-HTTPS.
+  </Step>
+  <Step title="You see the result">
+    The agent replies in your chat with a summary. Visit the live URL or open the OS desktop to see changes immediately.
+  </Step>
+</Steps>
+
+## Key Concepts
+
+| Concept | Purpose |
+|---------|---------|
+| **AGENTS.md** | Governance contract — hard rules, allowed actions, git workflow |
+| **Apps Registry** | Single source of truth for all app metadata (ports, subdomains, access) |
+| **App Config** | Centralized branding, colors, URLs — never hardcode |
+| **OS Desktop** | Browser-based command center with app windows |
+| **PM2** | Process manager keeping all apps alive on the VPS |
+| **Caddy** | Reverse proxy with automatic HTTPS via Let's Encrypt |
+| **Tailscale** | Mesh VPN for private access to admin apps |
+
+<Tip>
+Start with the [Deployment Overview](/deployment/overview) to get the full system running on a VPS, or read about [The Desktop Environment](/concepts/the-os) to understand the OS layer.
+</Tip>

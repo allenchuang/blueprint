@@ -1,6 +1,90 @@
-# Blueprint
+# Blueprint OS
 
-Full-stack monorepo for rapidly building and shipping app ideas. Built with Turborepo for orchestration, with shared packages for app configuration, database access, linting, and TypeScript configuration.
+<div align="center">
+
+**The full-stack developer OS. Build and ship apps faster.**
+
+[![GitHub Stars](https://img.shields.io/github/stars/allenchuang/blueprint?style=social)](https://github.com/allenchuang/blueprint/stargazers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-workspaces-orange?logo=pnpm)](https://pnpm.io/)
+
+[⭐ Star on GitHub](https://github.com/allenchuang/blueprint) · [📖 Docs](https://docs.example.com) · [🚀 Getting Started](#getting-started-in-60-seconds)
+
+</div>
+
+---
+
+## Why Blueprint OS?
+
+Stop stitching together boilerplates. Blueprint OS is a production-ready monorepo that ships everything a modern full-stack team needs — wired together and ready to go.
+
+- **⚡ Ship in hours, not weeks** — Auth, database, API, mobile, video, and AI assistant all pre-configured. Clone and start building your actual product.
+- **🏗️ Battle-tested stack** — Next.js 15, Fastify, Drizzle ORM, Expo, Remotion, and shadcn/ui. No experimental tech, no lock-in.
+- **🎨 One config, every app** — Change your brand name, color, or logo once in `app-config`. Every app updates automatically via `pnpm sync-config`.
+- **🤖 AI assistant built in** — An OpenClaw-powered AI dev assistant is part of the OS. Get help, run commands, and automate tasks without leaving your workflow.
+
+---
+
+## Getting Started in 60 seconds
+
+```bash
+# Scaffold a new project
+npx blueprint new my-app
+
+# Or clone directly
+git clone https://github.com/allenchuang/blueprint.git my-app
+cd my-app
+
+# Install dependencies (requires Node 23+, nvm recommended)
+nvm install && nvm use
+pnpm install
+
+# Set up environment
+cp .env.example .env
+# → Edit .env: add your DATABASE_URL
+
+# Push DB schema and start everything
+pnpm db:push
+pnpm dev
+```
+
+That's it. All apps start in parallel:
+- **Web** → http://localhost:3000
+- **API** → http://localhost:3001
+- **Admin** → http://localhost:3002
+- **Docs** → http://localhost:3003
+
+---
+
+## What's Included
+
+| App | Stack | Port |
+|-----|-------|------|
+| `apps/web` | Next.js 15 + shadcn/ui + Tailwind | 3000 |
+| `apps/server` | Fastify + Swagger/OpenAPI | 3001 |
+| `apps/admin` | Next.js 15 + shadcn/ui | 3002 |
+| `apps/docs` | Mintlify | 3003 |
+| `apps/remotion` | Remotion video generation | 3004 |
+| `apps/react-native` | Expo + Expo Router + NativeWind | — |
+| `apps/os` | Desktop OS environment | 7777 |
+
+### Built-in Features (pre-wired, no setup beyond `.env`)
+
+- 🔐 **Auth** — Dynamic or Privy (email OTP, social, wallets)
+- 🗄️ **Database** — Drizzle ORM + Neon serverless PostgreSQL
+- ⚡ **API** — Fastify with auto-generated Swagger docs
+- 📱 **Mobile** — Expo with shared hooks and co-development pattern
+- 🎬 **Video** — Remotion for programmatic video generation
+- 🌍 **i18n** — Multi-language support (EN, ZH, ES) out of the box
+- 📲 **PWA** — Manifest, icons, and apple-touch-icon auto-generated
+- 🌐 **World Mini App** — MiniKit SDK pre-configured for World App
+- 🎙️ **Voice Agent** — ElevenLabs conversational AI, web + mobile
+- 📊 **Analytics** — Google Analytics 4 with a single env var
+- 🤖 **AI Dev Assistant** — OpenClaw-powered OS desktop environment
+
+---
 
 ## Architecture
 
@@ -12,6 +96,8 @@ blueprint/
 │   ├── docs/           → Documentation (Mintlify)                              :3003
 │   ├── react-native/   → Mobile app (Expo + Expo Router + NativeWind)
 │   ├── remotion/       → Video generation (Remotion)                           :3004
+│   ├── os/             → Desktop environment (Next.js + shadcn/ui + Tailwind)  :7777
+│   ├── clawdash/       → OpenClaw diagnostics dashboard (Next.js + shadcn/ui) :7778
 │   └── server/         → API server (Fastify + Swagger)                        :3001
 ├── packages/
 │   ├── app-config/     → Centralized app metadata, branding, and assets
@@ -24,6 +110,8 @@ blueprint/
 └── pnpm-workspace.yaml → Workspace definition
 ```
 
+---
+
 ## Prerequisites
 
 - **Node.js** >= 23 — the repo includes an `.nvmrc` (see setup below)
@@ -33,265 +121,48 @@ blueprint/
 
 ### Node.js Setup
 
-Blueprint requires Node.js **v23 or higher**. The easiest way to manage this is with [nvm](https://github.com/nvm-sh/nvm):
-
 ```bash
 # Install nvm (if you don't have it)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 
-# Install and use the required Node version (reads .nvmrc automatically)
+# Install and use the required Node version
 nvm install
 nvm use
 ```
-
-To verify you're on the right version:
-
-```bash
-node -v   # Should print v23.x.x or higher
-```
-
-> **Tip:** Add `nvm use` to your shell profile or enable nvm's [auto-use](https://github.com/nvm-sh/nvm#deeper-shell-integration) so the correct version activates automatically when you `cd` into the project.
-
-## Getting Started
-
-```bash
-# 1. Switch to the correct Node version
-nvm use
-
-# 2. Install dependencies
-pnpm install
-
-# 3. Set up environment variables
-cp .env.example .env
-# Edit .env with your DATABASE_URL
-
-# 4. Push database schema
-pnpm db:push
-
-# 5. Customize your app identity (see "Configuring Your App" below)
-# Edit packages/app-config/src/config.ts, then:
-pnpm sync-config
-
-# 6. Start all apps in development
-pnpm dev
-```
-
----
-
-## Built-in Features
-
-Blueprint ships with production-ready scaffolding out of the box. Every feature below is pre-wired — no setup beyond filling in environment variables.
-
-- 🎨 Centralized App Config
-- 🌐 World Mini App (MiniKit SDK)
-- 🌍 Internationalization (i18n)
-- 📱 Mobile-First Web UX
-- 📲 PWA Support
-- 🧩 shadcn/ui Component Library
-- 🔄 React Query Data Fetching
-- 🗄️ Database (Drizzle + Neon)
-- ⚡ API Server (Fastify + Swagger)
-- 🎬 Video Generation (Remotion)
-- 📖 Documentation (Mintlify)
-- 📊 Google Analytics
-- 🔐 Authentication (Dynamic or Privy)
-- 🎙️ ElevenLabs Voice Agent
-- 🔀 Co-Development (Web + Mobile)
-
-### Centralized App Config
-
-All app identity (name, colors, URLs, socials, mobile bundle IDs) lives in a single file: `packages/app-config/src/config.ts`. Every app imports from `@repo/app-config` — nothing is hardcoded. Running `pnpm sync-config` propagates branding, theme CSS, OG images, favicons, and mobile config to every app automatically.
-
-### World Mini App (MiniKit SDK)
-
-`apps/web` is pre-configured as a [World Mini App](https://docs.world.org/mini-apps) — a web app that runs natively inside World App's webview.
-
-- **MiniKitProvider** wraps the app in the root layout for SDK initialization
-- **Convenience hook** (`src/hooks/use-minikit.ts`) exposes `isInstalled`, user info, device properties, and launch location
-- **Server-side API routes** under `src/app/api/minikit/`:
-  - `verify/` — World ID proof verification via `verifyCloudProof()`
-  - `confirm-payment/` — payment confirmation via Developer Portal API
-  - `nonce/` — SIWE nonce generation for wallet authentication
-  - `complete-siwe/` — SIWE signature verification for wallet auth
-- **Webview-optimized CSS** — `overscroll-behavior: none`, `viewport-fit: cover`, `user-scalable: false`
-- Supports all MiniKit commands: verify, pay, wallet auth, send transaction, sign message, share contacts, haptic feedback, notifications, and sharing
-
-### Internationalization (i18n)
-
-Multi-language support via i18next is wired into both `apps/web` and `apps/react-native`.
-
-- Supported languages defined in `packages/app-config/src/languages.json` (currently English, Chinese Simplified, Spanish)
-- Translation files organized by locale and namespace: `src/i18n/locales/{locale}/{namespace}.json`
-- Auto-detects browser language with `i18next-browser-languagedetector` (web) and `expo-localization` (mobile)
-- `I18nProvider` wraps the app — all user-facing strings use `useTranslation()` hooks
-
-### Mobile-First Web UX
-
-`apps/web` includes native-like mobile interaction patterns for sub-768px viewports.
-
-- **MobileTopNav** — fixed top bar with back chevron, centered title, optional right slot
-- **MobileFooter** — sticky bottom tab bar with safe-area handling
-- **MobileLayout** — responsive wrapper that renders mobile nav on small screens
-- **BottomSheet** — drag-to-dismiss bottom drawer (built on vaul)
-- **SlideInSheet** — full-screen slide-from-right panel for detail views
-- **Animation presets** in `src/lib/mobile-animations.ts` — spring physics, page transitions, tap feedback, stagger animations
-- **`useIsMobile()`** hook for JS detection + Tailwind `md:hidden`/`md:block` for CSS
-
-### PWA Support
-
-- `manifest.json`, app icons (`icon-192.png`, `icon-512.png`), and `apple-touch-icon.png` auto-generated by `pnpm sync-config`
-- Apple Web App meta tags pre-configured in the root layout
-- Viewport set with `viewport-fit: cover` for edge-to-edge rendering
-
-### shadcn/ui Component Library
-
-Each Next.js app (`web`, `admin`) has an independent shadcn/ui install with the `new-york` style and CSS variables. Pre-installed primitives include Button, Dialog, Drawer, and Sheet. Add more with `npx shadcn@latest add <component>` from the app directory.
-
-### React Query Data Fetching
-
-`@tanstack/react-query` is installed and ready. All API calls should go through React Query hooks in `src/hooks/` following the naming convention: `useGet[Resource]`, `useList[Resources]`, `use[Verb][Resource]`.
-
-### Database (Drizzle + Neon)
-
-Schema-first database access via Drizzle ORM with Neon serverless PostgreSQL. Schema lives in `packages/db/src/schema/` and is shared across `web`, `admin`, and `server`. Includes migration generation, direct push, and Drizzle Studio for visual data browsing.
-
-### API Server (Fastify + Swagger)
-
-`apps/server` provides a Fastify API with auto-generated Swagger/OpenAPI docs at `/docs`. Every endpoint includes a schema definition for type-safe request/response validation and documentation.
-
-### Video Generation (Remotion)
-
-`apps/remotion` supports programmatic video creation in React. Compositions automatically pull branding from `@repo/app-config`.
-
-### Documentation (Mintlify)
-
-`apps/docs` is a Mintlify documentation site. Name, colors, and links are auto-synced from app-config via `pnpm sync-config`.
-
-### Google Analytics
-
-Optional GA4 integration via `@next/third-parties`. Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env` to enable.
-
-### Authentication (Dynamic or Privy)
-
-Two mutually exclusive auth providers, selected during CLI scaffolding:
-
-**Dynamic Auth** — email OTP via [Dynamic](https://www.dynamic.xyz/):
-- Web: `DynamicContextProvider`, `useAuth()`, `getAuthToken()` | RN: `dynamicClient` + `DynamicWebView`
-- Server: JWKS RS256 verification via `jsonwebtoken` + `jwks-rsa`
-- Feature flag: `dynamicEnabled` in `lib/dynamic.ts`
-
-**Privy Auth** — email OTP, social logins, wallets, embedded wallets via [Privy](https://www.privy.io/):
-- Web: `PrivyProvider`, `useAuth()`, `useLogin()` modal | RN: `PrivyProvider` from `@privy-io/expo`
-- Server: ES256 verification via `@privy-io/node`
-- Feature flag: `privyEnabled` in `lib/privy.ts`
-
-Both expose the same `useAuth()` hook interface. Server uses `authenticate` preHandler and upserts users in local DB.
-
-Create a project at https://app.dynamic.xyz, enable Email auth in dashboard, and set the Environment ID in `.env` to enable.
-
-### ElevenLabs Voice Agent
-
-Real-time voice conversations with AI agents powered by [ElevenLabs Conversational AI](https://elevenlabs.io/docs/eleven-agents/overview).
-
-- **Web** (`@elevenlabs/react`): `useConversation` hook with browser-native WebRTC/WebSocket — no additional native dependencies
-- **React Native** (`@elevenlabs/react-native`): `ElevenLabsProvider` + `useConversation` hook with WebRTC via LiveKit
-- **Wrapper hook**: `useVoiceAgent()` in both apps provides a consistent interface with graceful fallback, microphone permission handling, and message history
-- **Feature flag**: `elevenlabsEnabled` in `lib/elevenlabs.ts` — gated on `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` (web) / `EXPO_PUBLIC_ELEVENLABS_AGENT_ID` (mobile)
-- **Demo pages**: `/voice-agent` (web) and Voice Agent tab (mobile) with start/stop controls, real-time status, transcript, and feedback
-
-Create an agent at https://elevenlabs.io/app/conversational-ai and set the agent ID in `.env` to enable.
-
-### Co-Development (Web + Mobile)
-
-Every UI feature is expected to ship in both `apps/web` and `apps/react-native` simultaneously. Shared hook names, shared data shapes, platform-specific UI primitives.
 
 ---
 
 ## Configuring Your App
 
-All app identity — name, branding, colors, URLs, and assets — is managed from a single place: `packages/app-config/`.
-
-### 1. Edit the config
-
-Open `packages/app-config/src/config.ts` and set your values:
+All app identity — name, branding, colors, URLs, and assets — lives in one file: `packages/app-config/src/config.ts`.
 
 ```typescript
 export const appConfig = {
-  name: "My App",                          // Display name everywhere
-  slug: "my-app",                          // URL-safe slug, bundle IDs
-  description: "What my app does",         // Meta descriptions, store listings
-  slogan: "Your catchy tagline here",      // OG images, landing pages
-  version: "0.1.0",
-
-  colors: {
-    primary: "#6366f1",                    // Brand color — generates full theme
-  },
-
+  name: "My App",
+  slug: "my-app",
+  description: "What my app does",
+  slogan: "Your catchy tagline here",
+  colors: { primary: "#6366f1" },
   urls: {
     website: "https://myapp.com",
     api: "http://localhost:3001",
-    docs: "https://docs.myapp.com",
-    supportEmail: "support@myapp.com",
   },
-
-  mobile: {
-    bundleId: "com.myapp.app",
-    scheme: "myapp",
-  },
-
   socials: {
     github: "https://github.com/my-org/my-app",
-    twitter: "https://twitter.com/myapp",
   },
 } satisfies AppConfig;
 ```
 
-### 2. Add brand assets
-
-Place your assets in `packages/app-config/assets/`:
-
-| File | Purpose |
-|------|---------|
-| `logo-light.svg` | Logo for light backgrounds |
-| `logo-dark.svg` | Logo for dark backgrounds |
-| `favicon.svg` | Browser favicon |
-| `icon-512.png` | App icon (mobile + PWA) |
-| `icon-192.png` | Small app icon (PWA) |
-| `splash.png` | Mobile splash screen |
-| `og-banner.png` | Banner image for OG image generation (1200x630 recommended) |
-| `og-font.ttf` | (Optional) Custom font for OG image text |
-
-### 3. Sync to all apps
-
+Then run:
 ```bash
 pnpm sync-config
 ```
 
-This single command:
-
-- Generates a full OKLCH light/dark **theme.css** from your primary color → `apps/web` and `apps/admin`
-- Copies **logos, favicons, and icons** to all web apps
-- Patches **React Native** `app.json` (name, slug, bundle ID, splash colors)
-- Patches **Mintlify** `docs.json` (name, colors, and supported links)
-- Generates an **OpenGraph image** (`og.png`) from your banner + slogan → `apps/web` and `apps/admin`
-
-### 4. Use in code
-
-```typescript
-import { appConfig } from "@repo/app-config";
-
-// Access any value
-appConfig.name        // "My App"
-appConfig.slogan      // "Your catchy tagline here"
-appConfig.colors.primary  // "#6366f1"
-appConfig.urls.api    // "http://localhost:3001"
-```
+This single command syncs your branding — theme CSS, logos, favicons, OG images, mobile config — to every app automatically.
 
 ---
 
 ## Scripts Reference
-
-### Global (run from repo root)
 
 | Command | Description |
 |---------|-------------|
@@ -299,64 +170,9 @@ appConfig.urls.api    // "http://localhost:3001"
 | `pnpm build` | Build all apps |
 | `pnpm lint` | Lint all apps and packages |
 | `pnpm check-types` | Type-check all apps and packages |
-| `pnpm format` | Format all files with Prettier |
-| `pnpm sync-config` | Sync app-config branding, theme, and assets to all apps |
-
-### Web App (`apps/web` — port 3000)
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev:web` | Start the Next.js dev server |
-| `pnpm --filter web build` | Production build |
-| `pnpm --filter web lint` | Lint the web app |
-| `npx shadcn@latest add <component>` | Add a shadcn/ui component (run from `apps/web/`) |
-
-### Admin Panel (`apps/admin` — port 3002)
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev:admin` | Start the admin dev server |
-| `pnpm --filter admin build` | Production build |
-| `pnpm --filter admin lint` | Lint the admin app |
-| `npx shadcn@latest add <component>` | Add a shadcn/ui component (run from `apps/admin/`) |
-
-### API Server (`apps/server` — port 3001)
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev:server` | Start the Fastify dev server |
-| `pnpm --filter server build` | Production build |
-| Visit `http://localhost:3001/docs` | Interactive Swagger/OpenAPI docs |
-
-### Documentation (`apps/docs` — port 3003)
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev:docs` | Start the Mintlify dev server |
-
-### Mobile (`apps/react-native`)
-
-| Command | Description |
-|---------|-------------|
-| `pnpm --filter react-native dev` | Start the Expo dev server |
-| `pnpm --filter react-native ios` | Run on iOS simulator |
-| `pnpm --filter react-native android` | Run on Android emulator |
-
-### Remotion (`apps/remotion` — port 3004)
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev:remotion` | Start Remotion Studio |
-| `pnpm --filter remotion build` | Render video compositions |
-
-### Database
-
-| Command | Description |
-|---------|-------------|
-| `pnpm db:generate` | Generate Drizzle migration files from schema changes |
-| `pnpm db:migrate` | Run pending migrations against the database |
-| `pnpm db:push` | Push schema directly to database (skips migrations — good for dev) |
-| `pnpm db:studio` | Open Drizzle Studio to browse/edit data |
+| `pnpm sync-config` | Sync branding, theme, and assets to all apps |
+| `pnpm db:push` | Push schema to database (dev shortcut) |
+| `pnpm db:studio` | Open Drizzle Studio |
 
 ---
 
@@ -365,70 +181,37 @@ appConfig.urls.api    // "http://localhost:3001"
 | Layer | Technology |
 |-------|-----------|
 | Web Frontend | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
-| Admin Panel | Next.js 15, React 19, shadcn/ui, Tailwind CSS v4 |
 | Mobile | Expo, Expo Router, NativeWind, React Native |
-| Video | Remotion |
 | API Server | Fastify, Swagger/OpenAPI |
 | Database | Drizzle ORM, Neon (serverless PostgreSQL) |
+| Video | Remotion |
 | Monorepo | Turborepo, pnpm workspaces |
 | Language | TypeScript (strict mode) |
 
-## Shared Packages
+---
 
-- **`blueprint`** (`packages/blueprint-cli`) — Published CLI for scaffolding and managing Blueprint projects. See [CLI Usage](#cli-usage) below.
-- **`@repo/app-config`** — Centralized app metadata, branding colors, URLs, slogan, and assets. Used by all apps. Run `pnpm sync-config` after edits. Also generates OG images from a banner + slogan.
-- **`@repo/db`** — Drizzle ORM schema definitions and database client. Used by `web`, `admin`, and `server`.
-- **`@repo/eslint-config`** — Shared ESLint configurations (base, Next.js, React).
-- **`@repo/typescript-config`** — Shared TypeScript configurations (base, Next.js, React library).
+## CLI
+
+```bash
+# Scaffold a new Blueprint project
+npx blueprint new my-app
+
+# Inside an existing project, proxy to workspace scripts
+blueprint dev
+blueprint sync-config
+blueprint db:push
+```
 
 ---
 
-## CLI Usage
+## License
 
-The `blueprint` CLI is published to npm and lets anyone scaffold or manage a Blueprint project.
+MIT © [allenchuang](https://github.com/allenchuang)
 
-### Scaffold a new project
+---
 
-```bash
-npx blueprint new my-app
-```
-
-This will:
-1. Clone the Blueprint repo into `./my-app`
-2. Remove the origin git history
-3. Optionally prompt for `DATABASE_URL` and write `.env`
-4. Run `pnpm install`
-5. Initialize a fresh git repository
-
-### Run workspace commands
-
-When inside an existing Blueprint project, the CLI proxies to the root pnpm scripts:
-
-```bash
-blueprint dev              # pnpm dev (all apps)
-blueprint dev:web          # pnpm dev:web
-blueprint sync-config      # pnpm sync-config
-blueprint build            # pnpm build
-blueprint lint             # pnpm lint
-blueprint check-types      # pnpm check-types
-blueprint db:push          # pnpm db:push
-blueprint db:studio        # pnpm db:studio
-```
-
-### Publishing the CLI
-
-```bash
-cd packages/blueprint-cli
-pnpm build
-npm publish --access public
-```
-
-## Environment Variables
-
-Create a `.env` file at the root (or per-app) with:
-
-```bash
-DATABASE_URL=postgresql://user:password@host/database?sslmode=require
-```
-
-See each app's README for app-specific environment variables.
+<div align="center">
+  <strong>If Blueprint OS saves you time, please ⭐ star the repo — it helps more developers discover it.</strong>
+  <br />
+  <a href="https://github.com/allenchuang/blueprint">github.com/allenchuang/blueprint</a>
+</div>

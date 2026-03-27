@@ -1,0 +1,193 @@
+---
+title: "VPS Setup"
+description: "Provision a server on AWS EC2 or Hetzner Cloud"
+---
+
+## Choose a Provider
+
+<Tabs>
+  <Tab title="AWS EC2">
+    ### Create an AWS Account
+
+    If you don't have one, sign up at [aws.amazon.com](https://aws.amazon.com). Enable MFA on the root account.
+
+    ### Import Your SSH Key
+
+    <Steps>
+      <Step title="Go to EC2 → Key Pairs">
+        In the AWS Console, navigate to **EC2 → Network & Security → Key Pairs**.
+      </Step>
+      <Step title="Import your public key">
+        Click **Actions → Import Key Pair**. Paste the contents of `~/.ssh/id_ed25519.pub`. Name it something memorable (e.g., `deploy-key`).
+      </Step>
+    </Steps>
+
+    ### Launch an Instance
+
+    <Steps>
+      <Step title="Choose AMI">
+        Select **Ubuntu 24.04 LTS** (HVM, SSD Volume Type).
+      </Step>
+      <Step title="Choose instance type">
+        Select **t3.large** (2 vCPU, 8 GB RAM). This handles Node.js builds well.
+      </Step>
+      <Step title="Configure Security Group">
+        Create a new security group with these inbound rules:
+
+        | Port | Protocol | Source | Purpose |
+        |------|----------|--------|---------|
+        | 22 | TCP | Your IP | SSH |
+        | 80 | TCP | 0.0.0.0/0 | HTTP (Caddy redirect) |
+        | 443 | TCP | 0.0.0.0/0 | HTTPS (Caddy) |
+      </Step>
+      <Step title="Add storage">
+        Set the root volume to **50 GB** (gp3). The default 8 GB is too small for Node.js builds.
+      </Step>
+      <Step title="Select your key pair">
+        Choose the key pair you imported earlier.
+      </Step>
+      <Step title="Launch">
+        Click **Launch Instance**. Note the instance ID.
+      </Step>
+    </Steps>
+
+    ### Allocate an Elastic IP
+
+    <Steps>
+      <Step title="Go to EC2 → Elastic IPs">
+        Click **Allocate Elastic IP address**.
+      </Step>
+      <Step title="Associate with your instance">
+        Select the new Elastic IP → **Actions → Associate** → choose your instance.
+      </Step>
+    </Steps>
+
+    ### SSH In
+
+    ```bash
+    ssh ubuntu@YOUR_ELASTIC_IP
+    ```
+  </Tab>
+  <Tab title="Hetzner Cloud">
+    ### Create a Hetzner Account
+
+    Sign up at [hetzner.com/cloud](https://www.hetzner.com/cloud). Create a new project.
+
+    ### Create a Server
+
+    <Steps>
+      <Step title="Click 'Add Server'">
+        In your project, click **Add Server**.
+      </Step>
+      <Step title="Choose location">
+        Pick the region closest to you (e.g., Ashburn for US East, Falkenstein for EU).
+      </Step>
+      <Step title="Choose image">
+        Select **Ubuntu 24.04**.
+      </Step>
+      <Step title="Choose type">
+        Select **CX42** (8 vCPU, 16 GB RAM, 160 GB disk). For smaller setups, CX32 works too.
+      </Step>
+      <Step title="Add SSH key">
+        Paste the contents of `~/.ssh/id_ed25519.pub`.
+      </Step>
+      <Step title="Create">
+        Click **Create & Buy Now**. Note the public IPv4 address.
+      </Step>
+    </Steps>
+
+    ### SSH In
+
+    ```bash
+    ssh root@YOUR_SERVER_IP
+    ```
+  </Tab>
+</Tabs>
+
+## Create a Deploy User
+
+Run these commands on the VPS. If you're on Hetzner (logged in as `root`), these work directly. On AWS, prefix with `sudo`.
+
+```bash
+# Create the deploy user
+sudo adduser --disabled-password --gecos "" deploy
+sudo usermod -aG sudo deploy
+
+# Allow passwordless sudo
+echo "deploy ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/deploy
+
+# Copy SSH keys to the deploy user
+sudo mkdir -p /home/deploy/.ssh
+sudo cp ~/.ssh/authorized_keys /home/deploy/.ssh/
+sudo chown -R deploy:deploy /home/deploy/.ssh
+sudo chmod 700 /home/deploy/.ssh
+sudo chmod 600 /home/deploy/.ssh/authorized_keys
+```
+
+Log out and SSH back in as the deploy user:
+
+```bash
+ssh deploy@YOUR_SERVER_IP
+```
+
+## Install System Dependencies
+
+### Node.js 23 via nvm
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.bashrc
+
+nvm install 23
+nvm alias default 23
+node --version  # Should show v23.x.x
+```
+
+### pnpm via Corepack
+
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
+pnpm --version
+```
+
+### PM2
+
+```bash
+npm install -g pm2
+pm2 --version
+```
+
+### Caddy
+
+```bash
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update
+sudo apt install caddy
+```
+
+Verify Caddy is running:
+
+```bash
+sudo systemctl status caddy
+```
+
+<Tip>
+Caddy runs as a systemd service and starts automatically on boot. Configuration happens in the next step: [Caddy Reverse Proxy →](/deployment/caddy-reverse-proxy).
+</Tip>
+
+### Git
+
+Git is pre-installed on Ubuntu 24.04. Verify:
+
+```bash
+git --version
+```
+
+## Next Step
+
+Set up SSH authentication so the VPS can clone your private repository.
+
+[GitHub Deploy Keys →](/deployment/github-deploy-keys)

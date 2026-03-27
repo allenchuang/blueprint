@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
-export default function PricingSuccessPage() {
+function SuccessContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -17,7 +17,6 @@ export default function PricingSuccessPage() {
       setStatus("error");
       return;
     }
-    // In production, verify the session with your backend
     setStatus("success");
   }, [sessionId]);
 
@@ -49,5 +48,19 @@ export default function PricingSuccessPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function PricingSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </main>
+      }
+    >
+      <SuccessContent />
+    </Suspense>
   );
 }

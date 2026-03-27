@@ -1,13 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Instrument_Serif } from "next/font/google";
 import { useTranslation } from "react-i18next";
 import { appConfig } from "@repo/app-config";
 import { Github, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const instrumentSerif = Instrument_Serif({ weight: "400", subsets: ["latin"] });
+const headingFont = "font-[family-name:var(--font-heading)]";
 
 function PerspectiveGrid() {
   const cols = 20;
@@ -98,12 +97,12 @@ export default function Home() {
           className="drop-shadow-2xl"
         />
         <h1
-          className={`mt-0 text-6xl md:text-8xl ${instrumentSerif.className}`}
+          className={`mt-0 text-6xl md:text-8xl ${headingFont}`}
         >
           {t("appName")}
         </h1>
         <p
-          className={`mt-4 text-2xl md:text-3xl text-gray-500 dark:text-gray-400 ${instrumentSerif.className}`}
+          className={`mt-4 text-2xl md:text-3xl text-gray-500 dark:text-gray-400 ${headingFont}`}
         >
           {appConfig.slogan}
         </p>

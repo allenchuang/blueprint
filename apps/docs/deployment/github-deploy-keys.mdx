@@ -1,0 +1,124 @@
+---
+title: "GitHub Deploy Keys"
+description: "Set up SSH authentication for git operations"
+---
+
+## Overview
+
+Deploy keys let the VPS authenticate with GitHub to clone and pull your private repository — without using a personal access token or your GitHub password.
+
+## Generate an SSH Key
+
+On the VPS (as the `deploy` user):
+
+```bash
+ssh-keygen -t ed25519 -C "deploy@vps" -f ~/.ssh/github_deploy
+```
+
+Press Enter twice to skip the passphrase (required for automated workflows).
+
+Print the public key:
+
+```bash
+cat ~/.ssh/github_deploy.pub
+```
+
+Copy the output — you'll paste it into GitHub next.
+
+## Add to GitHub
+
+<Steps>
+  <Step title="Open the repository on GitHub">
+    Navigate to your repo → **Settings** → **Deploy keys**.
+  </Step>
+  <Step title="Click 'Add deploy key'">
+    - **Title:** `VPS Deploy Key`
+    - **Key:** Paste the contents of `github_deploy.pub`
+    - **Allow write access:** Check this box if agents need to push branches
+  </Step>
+  <Step title="Click 'Add key'">
+    GitHub confirms the key was added.
+  </Step>
+</Steps>
+
+## Configure SSH
+
+Create or edit `~/.ssh/config` on the VPS:
+
+```bash
+cat >> ~/.ssh/config << 'EOF'
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github_deploy
+  IdentitiesOnly yes
+EOF
+```
+
+Set permissions:
+
+```bash
+chmod 600 ~/.ssh/config
+```
+
+## Set Git Identity
+
+Configure a git identity for commits made on the VPS:
+
+```bash
+git config --global user.name "Deploy Bot"
+git config --global user.email "deploy@yourdomain.com"
+```
+
+## Verify
+
+Test the connection:
+
+```bash
+ssh -T git@github.com
+```
+
+You should see:
+
+```
+Hi your-org/your-repo! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+<Warning>
+If you see `Permission denied (publickey)`, double-check that the public key in GitHub matches `~/.ssh/github_deploy.pub` and that `~/.ssh/config` points to the correct `IdentityFile`.
+</Warning>
+
+## Multi-Repo Setup
+
+If the VPS manages multiple repositories (see [Multi-Repo Pipeline](/extending/multi-repo-pipeline)), create a unique key per repo and use host aliases:
+
+```bash
+# Generate a second key
+ssh-keygen -t ed25519 -C "deploy@vps-second-repo" -f ~/.ssh/github_second_repo
+```
+
+Add to `~/.ssh/config`:
+
+```bash
+Host github-second-repo
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github_second_repo
+  IdentitiesOnly yes
+```
+
+Clone using the alias:
+
+```bash
+git clone git@github-second-repo:your-org/second-repo.git
+```
+
+<Note>
+Each deploy key can only be attached to one repository on GitHub. For multiple repos, you need multiple keys with host aliases.
+</Note>
+
+## Next Step
+
+Clone the repo and deploy all apps with PM2.
+
+[Deploy the Monorepo →](/deployment/monorepo-on-vps)

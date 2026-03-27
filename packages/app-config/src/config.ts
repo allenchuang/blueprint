@@ -11,6 +11,16 @@ export const appConfig = {
     primary: "#38BDF8",
   },
 
+  design: {
+    fonts: {
+      heading: "Instrument Serif",
+      body: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      mono: "ui-monospace, 'Cascadia Code', monospace",
+    },
+    defaultTheme: "system",
+    radius: "0.625rem",
+  },
+
   urls: {
     website: "https://example.com",
     api: "http://localhost:3001",

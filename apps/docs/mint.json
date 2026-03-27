@@ -1,0 +1,125 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Mastermind",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#52c2a0",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#52c2a0"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@example.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://example.com"
+  },
+  "tabs": [
+    {
+      "name": "Concepts",
+      "url": "concepts"
+    },
+    {
+      "name": "Deployment",
+      "url": "deployment"
+    },
+    {
+      "name": "Extending",
+      "url": "extending"
+    },
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com"
+    },
+    {
+      "name": "OpenClaw",
+      "icon": "robot",
+      "url": "https://docs.openclaw.ai/"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "architecture"
+      ]
+    },
+    {
+      "group": "Concepts",
+      "pages": [
+        "concepts/how-it-works",
+        "concepts/the-os",
+        "concepts/agent-governance",
+        "concepts/bidirectional-loop",
+        "concepts/apps-registry"
+      ]
+    },
+    {
+      "group": "Deployment",
+      "pages": [
+        "deployment/overview",
+        "deployment/existing-openclaw",
+        "deployment/vps-setup",
+        "deployment/github-deploy-keys",
+        "deployment/monorepo-on-vps",
+        "deployment/caddy-reverse-proxy",
+        "deployment/tailscale",
+        "deployment/openclaw-setup"
+      ]
+    },
+    {
+      "group": "Connect Channels",
+      "pages": [
+        "deployment/connect-telegram",
+        "deployment/connect-whatsapp",
+        "deployment/connect-slack"
+      ]
+    },
+    {
+      "group": "Extending",
+      "pages": [
+        "extending/adding-an-app",
+        "extending/deploy-pipeline",
+        "extending/multi-repo-pipeline",
+        "extending/file-storage",
+        "extending/custom-agents"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/introduction"
+      ]
+    },
+    {
+      "group": "Endpoints",
+      "pages": [
+        "api-reference/endpoint/get",
+        "api-reference/endpoint/create"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com"
+  }
+}

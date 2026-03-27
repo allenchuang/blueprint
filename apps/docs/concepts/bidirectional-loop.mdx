@@ -1,0 +1,90 @@
+---
+title: "The Bidirectional Control Loop"
+description: "Three loops that make the system self-managing"
+---
+
+## Overview
+
+The system operates through three interconnected control loops. Each loop starts from a different entry point but converges on the same monorepo — editing code, rebuilding apps, and updating the live environment.
+
+## Loop 1: Messaging → Agent → Code
+
+The primary loop. You send a natural-language instruction via a messaging app, and the agent translates it into code changes.
+
+```
+You (Telegram/WhatsApp/Slack)
+  → OpenClaw Gateway
+    → AI Agent reads AGENTS.md
+      → Agent edits code on feature branch
+        → pnpm build → PM2 restart
+          → Live apps update
+            → Agent replies in chat
+```
+
+**Real-world example:**
+
+> **You:** "Add a dark mode toggle to the settings page"
+>
+> **Agent:** Creates `feat/openclaw-dark-mode`, adds a toggle component to `apps/web/src/app/settings/`, updates the theme provider, commits `feat(web): add dark mode toggle to settings`, rebuilds, restarts. Replies: "Done — dark mode toggle is live on the settings page."
+
+<Tip>
+The agent always works on a feature branch. You review and merge when ready.
+</Tip>
+
+## Loop 2: OS Desktop → Server API → Infrastructure
+
+The second loop gives you direct control through the browser-based desktop environment. Instead of messaging, you interact with the OS app, which calls the Fastify server API to manage infrastructure.
+
+```
+You (OS Desktop at :7777)
+  → OpenClaw Control panel / Terminal app
+    → Fastify Server API (:3001)
+      → Manages OpenClaw config, PM2 processes, deployments
+        → Changes reflected in OS desktop
+```
+
+**Real-world example:**
+
+> You open the OS desktop, launch the OpenClaw Control panel, and see that the `dev-ops` agent is idle. You click "Restart Gateway" — the server API restarts the OpenClaw process, and the control panel updates to show it's running.
+
+> Alternatively, you open the Terminal system app and run `pm2 status` to check all processes, or `pnpm build --filter web` to manually trigger a rebuild.
+
+## Loop 3: Agent → Code → Portal Rebuilds
+
+The third loop is autonomous. The agent, triggered by a scheduled task or a webhook, edits the repo and rebuilds apps without direct user input.
+
+```
+OpenClaw Agent (scheduled / webhook-triggered)
+  → Reads repo state
+    → Edits code (e.g., update dependencies, rotate keys)
+      → pnpm build → PM2 restart
+        → OS desktop / web apps reflect changes
+```
+
+**Real-world example:**
+
+> A webhook fires when a new blog post is published in a CMS. The `dev-ops` agent pulls the latest content, rebuilds the web app, and restarts PM2. The updated blog post appears on the live site — no human intervention.
+
+## How the Loops Connect
+
+All three loops converge on the same system:
+
+| Loop | Entry Point | Trigger | Actor |
+|------|-------------|---------|-------|
+| **1** | Messaging app | Your message | AI agent via OpenClaw |
+| **2** | OS desktop | Your click / command | Server API |
+| **3** | Repo/Webhook | Automated event | AI agent autonomously |
+
+The shared infrastructure — the monorepo, PM2, Caddy, the apps registry — means every loop produces the same outcome: code changes, rebuilt apps, and an updated live environment.
+
+<Note>
+Loop 3 requires careful governance. Autonomous agent actions are still bound by `AGENTS.md` rules — the agent cannot bypass hard boundaries just because no human triggered the action.
+</Note>
+
+## Why Three Loops?
+
+- **Loop 1** is for convenience — manage your stack from your phone
+- **Loop 2** is for control — direct access when you need precision
+- **Loop 3** is for automation — let the system maintain itself
+
+Together, they create a system where you can be as hands-on or hands-off as you want.

@@ -7,6 +7,6 @@ export function useMiniKit() {
     isInstalled: MiniKit.isInstalled(),
     user: MiniKit.user,
     deviceProperties: MiniKit.deviceProperties,
-    launchLocation: MiniKit.launchLocation,
+    launchLocation: (MiniKit as unknown as Record<string, unknown>).launchLocation,
   };
 }

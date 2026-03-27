@@ -1,0 +1,136 @@
+---
+title: "Deploy Pipeline"
+description: "Automated deployment with the deploy script"
+---
+
+## Overview
+
+`scripts/deploy-app.sh` is a deployment automation script that reads the apps registry and generates the correct PM2 and Caddy configurations for any app. Instead of manually writing PM2 entries and Caddy blocks, you run one command.
+
+## How It Works
+
+```
+scripts/deploy-app.sh <app-id>
+        │
+        ├── Reads packages/app-config/src/apps-registry.ts
+        │     └── Finds the entry matching <app-id>
+        │
+        ├── Generates PM2 config based on app.type
+        │     ├── nextjs  → node_modules/next/dist/bin/next start -p {port}
+        │     ├── fastify → dist/index.js
+        │     └── mintlify → node_modules/mintlify/dist/local-preview/index.js --port {port}
+        │
+        ├── Generates Caddy block based on app.access
+        │     ├── public  → {subdomain}.yourdomain.com → localhost:{port}
+        │     └── private → skip (Tailscale handles it)
+        │
+        ├── Adds PM2 process and saves
+        └── Reloads Caddy (if public)
+```
+
+## Usage
+
+Deploy a single app:
+
+```bash
+./scripts/deploy-app.sh web
+```
+
+Deploy all apps:
+
+```bash
+./scripts/deploy-app.sh --all
+```
+
+Rebuild and deploy:
+
+```bash
+pnpm build --filter=web && ./scripts/deploy-app.sh web
+```
+
+## PM2 Start Commands by Type
+
+The script generates different PM2 commands based on the `type` field in the registry:
+
+| Type | Start Command | Working Directory |
+|------|--------------|-------------------|
+| `nextjs` | `node_modules/next/dist/bin/next start -p {port}` | `./apps/{id}` |
+| `fastify` | `node dist/index.js` | `./apps/{id}` |
+| `mintlify` | `node_modules/mintlify/dist/local-preview/index.js --port {port}` | `./apps/{id}` |
+| `remotion` | `node_modules/remotion/dist/cli/index.js studio --port {port}` | `./apps/{id}` |
+
+<Note>
+Next.js apps use the resolved binary path (`node_modules/next/dist/bin/next`) rather than `npx next` because PM2 requires a direct file path for reliable process management.
+</Note>
+
+## Caddy Block Generation
+
+For `access: "public"` apps, the script generates:
+
+```
+{subdomain}.yourdomain.com {
+    reverse_proxy localhost:{port}
+}
+```
+
+For `access: "private"` apps, no Caddy block is generated — these are served via Tailscale.
+
+The script appends to `/etc/caddy/Caddyfile` and runs `sudo systemctl reload caddy`.
+
+## Rolling Restarts
+
+To update an app without downtime:
+
+```bash
+# Build the updated app
+pnpm build --filter=web
+
+# Reload (zero-downtime for Node.js cluster mode)
+pm2 reload web
+```
+
+For a full restart (brief downtime):
+
+```bash
+pm2 restart web
+```
+
+To restart all apps after a major update:
+
+```bash
+pnpm build
+pm2 restart all
+```
+
+## Full Redeploy Workflow
+
+After pulling code changes on the VPS:
+
+```bash
+cd /home/deploy/your-repo
+git pull origin main
+
+# Install new dependencies (if any)
+pnpm install
+
+# Rebuild affected apps
+pnpm build
+
+# Restart all processes
+pm2 restart all
+pm2 save
+```
+
+<Tip>
+For CI/CD integration, wrap this in a GitHub Actions workflow that SSHs into the VPS on merge to `main`.
+</Tip>
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| App not starting | Check `pm2 logs {app}` for errors |
+| Wrong port | Verify the port in the registry matches the PM2 args |
+| Caddy 502 | The app isn't listening yet — check PM2 status |
+| "Script not found" | Run `pnpm build --filter={app}` first |
+| Permission denied on Caddy | The script needs `sudo` for Caddyfile edits |

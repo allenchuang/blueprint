@@ -17,6 +17,23 @@ export interface AppConfig {
     secondary?: string;
   };
 
+  /** Design system — fonts, typography scale, and design philosophy */
+  design: {
+    /** Font families used across the app */
+    fonts: {
+      /** Display/headline font (Google Fonts name) */
+      heading: string;
+      /** Body text font stack */
+      body: string;
+      /** Monospace font stack */
+      mono?: string;
+    };
+    /** Default theme preference */
+    defaultTheme: "light" | "dark" | "system";
+    /** Border radius token (CSS value) */
+    radius: string;
+  };
+
   urls: {
     /** Production website URL */
     website: string;
