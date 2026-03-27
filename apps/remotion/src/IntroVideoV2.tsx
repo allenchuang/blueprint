@@ -519,7 +519,7 @@ const Scene3WhatIf: React.FC = () => {
                 key={i}
                 style={{
                   fontFamily,
-                  fontSize: i === 1 ? 80 : 106,
+                  fontSize: 106,
                   letterSpacing: "-0.03em",
                   color: "#0c2340",
                   textShadow:
