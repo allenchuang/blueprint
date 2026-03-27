@@ -481,7 +481,7 @@ const Scene3WhatIf: React.FC = () => {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          objectPosition: "center 70%",
+          objectPosition: "center 25%",
         }}
         muted
       />
