@@ -94,7 +94,7 @@ function loadCapEmojiDataUri(): string {
 const CAP_EMOJI_DATA_URI = loadCapEmojiDataUri();
 
 /** Blueprint 🧢 logo mark — cap emoji rendered as Apple-style PNG image */
-function logoMark(size = 84) {
+function logoMark(size = 147) {
   return {
     type: "img",
     props: {
@@ -252,7 +252,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                 props: {
                   style: { display: "flex", alignItems: "center", gap: 16 },
                   children: [
-                    logoMark(72),
+                    logoMark(126),
                     {
                       type: "span",
                       props: {
@@ -382,7 +382,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(60),
+                    logoMark(105),
                     {
                       type: "div",
                       props: {
@@ -490,7 +490,7 @@ function buildQuoteCard(body: GenerateCardBody) {
               alignItems: "center",
               padding: "64px 88px",
               height: "100%",
-              gap: 32,
+              gap: 16,
               textAlign: "center",
             },
             children: [
@@ -575,7 +575,7 @@ function buildQuoteCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(48),
+                    logoMark(84),
                     {
                       type: "span",
                       props: {
@@ -647,7 +647,7 @@ function buildStatCard(body: GenerateCardBody) {
               textAlign: "center",
             },
             children: [
-              logoMark(78),
+              logoMark(137),
               // Big stat
               {
                 type: "div",
