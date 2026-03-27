@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
-function PricingSuccessContent() {
+function SuccessContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -53,12 +53,14 @@ function PricingSuccessContent() {
 
 export default function PricingSuccessPage() {
   return (
-    <Suspense fallback={
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </main>
-    }>
-      <PricingSuccessContent />
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </main>
+      }
+    >
+      <SuccessContent />
     </Suspense>
   );
 }

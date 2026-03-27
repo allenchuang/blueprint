@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Instrument_Serif } from "next/font/google";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { stripeEnabled } from "@/lib/stripe";
 import { useSubscription } from "@/hooks/use-subscription";
 import { FEATURES, type FeatureKey } from "@/lib/features";
 
-const instrumentSerif = Instrument_Serif({ weight: "400", subsets: ["latin"] });
+const headingFont = "font-[family-name:var(--font-heading)]";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -98,7 +97,7 @@ export default function PricingPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
             </svg>
           </div>
-          <h1 className={`text-3xl ${instrumentSerif.className}`}>{t("notConfiguredTitle")}</h1>
+          <h1 className={`text-3xl ${headingFont}`}>{t("notConfiguredTitle")}</h1>
           <p className="mt-3 text-muted-foreground">{t("notConfiguredMessage")}</p>
           <Link href="/"><Button variant="outline" className="mt-6">{t("backToHome")}</Button></Link>
         </div>
@@ -131,18 +130,18 @@ export default function PricingPage() {
       <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-20 sm:px-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className={`text-5xl sm:text-6xl ${instrumentSerif.className}`}>{t("pageTitle")}</h1>
-          <p className={`mt-4 text-xl text-gray-500 dark:text-gray-400 ${instrumentSerif.className}`}>{t("pageSubtitle")}</p>
+          <h1 className={`text-5xl sm:text-6xl ${headingFont}`}>{t("pageTitle")}</h1>
+          <p className={`mt-4 text-xl text-gray-500 dark:text-gray-400 ${headingFont}`}>{t("pageSubtitle")}</p>
         </div>
 
         {/* Pricing cards */}
         <div className="mt-12 grid gap-6 sm:grid-cols-2">
           {/* Free Tier */}
           <div className="relative rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-black/8 dark:border-white/8 p-8 shadow-sm">
-            <h2 className={`text-2xl ${instrumentSerif.className}`}>{t("freeTier")}</h2>
+            <h2 className={`text-2xl ${headingFont}`}>{t("freeTier")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{t("freeTierDescription")}</p>
             <div className="mt-6">
-              <span className={`text-4xl ${instrumentSerif.className}`}>{t("freePrice")}</span>
+              <span className={`text-4xl ${headingFont}`}>{t("freePrice")}</span>
               <span className="ml-1 text-sm text-muted-foreground">{t("perMonth")}</span>
             </div>
             <div className="mt-8">
@@ -168,10 +167,10 @@ export default function PricingPage() {
             <div className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-primary-foreground">
               {t("proTier")}
             </div>
-            <h2 className={`text-2xl ${instrumentSerif.className}`}>{t("proTier")}</h2>
+            <h2 className={`text-2xl ${headingFont}`}>{t("proTier")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{t("proTierDescription")}</p>
             <div className="mt-6">
-              <span className={`text-4xl ${instrumentSerif.className}`}>{t("proMonthlyPrice")}</span>
+              <span className={`text-4xl ${headingFont}`}>{t("proMonthlyPrice")}</span>
               <span className="ml-1 text-sm text-muted-foreground">{t("perMonth")}</span>
             </div>
             <div className="mt-8">
@@ -200,7 +199,7 @@ export default function PricingPage() {
 
         {/* Feature gating demo */}
         <div className="mt-10 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-black/8 dark:border-white/8 p-8">
-          <h2 className={`text-2xl ${instrumentSerif.className}`}>{t("premiumFeatureDemo")}</h2>
+          <h2 className={`text-2xl ${headingFont}`}>{t("premiumFeatureDemo")}</h2>
           <div className="mt-4">
             {tier === "pro" ? (
               <div className="rounded-xl bg-emerald-500/10 p-6 text-center">

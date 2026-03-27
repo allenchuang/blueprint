@@ -23,6 +23,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.3",
+    "satori": "^0.25.0",
     "tailwind-merge": "^3.3.0",
     "twitter-api-v2": "^1.29.0"
   },
