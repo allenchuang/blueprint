@@ -64,3 +64,17 @@ storage/temp/*
 ecosystem.config.cjs
 
 apps/remotion/build.env.local
+
+# Sensitive data files — never commit
+storage/
+growth-activity.json
+post-suggestions.json
+*.secret
+
+# Paperclip local data (contains server IPs, auth config, runtime data)
+apps/paperclip/.paperclip/
+apps/paperclip/data/
+apps/paperclip/*.paperclip
+
+# Agent workspace files (should never be committed)
+workspace-*/
