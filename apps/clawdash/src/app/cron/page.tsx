@@ -9,7 +9,7 @@ export default function CronPage() {
   const jobs = data?.jobs || [];
 
   return (
-    <div className="p-6 space-y-5 max-w-4xl">
+    <div className="p-4 md:p-6 space-y-5 max-w-4xl">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Cron Jobs</h1>
         <p className="text-[13px] text-muted-foreground mt-1">
@@ -31,7 +31,7 @@ export default function CronPage() {
             {jobs.map((job) => (
               <div
                 key={job.id}
-                className="px-5 py-4 flex items-center gap-4"
+                className="px-4 md:px-5 py-4 flex items-center gap-3 md:gap-4 min-h-[64px]"
               >
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${

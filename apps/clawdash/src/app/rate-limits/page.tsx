@@ -16,7 +16,7 @@ export default function RateLimitsPage() {
   const usage = data?.usage || [];
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <div className="p-4 md:p-6 space-y-5 md:space-y-6 max-w-4xl">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Rate Limits</h1>
         <p className="text-[13px] text-muted-foreground mt-1">
@@ -41,20 +41,20 @@ export default function RateLimitsPage() {
             return (
               <div
                 key={u.model}
-                className="rounded-xl border border-border bg-card p-5 space-y-3"
+                className="rounded-xl border border-border bg-card p-4 md:p-5 space-y-3"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <Gauge
-                      className="w-4 h-4"
+                      className="w-4 h-4 shrink-0"
                       style={{ color }}
                     />
-                    <span className="text-[13px] font-medium">
+                    <span className="text-[13px] font-medium truncate">
                       {u.model}
                     </span>
                   </div>
                   <span
-                    className={`text-[12px] font-mono ${
+                    className={`text-[12px] font-mono shrink-0 ${
                       isNear ? "text-destructive" : "text-muted-foreground"
                     }`}
                   >

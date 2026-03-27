@@ -17,7 +17,7 @@ export default function CostsPage() {
   const maxDayCost = Math.max(...dayEntries.map(([, v]) => v), 1);
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl">
+    <div className="p-4 md:p-6 space-y-5 md:space-y-6 max-w-6xl">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Costs</h1>
         <p className="text-[13px] text-muted-foreground mt-1">
@@ -25,31 +25,33 @@ export default function CostsPage() {
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="rounded-xl border border-border bg-card p-5 flex-1">
+      {/* Summary cards — stack on mobile, row on md+ */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl border border-border bg-card p-4 md:p-5">
           <div className="flex items-center gap-2 mb-1">
             <DollarSign className="w-4 h-4 text-warning" />
             <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
               Total Spend
             </span>
           </div>
-          <p className="text-3xl font-semibold tracking-tight">
+          <p className="text-2xl md:text-3xl font-semibold tracking-tight">
             {formatCost(data?.totalCents || 0)}
           </p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5 flex-1">
+        <div className="rounded-xl border border-border bg-card p-4 md:p-5">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="w-4 h-4 text-primary" />
             <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
               Models Used
             </span>
           </div>
-          <p className="text-3xl font-semibold tracking-tight">
+          <p className="text-2xl md:text-3xl font-semibold tracking-tight">
             {modelEntries.length}
           </p>
         </div>
       </div>
 
+      {/* By model + by day — stack on mobile, 2-col on lg */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card">
           <div className="px-4 py-3 border-b border-border">
@@ -63,9 +65,9 @@ export default function CostsPage() {
             ) : (
               modelEntries.map(([model, cost]) => (
                 <div key={model} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[13px]">
+                  <div className="flex items-center justify-between text-[13px] gap-2">
                     <span className="truncate">{model}</span>
-                    <span className="font-mono shrink-0 ml-2">
+                    <span className="font-mono shrink-0">
                       {formatCost(cost)}
                     </span>
                   </div>
@@ -93,11 +95,11 @@ export default function CostsPage() {
             ) : (
               dayEntries.slice(0, 14).map(([day, cost]) => (
                 <div key={day} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span className="font-mono text-muted-foreground">
+                  <div className="flex items-center justify-between text-[13px] gap-2">
+                    <span className="font-mono text-muted-foreground shrink-0">
                       {day}
                     </span>
-                    <span className="font-mono shrink-0 ml-2">
+                    <span className="font-mono shrink-0">
                       {formatCost(cost)}
                     </span>
                   </div>
@@ -114,6 +116,7 @@ export default function CostsPage() {
         </div>
       </div>
 
+      {/* By session */}
       <div className="rounded-xl border border-border bg-card">
         <div className="px-4 py-3 border-b border-border">
           <span className="text-[13px] font-semibold">By Session</span>
@@ -127,17 +130,17 @@ export default function CostsPage() {
             bySession.slice(0, 20).map((s) => (
               <div
                 key={s.id}
-                className="px-4 py-2.5 flex items-center justify-between"
+                className="px-4 py-3 flex items-center justify-between gap-3 min-h-[52px]"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <span className="text-[13px] font-mono truncate block">
-                    {s.id.slice(0, 16)}
+                    {s.id.slice(0, 20)}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[11px] text-muted-foreground truncate block mt-0.5">
                     {s.model}
                   </span>
                 </div>
-                <span className="text-[13px] font-mono shrink-0 ml-3">
+                <span className="text-[13px] font-mono shrink-0">
                   {formatCost(s.costCents)}
                 </span>
               </div>

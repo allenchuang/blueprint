@@ -113,9 +113,9 @@ function SessionsPreview({
       ) : (
         <div className="divide-y divide-border">
           {recent.map((s) => (
-            <div key={s.id} className="px-4 py-2.5 flex items-center gap-3">
+            <div key={s.id} className="px-4 py-3 flex items-center gap-3">
               <div
-                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                className={`w-2 h-2 rounded-full shrink-0 ${
                   s.status === "active"
                     ? "bg-green-500 animate-pulse"
                     : s.status === "idle"
@@ -159,7 +159,7 @@ export default function OverviewPage() {
   const totalMessages = sessions.reduce((sum, s) => sum + s.messageCount, 0);
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl">
+    <div className="p-4 md:p-6 space-y-5 md:space-y-6 max-w-6xl">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
         <p className="text-[13px] text-muted-foreground mt-1">
@@ -168,6 +168,8 @@ export default function OverviewPage() {
       </div>
 
       <AgentStatusCards agents={agentStatuses} />
+
+      {/* Stat cards: 2-col on mobile, 4-col on large */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="Active Sessions"
@@ -198,7 +200,8 @@ export default function OverviewPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      {/* Health gauges: stack on mobile, 3-col on large */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <HealthGauge
           label="CPU"
           value={healthData?.cpu.usage || 0}
@@ -222,6 +225,7 @@ export default function OverviewPage() {
         />
       </div>
 
+      {/* Sessions + System Info: stack on mobile, 2-col on large */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <SessionsPreview sessions={sessions} />
         <div className="rounded-xl border border-border bg-card">
