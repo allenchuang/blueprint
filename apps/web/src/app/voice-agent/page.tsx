@@ -1,12 +1,11 @@
 "use client";
 
-import { Instrument_Serif } from "next/font/google";
 import { useTranslation } from "react-i18next";
 import { useVoiceAgent } from "@/hooks/use-voice-agent";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-const instrumentSerif = Instrument_Serif({ weight: "400", subsets: ["latin"] });
+const headingFont = "font-[family-name:var(--font-heading)]";
 
 function StatusDot({ status }: { status: string }) {
   const color =
@@ -95,7 +94,7 @@ export default function VoiceAgentPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
             </svg>
           </div>
-          <h1 className={`text-3xl ${instrumentSerif.className}`}>{t("voiceAgentNotConfigured")}</h1>
+          <h1 className={`text-3xl ${headingFont}`}>{t("voiceAgentNotConfigured")}</h1>
           <p className="mt-2 text-muted-foreground">{t("voiceAgentNotConfiguredHint")}</p>
           <Link href="/" className="mt-6 inline-block">
             <Button variant="outline">{t("backToHome")}</Button>
@@ -115,8 +114,8 @@ export default function VoiceAgentPage() {
       <div className="relative z-10 mx-auto w-full max-w-2xl px-4 py-20 sm:px-8">
         {/* Header */}
         <div className="mb-10 text-center">
-          <h1 className={`text-5xl sm:text-6xl ${instrumentSerif.className}`}>{t("voiceAgent")}</h1>
-          <p className={`mt-3 text-xl text-gray-500 dark:text-gray-400 ${instrumentSerif.className}`}>
+          <h1 className={`text-5xl sm:text-6xl ${headingFont}`}>{t("voiceAgent")}</h1>
+          <p className={`mt-3 text-xl text-gray-500 dark:text-gray-400 ${headingFont}`}>
             {t("voiceAgentDescription")}
           </p>
         </div>
@@ -219,7 +218,7 @@ export default function VoiceAgentPage() {
         {messages.length > 0 && (
           <div className="mt-6 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-black/8 dark:border-white/8 overflow-hidden">
             <div className="border-b border-black/8 dark:border-white/8 px-5 py-3">
-              <h2 className={`text-lg ${instrumentSerif.className}`}>{t("voiceAgentTranscript")}</h2>
+              <h2 className={`text-lg ${headingFont}`}>{t("voiceAgentTranscript")}</h2>
             </div>
             <div className="max-h-80 overflow-y-auto p-5">
               <div className="space-y-3">

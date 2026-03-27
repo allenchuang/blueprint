@@ -25,6 +25,8 @@ export interface AppConfig {
       heading: string;
       /** Body text font stack */
       body: string;
+      /** Monospace font stack */
+      mono?: string;
     };
     /** Default theme preference */
     defaultTheme: "light" | "dark" | "system";

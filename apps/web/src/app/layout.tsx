@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Instrument_Serif } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { appConfig } from "@repo/app-config";
 import { WorldMiniKitProvider } from "@/components/minikit-provider";
@@ -14,6 +14,12 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+const instrumentSerif = Instrument_Serif({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-heading",
+  display: "swap",
+});
 
 const OG_TITLE = "Blueprint OS — Full-stack developer OS";
 const OG_DESCRIPTION =
@@ -77,7 +83,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${instrumentSerif.variable}`}>
         <ThemeProvider>
           <TooltipProvider>
             <WorldMiniKitProvider>

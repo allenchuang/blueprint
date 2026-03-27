@@ -46,6 +46,7 @@ export function useVoiceAgent() {
     if (!hasPermission) return;
 
     setMessages([]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await conversation.startSession({
       agentId: ELEVENLABS_AGENT_ID,
       connectionType: "webrtc",

@@ -1,12 +1,12 @@
 {
   "$schema": "https://mintlify.com/schema.json",
   "theme": "mint",
-  "name": "Blueprint 🧢 ",
+  "name": "Blueprint",
   "favicon": "/favicon.svg",
   "colors": {
     "primary": "#38BDF8",
-    "light": "#7DD3FC",
-    "dark": "#0EA5E9"
+    "light": "#72efff",
+    "dark": "#38BDF8"
   },
   "background": {
     "decoration": "grid",
@@ -21,7 +21,11 @@
   "navigation": {
     "global": {
       "anchors": [
-        { "anchor": "GitHub", "href": "https://github.com", "icon": "github" }
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com",
+          "icon": "github"
+        }
       ]
     },
     "tabs": [
@@ -31,11 +35,17 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["introduction", "quickstart", "get-started"]
+            "pages": [
+              "introduction",
+              "quickstart",
+              "get-started"
+            ]
           },
           {
             "group": "Project",
-            "pages": ["architecture"]
+            "pages": [
+              "architecture"
+            ]
           }
         ]
       },
@@ -53,7 +63,11 @@
           },
           {
             "group": "Auth & Payments",
-            "pages": ["features/authentication", "features/privy-auth", "features/payments"]
+            "pages": [
+              "features/authentication",
+              "features/privy-auth",
+              "features/payments"
+            ]
           },
           {
             "group": "Frontend",
@@ -88,7 +102,10 @@
           },
           {
             "group": "Process",
-            "pages": ["conventions/testing", "conventions/git"]
+            "pages": [
+              "conventions/testing",
+              "conventions/git"
+            ]
           }
         ]
       },
