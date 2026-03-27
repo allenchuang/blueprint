@@ -69,7 +69,7 @@ export default function ConfigPage() {
   }
 
   return (
-    <div className="p-6 space-y-5 max-w-4xl">
+    <div className="p-4 md:p-6 space-y-5 max-w-4xl">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Config</h1>
         <p className="text-[13px] text-muted-foreground mt-1">

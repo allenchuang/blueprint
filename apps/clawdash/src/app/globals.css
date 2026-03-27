@@ -4,6 +4,16 @@
 html,
 body {
   height: 100%;
+  overflow-x: hidden;
+}
+
+/* Safe-area utilities for iOS */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pb-safe-nav {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
 }
 
 body {
