@@ -308,3 +308,79 @@ After code changes on the VPS, run:
 - **Reverse proxy**: Caddy (`/etc/caddy/Caddyfile`) — auto-HTTPS via Let's Encrypt
 - **Private access**: Tailscale for admin, OS, and OpenClaw Gateway
 - **App registry**: `packages/app-config/src/apps-registry.ts` — single source of truth for all app metadata
+
+---
+
+## Paperclip Integration
+
+Paperclip is the **living task board** for Blueprint OS. When Ash dispatches a task to any agent, it must be tracked as a Paperclip issue. Paperclip is the source of truth for what's in progress, blocked, or done.
+
+### Helper Module
+
+The helper lives at `~/.openclaw/workspace/paperclip.mjs` (Ash's workspace — not in the repo). Import it at runtime:
+
+```js
+import { createIssue, updateIssue, listIssues, deleteIssue, AGENT_IDS, PRIORITY } from '~/workspace/paperclip.mjs';
+```
+
+### Agent → Paperclip ID Map
+
+| Agent  | Paperclip ID                           |
+|--------|----------------------------------------|
+| Ash    | `9b0e68d3-c975-448b-b2bd-ceaf4a604413` |
+| Ocean  | `799c3795-b274-4694-bb10-79a14ee9413c` |
+| Skylar | `9ff965c3-cf06-49d8-98fd-177ca4cc8218` |
+| Coral  | `8be15c18-c99f-4872-a5b3-b0eb75de438c` |
+| Arctic | `10668412-f4a4-4e9d-8ebe-004765047c97` |
+
+Use `AGENT_IDS.ocean`, `AGENT_IDS.ash`, etc. from the module.
+
+### Workflow
+
+**When Ash dispatches a task to an agent:**
+
+```js
+const issue = await createIssue({
+  title: 'Short description of the task',
+  description: 'Full context and requirements for the agent',
+  assignedAgentId: AGENT_IDS.ocean,  // or whichever agent
+  priority: PRIORITY.normal,         // maps to "medium"
+});
+// Store issue.id → call updateIssue(issue.id, { status: 'done' }) on completion
+```
+
+**When a task completes:**
+
+```js
+await updateIssue(issueId, { status: 'done' });
+```
+
+**To review what's in flight:**
+
+```js
+const active = await listIssues({ status: 'in_progress' });
+const queued = await listIssues({ status: 'todo' });
+```
+
+### Priority Mapping
+
+| Ash Convention | Paperclip Priority |
+|----------------|--------------------|
+| `urgent`       | `high`             |
+| `normal`       | `medium`           |
+| `background`   | `low`              |
+
+Use `PRIORITY.urgent`, `PRIORITY.normal`, `PRIORITY.background` from the module.
+
+### Issue Statuses
+
+`backlog` → `todo` → `in_progress` → `in_review` → `done`
+
+Also valid: `blocked`, `cancelled`
+
+### Infrastructure
+
+- **URL:** http://54.151.66.76:3100
+- **Company ID:** `e74c5621-fdd3-4004-bd6a-a10a861018f6`
+- **Auth:** POST `/api/auth/sign-in/email` → `better-auth.session_token` cookie
+- **Note:** Use public IP (not localhost) — Node.js fetch strips Origin on same-origin requests, breaking better-auth's origin validation.
