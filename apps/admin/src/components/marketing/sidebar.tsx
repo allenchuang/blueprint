@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Lightbulb, Globe2, TrendingUp, Zap, PenLine, Image, Sparkles } from "lucide-react";
+import { BarChart3, Lightbulb, Globe2, TrendingUp, Zap, PenLine, Image, Sparkles, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -109,17 +109,45 @@ export function MarketingSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-2 px-1.5 py-1">
-          <TrendingUp className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#30d158" }} />
-          <span className="text-[11px]" style={{ color: "#636366" }}>
-            +18.2% followers ↑
-          </span>
-        </div>
+      <div className="px-2 py-3 space-y-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <Link
+          href="/settings"
+          className={cn(
+            "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 min-h-[36px]",
+            pathname === "/settings" ? "text-white" : "hover:text-white"
+          )}
+          style={
+            pathname === "/settings"
+              ? {
+                  background: "rgba(10,132,255,0.18)",
+                  color: "#5ac8fa",
+                  boxShadow: "inset 0 0 0 1px rgba(10,132,255,0.2)",
+                }
+              : { color: "#8e8e93" }
+          }
+          onMouseEnter={(e) => {
+            if (pathname !== "/settings")
+              (e.currentTarget as HTMLAnchorElement).style.background =
+                "rgba(255,255,255,0.06)";
+          }}
+          onMouseLeave={(e) => {
+            if (pathname !== "/settings")
+              (e.currentTarget as HTMLAnchorElement).style.background =
+                "transparent";
+          }}
+        >
+          <Settings className="w-[15px] h-[15px] flex-shrink-0" />
+          Settings
+        </Link>
       </div>
     </aside>
   );
 }
+
+const mobileNavItems = [
+  ...navItems.slice(0, 4),
+  { label: "Settings", href: "/settings", icon: Settings },
+];
 
 // Mobile bottom tab bar
 export function MobileTabBar() {
@@ -128,7 +156,7 @@ export function MobileTabBar() {
   return (
     <div className="bottom-tab-bar md:hidden">
       <div className="flex items-center justify-around px-2 py-2">
-        {navItems.map((item) => {
+        {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             item.href === "/"
