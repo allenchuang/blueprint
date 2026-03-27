@@ -79,11 +79,16 @@
           },
           {
             "group": "Integrations",
-            "pages": ["features/voice-agent", "features/video-generation"]
+            "pages": [
+              "features/voice-agent",
+              "features/video-generation"
+            ]
           },
           {
             "group": "Marketing",
-            "pages": ["features/marketing-dashboard"]
+            "pages": [
+              "features/marketing-dashboard"
+            ]
           }
         ]
       },

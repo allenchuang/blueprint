@@ -1,76 +1,72 @@
-/* ── macOS-inspired dark theme ────────────────────────────────────────────── */
-
 :root {
-  --radius: 0.75rem;
-
-  /* Light mode — kept for completeness but app defaults dark */
-  --background: #f5f5f7;
-  --foreground: #1c1c1e;
-  --card: #ffffff;
-  --card-foreground: #1c1c1e;
-  --popover: #ffffff;
-  --popover-foreground: #1c1c1e;
-  --primary: #0a84ff;
-  --primary-foreground: #ffffff;
-  --secondary: #e5e5ea;
-  --secondary-foreground: #1c1c1e;
-  --muted: #f2f2f7;
-  --muted-foreground: #6e6e73;
-  --accent: #e5f1ff;
-  --accent-foreground: #0a84ff;
-  --destructive: #ff453a;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.08);
-  --input: rgba(0, 0, 0, 0.08);
-  --ring: #0a84ff;
-  --sidebar: rgba(248, 248, 248, 0.85);
-  --sidebar-foreground: #1c1c1e;
-  --sidebar-primary: #0a84ff;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(10, 132, 255, 0.08);
-  --sidebar-accent-foreground: #0a84ff;
-  --sidebar-border: rgba(0, 0, 0, 0.06);
-  --sidebar-ring: #0a84ff;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.754 0.139 232.661);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.95 0.042 232.661);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.754 0.139 232.661);
+  --chart-1: oklch(0.754 0.139 232.661);
+  --chart-2: oklch(0.6 0.15 292.661);
+  --chart-3: oklch(0.5 0.12 352.661);
+  --chart-4: oklch(0.7 0.16 52.661);
+  --chart-5: oklch(0.65 0.18 112.661);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.754 0.139 232.661);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.95 0.042 232.661);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.754 0.139 232.661);
 }
 
-/* ── macOS Dark (always-on for admin) ───────────────────────────────────── */
 .dark {
-  --background: #1c1c1e;
-  --foreground: #f5f5f7;
-  --card: #2c2c2e;
-  --card-foreground: #f5f5f7;
-  --popover: #3a3a3c;
-  --popover-foreground: #f5f5f7;
-  --primary: #0a84ff;
-  --primary-foreground: #ffffff;
-  --secondary: #3a3a3c;
-  --secondary-foreground: #f5f5f7;
-  --muted: #3a3a3c;
-  --muted-foreground: #98989f;
-  --accent: rgba(10, 132, 255, 0.12);
-  --accent-foreground: #5ac8fa;
-  --destructive: #ff453a;
-  --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.1);
-  --ring: #0a84ff;
-
-  /* Sidebar — frosted glass vibrancy */
-  --sidebar: rgba(28, 28, 30, 0.82);
-  --sidebar-foreground: #f5f5f7;
-  --sidebar-primary: #0a84ff;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(255, 255, 255, 0.07);
-  --sidebar-accent-foreground: #f5f5f7;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #0a84ff;
-
-  /* Chart colors — Apple system palette */
-  --chart-1: #0a84ff; /* blue */
-  --chart-2: #30d158; /* green */
-  --chart-3: #ff9f0a; /* orange */
-  --chart-4: #bf5af2; /* purple */
-  --chart-5: #ff375f; /* pink/red */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.85 0.139 232.661);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.3 0.069 232.661);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.85 0.139 232.661);
+  --chart-1: oklch(0.85 0.139 232.661);
+  --chart-2: oklch(0.65 0.17 292.661);
+  --chart-3: oklch(0.7 0.15 352.661);
+  --chart-4: oklch(0.6 0.2 52.661);
+  --chart-5: oklch(0.65 0.22 112.661);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.85 0.139 232.661);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.85 0.139 232.661);
 }
 
 @theme inline {

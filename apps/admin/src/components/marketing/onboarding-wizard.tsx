@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { CheckCircle2, Plus, Copy, Check, RefreshCw, Twitter, ChevronDown } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -206,7 +206,25 @@ function ConnectedAccountBadge({ account }: { account: TwitterAccountInfo }) {
 
 // ─── Main Onboarding Wizard ───────────────────────────────────────────────────
 
-export function OnboardingWizard() {
+export function useOnboarding() {
+  const [checked, setChecked] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const done = localStorage.getItem("blueprint-onboarding-complete");
+    setShowOnboarding(!done);
+    setChecked(true);
+  }, []);
+
+  const completeOnboarding = useCallback(() => {
+    localStorage.setItem("blueprint-onboarding-complete", "true");
+    setShowOnboarding(false);
+  }, []);
+
+  return { showOnboarding, completeOnboarding, checked };
+}
+
+export function OnboardingWizard({ onComplete }: { onComplete?: () => void }) {
   const [accounts, setAccounts] = useState<TwitterAccountInfo[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
