@@ -258,9 +258,10 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                       props: {
                         style: {
                           color: WHITE,
-                          fontSize: 33,
+                          fontSize: 22,
                           fontWeight: 700,
                           letterSpacing: "-0.02em",
+                          fontFamily: `${HEADING_FONT}, serif`,
                         },
                         children: appConfig.name,
                       },
@@ -294,7 +295,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                           props: {
                             style: {
                               color: MUTED,
-                              fontSize: 42,
+                              fontSize: 28,
                               fontWeight: 400,
                               lineHeight: 1.4,
                             },
@@ -325,7 +326,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                         props: {
                           style: {
                             color: WHITE,
-                            fontSize: 27,
+                            fontSize: 18,
                             fontWeight: 600,
                           },
                           children: body.cta,
@@ -397,7 +398,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                           props: {
                             style: {
                               color: WHITE,
-                              fontSize: 20,
+                              fontSize: 13,
                               fontWeight: 600,
                               letterSpacing: "0.06em",
                               textTransform: "uppercase",
@@ -432,7 +433,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     props: {
                       style: {
                         color: MUTED,
-                        fontSize: 39,
+                        fontSize: 26,
                         fontWeight: 400,
                         lineHeight: 1.5,
                         maxWidth: 700,
@@ -448,7 +449,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     props: {
                       style: {
                         color: "rgba(255,255,255,0.8)",
-                        fontSize: 27,
+                        fontSize: 18,
                         fontWeight: 500,
                       },
                       children: body.cta,
@@ -551,7 +552,7 @@ function buildQuoteCard(body: GenerateCardBody) {
                           props: {
                             style: {
                               color: MUTED,
-                              fontSize: 30,
+                              fontSize: 20,
                               fontWeight: 400,
                             },
                             children: body.subtitle,
@@ -580,8 +581,9 @@ function buildQuoteCard(body: GenerateCardBody) {
                       props: {
                         style: {
                           color: MUTED,
-                          fontSize: 24,
+                          fontSize: 16,
                           fontWeight: 600,
+                          fontFamily: `${HEADING_FONT}, serif`,
                         },
                         children: appConfig.name,
                       },
@@ -668,7 +670,7 @@ function buildStatCard(body: GenerateCardBody) {
                     props: {
                       style: {
                         color: MUTED,
-                        fontSize: 42,
+                        fontSize: 28,
                         fontWeight: 400,
                         letterSpacing: "0.01em",
                       },
@@ -694,7 +696,7 @@ function buildStatCard(body: GenerateCardBody) {
                         props: {
                           style: {
                             color: WHITE,
-                            fontSize: 27,
+                            fontSize: 18,
                             fontWeight: 700,
                           },
                           children: body.cta,
