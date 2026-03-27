@@ -14,6 +14,7 @@ import {
   DollarSign,
   Clock,
 } from "lucide-react";
+import { AgentStatusSection } from "@/components/agents/AgentStatusSection";
 
 function StatCard({
   label,
@@ -162,6 +163,8 @@ export default function OverviewPage() {
           OpenClaw agent diagnostics at a glance
         </p>
       </div>
+
+      <AgentStatusSection />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
