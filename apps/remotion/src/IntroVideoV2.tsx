@@ -457,195 +457,76 @@ const Scene2WrongPath: React.FC = () => {
 };
 
 // ---------------------------------------------------------------------------
-// Scene 3 — "Introducing the opensource workspace where agents call home"
+// Scene 3 — Full-frame lobster video with staggered text overlay
 // ---------------------------------------------------------------------------
 
-const SCENE3_ENTER_DELAY = 18; // after T_QUICK=12 transition fully settles
-const SCENE3_SPRING = { damping: 20, stiffness: 200 };
-
-type WordEffect = "up" | "right" | "left" | "zoom-in" | "zoom-out";
-const CYCLING_WORDS: { word: string; effect: WordEffect }[] = [
-  { word: "open-source",      effect: "up"       },
-  { word: "battle-tested",    effect: "zoom-in"  },
-  { word: "composable",       effect: "right"    },
-  { word: "extensible",       effect: "left"     },
-  { word: "agent-ready",      effect: "zoom-out" },
-  { word: "production-grade", effect: "up"       },
-  { word: "type-safe",        effect: "right"    },
-  { word: "scalable",         effect: "zoom-in"  },
-  { word: "modular",          effect: "left"     },
-  { word: "full-stack",       effect: "up"       },
-  { word: "cloud-native",     effect: "zoom-out" },
-  { word: "self-hostable",    effect: "right"    },
-  { word: "AI-powered",       effect: "zoom-in"  },
-  { word: "developer-first",  effect: "up"       },
+const SCENE3_LINES = [
+  "what if...",
+  "there's a magical workspace",
+  "that agents call home...",
 ];
-const SCENE3_WORD_IN       = 4;
-const SCENE3_WORD_HOLD     = 6;
-const SCENE3_WORD_OUT      = 4;
-const SCENE3_WORD_INTERVAL = SCENE3_WORD_IN + SCENE3_WORD_HOLD + SCENE3_WORD_OUT; // 14 frames
-const SCENE3_WORD_START    = SCENE3_ENTER_DELAY; // first word appears with the header
-
-// ---------------------------------------------------------------------------
-// Scene 3 — "what if there's a ___" cycling words → "workspace that agents call home"
-// ---------------------------------------------------------------------------
+const SCENE3_LINE_DELAY = 35; // frames between each line appearing
+const SCENE3_FIRST_LINE_DELAY = 20; // delay before first line appears
 
 const Scene3WhatIf: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Header entrance
-  const headerProgress = spring({
-    frame: Math.max(0, frame - SCENE3_ENTER_DELAY),
-    fps,
-    config: SCENE3_SPRING,
-  });
-  const headerOpacity = interpolate(headerProgress, [0, 1], [0, 1],  { extrapolateRight: "clamp" });
-  const headerY       = interpolate(headerProgress, [0, 1], [44, 0], { extrapolateRight: "clamp" });
-
   return (
     <AbsoluteFill>
-      {/* Left half — lobster video */}
-      <div
+      {/* Full-frame lobster video */}
+      <OffthreadVideo
+        src={staticFile("lobster-scene.mp4")}
         style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: "57%",
+          width: "100%",
           height: "100%",
-          overflow: "hidden",
-          backgroundColor: "#000",
+          objectFit: "cover",
         }}
-      >
-        <OffthreadVideo
-          src={staticFile("lobster-scene.mp4")}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-          muted
-        />
-      </div>
+        muted
+      />
 
-      {/* Right half — text content on dark gradient */}
-      <div
+      {/* Centered text overlay */}
+      <AbsoluteFill
         style={{
-          position: "absolute",
-          right: 0,
-          top: 0,
-          width: "43%",
-          height: "100%",
-          background: "linear-gradient(180deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)",
-          display: "flex",
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        {/* Subtle grid overlay on right side */}
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-          <svg
-            width="100%"
-            height="100%"
-            style={{ position: "absolute", width: "100%", height: "100%" }}
-          >
-            {Array.from({ length: 10 }, (_, i) => (
-              <line key={`h-${i}`} x1="0" y1={`${i * 10}%`} x2="100%" y2={`${i * 10}%`}
-                stroke="white" strokeWidth="0.5" opacity="0.06" />
-            ))}
-            {Array.from({ length: 8 }, (_, i) => (
-              <line key={`v-${i}`} x1={`${i * 14}%`} y1="0" x2={`${i * 14}%`} y2="100%"
-                stroke="white" strokeWidth="0.5" opacity="0.06" />
-            ))}
-          </svg>
+        <div style={{ textAlign: "center" }}>
+          {SCENE3_LINES.map((line, i) => {
+            const lineStart = SCENE3_FIRST_LINE_DELAY + i * SCENE3_LINE_DELAY;
+            const progress = spring({
+              frame: Math.max(0, frame - lineStart),
+              fps,
+              config: { damping: 18, stiffness: 160 },
+            });
+            const opacity = interpolate(progress, [0, 1], [0, 1], {
+              extrapolateRight: "clamp",
+            });
+            const translateY = interpolate(progress, [0, 1], [30, 0], {
+              extrapolateRight: "clamp",
+            });
+
+            return (
+              <div
+                key={i}
+                style={{
+                  fontFamily,
+                  fontSize: i === 0 ? 100 : 80,
+                  color: TEXT_COLOR,
+                  textShadow:
+                    "0 4px 20px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4)",
+                  lineHeight: 1.4,
+                  opacity,
+                  transform: `translateY(${translateY}px)`,
+                }}
+              >
+                {line}
+              </div>
+            );
+          })}
         </div>
-
-        <div style={{ textAlign: "center", padding: "40px 48px", position: "relative", zIndex: 1 }}>
-
-          {/* "what if there's a" */}
-          <div
-            style={{
-              fontFamily,
-              fontSize: 64,
-              color: TEXT_COLOR,
-              textShadow: TEXT_SHADOW,
-              lineHeight: 1.3,
-              opacity: headerOpacity,
-              transform: `translateY(${headerY}px)`,
-            }}
-          >
-            what if there&apos;s a
-          </div>
-
-          {/* Cycling word slot — fixed height so layout never shifts */}
-          <div style={{ position: "relative", height: 110, marginTop: 6 }}>
-            {CYCLING_WORDS.map(({ word, effect }, i) => {
-              const wStart  = SCENE3_WORD_START + i * SCENE3_WORD_INTERVAL;
-              const inEnd   = wStart + SCENE3_WORD_IN;
-              const holdEnd = inEnd + SCENE3_WORD_HOLD;
-              const outEnd  = holdEnd + SCENE3_WORD_OUT;
-              const EX = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
-              const wOpacity = interpolate(frame, [wStart, inEnd, holdEnd, outEnd], [0, 1, 1, 0], EX);
-
-              let wTransform = "none";
-              if (effect === "up") {
-                const y = interpolate(frame, [wStart, inEnd, holdEnd, outEnd], [36, 0, 0, -36], EX);
-                wTransform = `translateY(${y}px)`;
-              } else if (effect === "right") {
-                const x = interpolate(frame, [wStart, inEnd, holdEnd, outEnd], [-100, 0, 0, 100], EX);
-                wTransform = `translateX(${x}px)`;
-              } else if (effect === "left") {
-                const x = interpolate(frame, [wStart, inEnd, holdEnd, outEnd], [100, 0, 0, -100], EX);
-                wTransform = `translateX(${x}px)`;
-              } else if (effect === "zoom-in") {
-                const s = interpolate(frame, [wStart, inEnd, holdEnd, outEnd], [0.5, 1, 1, 1.4], EX);
-                wTransform = `scale(${s})`;
-              } else if (effect === "zoom-out") {
-                const s = interpolate(frame, [wStart, inEnd, holdEnd, outEnd], [1.5, 1, 1, 0.7], EX);
-                wTransform = `scale(${s})`;
-              }
-
-              return (
-                <div
-                  key={i}
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    fontFamily,
-                    fontSize: 78,
-                    color: TEXT_COLOR,
-                    textShadow: TEXT_SHADOW,
-                    fontStyle: "italic",
-                    opacity: wOpacity,
-                    transform: wTransform,
-                  }}
-                >
-                  {word}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* "magical workspace that your agents call home?" */}
-          <div
-            style={{
-              fontFamily,
-              fontSize: 52,
-              color: TEXT_COLOR,
-              textShadow: TEXT_SHADOW,
-              lineHeight: 1.35,
-              marginTop: 12,
-              opacity: headerOpacity,
-              transform: `translateY(${headerY}px)`,
-            }}
-          >
-            <span style={{ fontStyle: "italic", fontWeight: "bold" }}>magical</span>{" "}
-            workspace that your agents call home?
-          </div>
-
-        </div>
-      </div>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
