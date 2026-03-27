@@ -10,7 +10,7 @@ export interface AppEntry {
   /** "public" apps are exposed via Caddy; "private" are Tailscale-only */
   access: "public" | "private";
   /** Whether this is a Next.js app managed by PM2 */
-  type: "nextjs" | "fastify" | "mintlify" | "remotion" | "expo";
+  type: "nextjs" | "fastify" | "mintlify" | "remotion" | "expo" | "standalone";
 }
 
 export const appsRegistry: AppEntry[] = [
@@ -75,6 +75,18 @@ export const appsRegistry: AppEntry[] = [
     type: "remotion",
   },
   {
+    id: "clawdash",
+    name: "ClawDash",
+    port: 7778,
+    description: "OpenClaw diagnostics and agent dashboard",
+    icon: "activity",
+    color: "amber",
+    subdomain: "clawdash",
+    openMaximized: true,
+    access: "private",
+    type: "nextjs",
+  },
+  {
     id: "os",
     name: "OS",
     port: 7777,
@@ -85,5 +97,17 @@ export const appsRegistry: AppEntry[] = [
     openMaximized: true,
     access: "private",
     type: "nextjs",
+  },
+  {
+    id: "paperclip",
+    name: "Paperclip",
+    port: 3100,
+    description: "AI agent orchestration — plan, review, and coordinate AI coding agents",
+    icon: "paperclip",
+    color: "indigo",
+    subdomain: "paperclip",
+    openMaximized: true,
+    access: "private",
+    type: "standalone",
   },
 ];

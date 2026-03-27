@@ -7,8 +7,9 @@ const SUGGESTIONS_PATH = process.env.BLUEPRINT_STORAGE_PATH
   ? `${process.env.BLUEPRINT_STORAGE_PATH}/skylar/post-suggestions.json`
   : "/home/deploy/repos/blueprint/storage/skylar/post-suggestions.json";
 
-// Batched format from Skylar's new suggestion generator
-interface BatchedPost {
+// ─── Legacy batched format (array of {batch, theme, posts}) ──────────────────
+
+interface LegacyBatchedPost {
   id: string;
   account?: string;
   autoPost?: boolean;
@@ -25,17 +26,63 @@ interface BatchedPost {
   status?: PostSuggestion["status"];
 }
 
-interface SuggestionBatch {
+interface LegacySuggestionBatch {
   batch: number;
   theme: string;
-  posts: BatchedPost[];
+  posts: LegacyBatchedPost[];
+}
+
+// ─── New wrapped format from Skylar (object with generated/batches keys) ─────
+
+interface SkylarPost {
+  account?: string;
+  auto_post?: boolean;
+  requires_approval?: boolean;
+  text?: string;
+  hook?: string;
+  format?: string;
+  notes?: string;
+  type?: string;
+  priority?: string;
+  timing?: string;
+  tags?: string[];
+  thread?: string[];
+  replyTo?: string;
+  quoteOf?: string;
+  status?: PostSuggestion["status"];
+}
+
+interface SkylarBatch {
+  batch: number;
+  theme: string;
+  signal?: string;
+  posts: SkylarPost[];
+}
+
+interface SkylarSuggestionsFile {
+  generated?: string;
+  brief_date?: string;
+  note?: string;
+  batches: SkylarBatch[];
 }
 
 /**
- * Detect whether data is in the new batched format (array of {batch, theme, posts})
- * or the old flat format (array of PostSuggestion).
+ * Detect whether data is in the wrapped Skylar format {generated, batches:[...]}
  */
-function isBatchedFormat(data: unknown): data is SuggestionBatch[] {
+function isSkylarWrappedFormat(data: unknown): data is SkylarSuggestionsFile {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    !Array.isArray(data) &&
+    "batches" in data &&
+    Array.isArray((data as SkylarSuggestionsFile).batches)
+  );
+}
+
+/**
+ * Detect whether data is in the legacy batched format (array of {batch, theme, posts})
+ */
+function isLegacyBatchedFormat(data: unknown): data is LegacySuggestionBatch[] {
   return (
     Array.isArray(data) &&
     data.length > 0 &&
@@ -47,9 +94,41 @@ function isBatchedFormat(data: unknown): data is SuggestionBatch[] {
 }
 
 /**
- * Flatten batched suggestions into a flat PostSuggestion[] array.
+ * Normalize a Skylar-format post to a PostSuggestion.
+ * Skylar uses `text` as the primary body, `hook` as alias.
+ * Maps `format: "tweet" | "thread"` to PostSuggestion type.
  */
-function flattenBatches(batches: SuggestionBatch[]): PostSuggestion[] {
+function normalizeSkylarPost(post: SkylarPost, batchIdx: number, postIdx: number): PostSuggestion {
+  const id = `skylar-b${batchIdx}-p${postIdx}`;
+  const rawType = post.format ?? post.type ?? "single";
+  const type: PostSuggestion["type"] =
+    rawType === "thread" ? "thread" : rawType === "quote-tweet" ? "quote-tweet" : "single";
+  const priority: PostSuggestion["priority"] =
+    (post.priority as PostSuggestion["priority"]) ?? "medium";
+  const hook = post.hook ?? post.text ?? "";
+  const account =
+    post.account === "blueprintIntern" ? "blueprintIntern" :
+    post.account === "blueprint_os" ? "blueprint_os" : undefined;
+
+  return {
+    id,
+    type,
+    priority,
+    hook,
+    thread: post.thread,
+    timing: post.timing ?? "Anytime",
+    tags: post.tags ?? [],
+    replyTo: post.replyTo,
+    quoteOf: post.quoteOf,
+    status: post.status ?? "pending",
+    account: account as PostSuggestion["account"],
+  };
+}
+
+/**
+ * Flatten legacy batched suggestions into a flat PostSuggestion[] array.
+ */
+function flattenLegacyBatches(batches: LegacySuggestionBatch[]): PostSuggestion[] {
   return batches.flatMap((batch) =>
     batch.posts.map((post) => ({
       id: post.id,
@@ -68,15 +147,28 @@ function flattenBatches(batches: SuggestionBatch[]): PostSuggestion[] {
 }
 
 /**
- * Read and parse the suggestions file, handling both formats.
+ * Flatten Skylar wrapped suggestions into a flat PostSuggestion[] array.
+ */
+function flattenSkylarBatches(file: SkylarSuggestionsFile): PostSuggestion[] {
+  return file.batches.flatMap((batch, batchIdx) =>
+    batch.posts.map((post, postIdx) => normalizeSkylarPost(post, batchIdx, postIdx))
+  );
+}
+
+/**
+ * Read and parse the suggestions file, handling all known formats.
  */
 function readSuggestions(): PostSuggestion[] {
   if (!fs.existsSync(SUGGESTIONS_PATH)) return [];
   const raw = fs.readFileSync(SUGGESTIONS_PATH, "utf-8");
   const data: unknown = JSON.parse(raw);
 
-  if (isBatchedFormat(data)) {
-    return flattenBatches(data);
+  if (isSkylarWrappedFormat(data)) {
+    return flattenSkylarBatches(data);
+  }
+
+  if (isLegacyBatchedFormat(data)) {
+    return flattenLegacyBatches(data);
   }
 
   // Already flat format
@@ -126,7 +218,27 @@ export async function POST(request: NextRequest) {
     const raw = fs.readFileSync(SUGGESTIONS_PATH, "utf-8");
     const data: unknown = JSON.parse(raw);
 
-    if (isBatchedFormat(data)) {
+    // For Skylar wrapped format: status is stored in-memory only (file uses positional IDs)
+    // Patch the file by finding post by generated ID pattern (skylar-bX-pY)
+    if (isSkylarWrappedFormat(data)) {
+      const idMatch = body.id.match(/^skylar-b(\d+)-p(\d+)$/);
+      if (!idMatch) {
+        return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+      }
+      const batchIdx = parseInt(idMatch[1]!);
+      const postIdx = parseInt(idMatch[2]!);
+      const batch = data.batches[batchIdx];
+      const post = batch?.posts[postIdx];
+      if (!post) {
+        return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+      }
+      post.status = body.status;
+      fs.writeFileSync(SUGGESTIONS_PATH, JSON.stringify(data, null, 2));
+      const normalized = normalizeSkylarPost(post, batchIdx, postIdx);
+      return NextResponse.json({ success: true, suggestion: normalized });
+    }
+
+    if (isLegacyBatchedFormat(data)) {
       // Update status within the batched structure and write back
       let found = false;
       let updatedPost: PostSuggestion | undefined;
