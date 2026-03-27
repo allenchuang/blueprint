@@ -75,6 +75,18 @@ export const appsRegistry: AppEntry[] = [
     type: "remotion",
   },
   {
+    id: "clawdash",
+    name: "ClawDash",
+    port: 7778,
+    description: "OpenClaw diagnostics and agent dashboard",
+    icon: "activity",
+    color: "amber",
+    subdomain: "clawdash",
+    openMaximized: true,
+    access: "private",
+    type: "nextjs",
+  },
+  {
     id: "os",
     name: "OS",
     port: 7777,

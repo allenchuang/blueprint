@@ -90,6 +90,10 @@ const SVG_PATHS: Record<string, { desktop: ReactNode; titleBar: ReactNode }> = {
       </>
     ),
   },
+  activity: {
+    desktop: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
+    titleBar: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
+  },
   paperclip: {
     desktop: (
       <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
@@ -109,6 +113,7 @@ const COLOR_MAP: Record<string, { from: string; to: string; text: string }> = {
   emerald: { from: "from-emerald-500", to: "to-teal-600", text: "text-emerald-400" },
   pink: { from: "from-pink-500", to: "to-rose-600", text: "text-pink-400" },
   indigo: { from: "from-indigo-500", to: "to-violet-700", text: "text-indigo-400" },
+  amber: { from: "from-amber-500", to: "to-orange-600", text: "text-amber-400" },
   zinc: DEFAULT_COLORS,
 };
 
