@@ -3,7 +3,9 @@
 import { useSessions } from "@/hooks/use-sessions";
 import { useSystemHealth } from "@/hooks/use-system-health";
 import { useCosts } from "@/hooks/use-costs";
+import { useAgentStatuses } from "@/hooks/use-agents";
 import { formatBytes, formatNumber, formatCost } from "@/lib/utils";
+import { AgentStatusCards } from "@/components/agents/agent-status-cards";
 import {
   Activity,
   Cpu,
@@ -114,9 +116,9 @@ function SessionsPreview({
               <div
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   s.status === "active"
-                    ? "bg-success animate-pulse"
+                    ? "bg-green-500 animate-pulse"
                     : s.status === "idle"
-                      ? "bg-warning"
+                      ? "bg-yellow-500"
                       : "bg-muted-foreground/30"
                 }`}
               />
@@ -147,6 +149,7 @@ export default function OverviewPage() {
   const { data: costsData } = useCosts();
 
   const sessions = sessionsData?.sessions || [];
+  const agentStatuses = useAgentStatuses(sessions);
   const activeSessions = sessions.filter((s) => s.status === "active").length;
   const totalTokens = sessions.reduce(
     (sum, s) => sum + s.tokensIn + s.tokensOut,
@@ -163,6 +166,7 @@ export default function OverviewPage() {
         </p>
       </div>
 
+      <AgentStatusCards agents={agentStatuses} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="Active Sessions"
