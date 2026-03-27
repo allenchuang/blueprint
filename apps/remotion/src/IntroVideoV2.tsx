@@ -474,25 +474,27 @@ const Scene3WhatIf: React.FC = () => {
 
   return (
     <AbsoluteFill>
-      {/* Full-frame lobster video */}
+      {/* Full-frame lobster video — shifted down to show more sky */}
       <OffthreadVideo
         src={staticFile("lobster-scene.mp4")}
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
+          objectPosition: "center 70%",
         }}
         muted
       />
 
-      {/* Centered text overlay */}
+      {/* Text overlay — right 1/3 of screen */}
       <AbsoluteFill
         style={{
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "flex-end",
+          paddingRight: 120,
         }}
       >
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: "right" }}>
           {SCENE3_LINES.map((line, i) => {
             const lineStart = SCENE3_FIRST_LINE_DELAY + i * SCENE3_LINE_DELAY;
             const progress = spring({
@@ -512,10 +514,10 @@ const Scene3WhatIf: React.FC = () => {
                 key={i}
                 style={{
                   fontFamily,
-                  fontSize: i === 0 ? 100 : 80,
-                  color: TEXT_COLOR,
+                  fontSize: i === 0 ? 76 : 62,
+                  color: "#0c2340",
                   textShadow:
-                    "0 4px 20px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4)",
+                    "0 2px 12px rgba(255, 255, 255, 0.4), 0 1px 4px rgba(255, 255, 255, 0.2)",
                   lineHeight: 1.4,
                   opacity,
                   transform: `translateY(${translateY}px)`,
