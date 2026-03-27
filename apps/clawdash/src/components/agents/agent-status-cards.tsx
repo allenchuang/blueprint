@@ -48,8 +48,8 @@ function QuickSendModal({ agent, onClose }: QuickSendModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-md flex flex-col gap-0 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:p-4">
+      <div className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md flex flex-col gap-0 overflow-hidden">
         <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="text-xl">{agent.emoji}</span>
@@ -72,7 +72,7 @@ function QuickSendModal({ agent, onClose }: QuickSendModalProps) {
         </div>
 
         {sent && response ? (
-          <div className="p-5 space-y-3">
+          <div className="p-5 space-y-3" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))" }}>
             <p className="text-[12px] text-muted-foreground font-medium uppercase tracking-wider">
               Response
             </p>
@@ -87,7 +87,7 @@ function QuickSendModal({ agent, onClose }: QuickSendModalProps) {
             </button>
           </div>
         ) : (
-          <div className="p-5 space-y-3">
+          <div className="p-5 space-y-3" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))" }}>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -199,14 +199,14 @@ function AgentCard({
       <div className="flex gap-2 mt-auto pt-1">
         <button
           onClick={() => router.push(`/agents`)}
-          className="flex-1 h-8 rounded-lg border border-border text-[12px] hover:bg-accent transition-colors flex items-center justify-center gap-1.5"
+          className="flex-1 h-11 md:h-8 rounded-lg border border-border text-[12px] hover:bg-accent transition-colors flex items-center justify-center gap-1.5"
         >
           <MessageSquare className="w-3.5 h-3.5" />
           Chat
         </button>
         <button
           onClick={onQuickSend}
-          className="flex-1 h-8 rounded-lg bg-primary/10 text-primary text-[12px] hover:bg-primary/20 transition-colors flex items-center justify-center gap-1.5"
+          className="flex-1 h-11 md:h-8 rounded-lg bg-primary/10 text-primary text-[12px] hover:bg-primary/20 transition-colors flex items-center justify-center gap-1.5"
         >
           <Send className="w-3.5 h-3.5" />
           Quick Send

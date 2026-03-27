@@ -5,7 +5,7 @@ import { useSessions } from "@/hooks/use-sessions";
 import { useAgentStatuses, useSendMessage } from "@/hooks/use-agents";
 import type { AgentStatus } from "@/hooks/use-agents";
 import { timeAgo } from "@/lib/utils";
-import { Send, MessageSquare, ChevronRight } from "lucide-react";
+import { Send, MessageSquare, ChevronRight, ArrowLeft } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -40,7 +40,7 @@ function AgentCard({
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 ${
+      className={`w-full text-left px-3 py-3 md:py-2.5 rounded-lg transition-colors flex items-center gap-3 min-h-[56px] md:min-h-0 ${
         isSelected
           ? "bg-sidebar-primary text-sidebar-primary-foreground"
           : "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-accent-foreground"
@@ -66,7 +66,13 @@ function AgentCard({
   );
 }
 
-function ChatPanel({ agent }: { agent: AgentStatus }) {
+function ChatPanel({
+  agent,
+  onBack,
+}: {
+  agent: AgentStatus;
+  onBack: () => void;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -136,18 +142,26 @@ function ChatPanel({ agent }: { agent: AgentStatus }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-5 py-3.5 border-b border-border flex items-center gap-3 shrink-0">
+      <div className="px-4 md:px-5 py-3.5 border-b border-border flex items-center gap-3 shrink-0">
+        {/* Back button — mobile only */}
+        <button
+          onClick={onBack}
+          className="md:hidden w-9 h-9 rounded-lg hover:bg-accent flex items-center justify-center -ml-1 shrink-0 transition-colors"
+          aria-label="Back to agents"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
         <span className="text-2xl">{agent.emoji}</span>
-        <div>
-          <h2 className="text-[14px] font-semibold">{agent.name}</h2>
-          <p className="text-[12px] text-muted-foreground">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[14px] font-semibold truncate">{agent.name}</h2>
+          <p className="text-[12px] text-muted-foreground truncate">
             {agent.model ?? "No active session"}
             {agent.messageCount !== undefined
               ? ` · ${agent.messageCount} messages`
               : ""}
           </p>
         </div>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
           <div
             className={`w-1.5 h-1.5 rounded-full ${
               agent.status === "active"
@@ -184,7 +198,7 @@ function ChatPanel({ agent }: { agent: AgentStatus }) {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[80%] rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
+                className={`max-w-[85%] md:max-w-[80%] rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-foreground"
@@ -218,8 +232,11 @@ function ChatPanel({ agent }: { agent: AgentStatus }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="px-4 py-3 border-t border-border shrink-0">
+      {/* Input — sticky bottom, keyboard-safe */}
+      <div
+        className="px-4 py-3 border-t border-border shrink-0"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
+      >
         <div className="flex items-end gap-2">
           <textarea
             value={input}
@@ -227,18 +244,19 @@ function ChatPanel({ agent }: { agent: AgentStatus }) {
             onKeyDown={handleKeyDown}
             placeholder={`Message ${agent.name}…`}
             rows={1}
-            className="flex-1 bg-input rounded-xl px-3.5 py-2.5 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 resize-none min-h-[40px] max-h-[120px]"
+            className="flex-1 bg-input rounded-xl px-3.5 py-2.5 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 resize-none min-h-[44px] max-h-[120px]"
             style={{ fieldSizing: "content" } as React.CSSProperties}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isPending}
-            className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 disabled:opacity-40 hover:bg-primary/90 transition-colors"
+            className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 disabled:opacity-40 hover:bg-primary/90 transition-colors"
+            aria-label="Send message"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1.5 px-1">
+        <p className="hidden md:block text-[11px] text-muted-foreground mt-1.5 px-1">
           Press Enter to send · Shift+Enter for new line
         </p>
       </div>
@@ -255,9 +273,18 @@ export default function AgentsPage() {
   const selectedAgent = agents.find((a) => a.id === selectedAgentId) ?? null;
 
   return (
-    <div className="h-full flex">
-      {/* Agent list sidebar */}
-      <div className="w-56 shrink-0 border-r border-border flex flex-col">
+    <div className="h-full flex overflow-hidden">
+      {/*
+        Agent list panel:
+        - Mobile: full-width, hidden when an agent is selected (chat opens full-screen)
+        - Desktop: always visible as a 224px sidebar
+      */}
+      <div
+        className={`
+          w-full md:w-56 shrink-0 border-r border-border flex flex-col
+          ${selectedAgent ? "hidden md:flex" : "flex"}
+        `}
+      >
         <div className="px-4 py-3.5 border-b border-border">
           <h1 className="text-[14px] font-semibold tracking-tight">Agents</h1>
           <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -265,21 +292,36 @@ export default function AgentsPage() {
           </p>
         </div>
         <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
-          {agents.map((agent) => (
-            <AgentCard
-              key={agent.id}
-              agent={agent}
-              isSelected={selectedAgentId === agent.id}
-              onSelect={() => setSelectedAgentId(agent.id)}
-            />
-          ))}
+          {agents.length === 0 ? (
+            <div className="p-4 text-center text-[12px] text-muted-foreground">
+              No agents found
+            </div>
+          ) : (
+            agents.map((agent) => (
+              <AgentCard
+                key={agent.id}
+                agent={agent}
+                isSelected={selectedAgentId === agent.id}
+                onSelect={() => setSelectedAgentId(agent.id)}
+              />
+            ))
+          )}
         </div>
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 min-w-0">
+      {/*
+        Chat area:
+        - Mobile: full-width when agent selected, hidden otherwise
+        - Desktop: flex-1 always
+      */}
+      <div
+        className={`
+          flex-1 min-w-0
+          ${selectedAgent ? "flex flex-col" : "hidden md:flex md:flex-col"}
+        `}
+      >
         {selectedAgent ? (
-          <ChatPanel agent={selectedAgent} />
+          <ChatPanel agent={selectedAgent} onBack={() => setSelectedAgentId(null)} />
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center gap-4 p-8">
             <div className="flex gap-1">

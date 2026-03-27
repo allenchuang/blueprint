@@ -14,7 +14,7 @@ export default function MemoryPage() {
   const files = filesData?.files || [];
 
   return (
-    <div className="p-6 space-y-5 max-w-6xl">
+    <div className="p-4 md:p-6 space-y-5 max-w-6xl">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Memory</h1>
         <p className="text-[13px] text-muted-foreground mt-1">
@@ -38,7 +38,7 @@ export default function MemoryPage() {
                 <button
                   key={f.path}
                   onClick={() => setSelectedPath(f.path)}
-                  className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${
+                  className={`w-full text-left px-4 py-3 md:py-2.5 flex items-center gap-3 transition-colors min-h-[52px] md:min-h-0 ${
                     selectedPath === f.path
                       ? "bg-primary/10 text-primary"
                       : "hover:bg-accent"
