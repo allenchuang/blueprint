@@ -44,6 +44,83 @@ export interface SessionInfo {
   channel?: string;
 }
 
+interface JournalEntry {
+  type: string;
+  id?: string;
+  version?: number;
+  timestamp?: string;
+  provider?: string;
+  modelId?: string;
+  customType?: string;
+  message?: {
+    role?: string;
+    content?: unknown;
+    timestamp?: number;
+  };
+}
+
+async function parseJsonlSession(
+  sessionId: string,
+  filePath: string,
+  fileStat: { mtimeMs: number }
+): Promise<SessionInfo | null> {
+  try {
+    const raw = await readFile(filePath, "utf-8");
+    const lines = raw.trim().split("\n").filter(Boolean);
+
+    let model = "unknown";
+    let createdAt: string | null = null;
+    let messageCount = 0;
+
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line) as JournalEntry;
+        if (entry.type === "session" && entry.timestamp) {
+          createdAt = entry.timestamp;
+        }
+        if (
+          (entry.type === "model_change" ||
+            entry.customType === "model-snapshot") &&
+          entry.modelId
+        ) {
+          model = `${entry.provider ?? "anthropic"}/${entry.modelId}`;
+        }
+        if (
+          entry.type === "message" &&
+          entry.message?.role === "user"
+        ) {
+          messageCount++;
+        }
+      } catch {
+        // skip malformed lines
+      }
+    }
+
+    const updatedAt = new Date(fileStat.mtimeMs).toISOString();
+    const ageMs = Date.now() - fileStat.mtimeMs;
+    const status: SessionInfo["status"] =
+      ageMs < 2 * 60 * 1000
+        ? "active"
+        : ageMs < 30 * 60 * 1000
+          ? "idle"
+          : "closed";
+
+    return {
+      id: sessionId,
+      model,
+      status,
+      tokensIn: 0,
+      tokensOut: 0,
+      costCents: 0,
+      messageCount,
+      createdAt: createdAt ?? updatedAt,
+      updatedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function listSessions(): Promise<SessionInfo[]> {
   const sessionsDir = join(
     getOpenClawDir(),
@@ -57,25 +134,40 @@ export async function listSessions(): Promise<SessionInfo[]> {
   const sessions: SessionInfo[] = [];
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const metaPath = join(sessionsDir, entry.name, "metadata.json");
-    try {
-      const raw = await readFile(metaPath, "utf-8");
-      const meta = JSON.parse(raw);
-      sessions.push({
-        id: entry.name,
-        model: meta.model || "unknown",
-        status: meta.status || "idle",
-        tokensIn: meta.tokensIn || meta.inputTokens || 0,
-        tokensOut: meta.tokensOut || meta.outputTokens || 0,
-        costCents: meta.costCents || meta.cost || 0,
-        messageCount: meta.messageCount || meta.messages?.length || 0,
-        createdAt: meta.createdAt || meta.created || new Date().toISOString(),
-        updatedAt: meta.updatedAt || meta.updated || new Date().toISOString(),
-        channel: meta.channel,
-      });
-    } catch {
-      // skip unreadable sessions
+    // Support both JSONL files and subdirectory metadata.json
+    if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+      const sessionId = entry.name.replace(/\.jsonl$/, "");
+      // Skip reset files
+      if (sessionId.includes(".reset.")) continue;
+      const filePath = join(sessionsDir, entry.name);
+      try {
+        const fileStat = await stat(filePath);
+        const session = await parseJsonlSession(sessionId, filePath, fileStat);
+        if (session) sessions.push(session);
+      } catch {
+        // skip
+      }
+    } else if (entry.isDirectory()) {
+      const metaPath = join(sessionsDir, entry.name, "metadata.json");
+      try {
+        const raw = await readFile(metaPath, "utf-8");
+        const meta = JSON.parse(raw);
+        sessions.push({
+          id: entry.name,
+          model: meta.model || "unknown",
+          status: meta.status || "idle",
+          tokensIn: meta.tokensIn || meta.inputTokens || 0,
+          tokensOut: meta.tokensOut || meta.outputTokens || 0,
+          costCents: meta.costCents || meta.cost || 0,
+          messageCount: meta.messageCount || meta.messages?.length || 0,
+          createdAt: meta.createdAt || meta.created || new Date().toISOString(),
+          updatedAt:
+            meta.updatedAt || meta.updated || new Date().toISOString(),
+          channel: meta.channel,
+        });
+      } catch {
+        // skip unreadable sessions
+      }
     }
   }
 

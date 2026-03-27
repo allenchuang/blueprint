@@ -14,9 +14,16 @@ import {
   ScrollText,
   Clock,
   Settings,
+  Bot,
 } from "lucide-react";
 
 const navSections = [
+  {
+    label: "Control",
+    items: [
+      { href: "/agents", label: "Agents", icon: Bot },
+    ],
+  },
   {
     label: "Monitor",
     items: [
