@@ -3,8 +3,9 @@ import fs from "fs";
 
 import type { PostSuggestion } from "@/lib/types";
 
-const SUGGESTIONS_PATH =
-  "/home/deploy/.openclaw/workspace-skylar/post-suggestions.json";
+const SUGGESTIONS_PATH = process.env.BLUEPRINT_STORAGE_PATH
+  ? `${process.env.BLUEPRINT_STORAGE_PATH}/skylar/post-suggestions.json`
+  : "/home/deploy/repos/blueprint/storage/skylar/post-suggestions.json";
 
 // Batched format from Skylar's new suggestion generator
 interface BatchedPost {
