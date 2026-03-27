@@ -8,12 +8,16 @@ import { appConfig } from "@repo/app-config";
 const CARD_WIDTH = 1200;
 const CARD_HEIGHT = 630;
 
-const BG = "#0a0f1e";
-const ACCENT = appConfig.colors.primary; // #38BDF8 sky blue
-const ACCENT_MUTED = `${appConfig.colors.primary}26`; // ~15% opacity
 const WHITE = "#ffffff";
-const MUTED = "rgba(255,255,255,0.55)";
-const BORDER = `${appConfig.colors.primary}40`; // ~25% opacity
+const MUTED = "rgba(255,255,255,0.85)";
+
+// Blueprint gradient: darker at bottom, lighter at top (derived from primary #38BDF8)
+const GRADIENT_TOP = "#7dd3fc"; // lighter sky blue
+const GRADIENT_BOTTOM = "#0369a1"; // deep blueprint blue
+
+// Font family constants
+const HEADING_FONT = "Instrument Serif";
+const BODY_FONT = "Inter";
 
 type CardType = "announcement" | "feature" | "quote" | "stat";
 
@@ -25,25 +29,25 @@ interface GenerateCardBody {
   cta?: string;
 }
 
-function loadFont(): ArrayBuffer {
-  // Prefer the centralized heading font (Instrument Serif)
-  const headingFont = resolve(
+function loadFontFile(fileName: string, fallbackFileName?: string): ArrayBuffer {
+  const primary = resolve(
     process.cwd(),
-    "../../packages/app-config/assets/heading-font.ttf"
+    `../../packages/app-config/assets/${fileName}`
   );
-  if (existsSync(headingFont)) {
-    const buf = readFileSync(headingFont);
+  if (existsSync(primary)) {
+    const buf = readFileSync(primary);
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
   }
 
-  // Fallback: og-font.ttf
-  const ogFont = resolve(
-    process.cwd(),
-    "../../packages/app-config/assets/og-font.ttf"
-  );
-  if (existsSync(ogFont)) {
-    const buf = readFileSync(ogFont);
-    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  if (fallbackFileName) {
+    const fallback = resolve(
+      process.cwd(),
+      `../../packages/app-config/assets/${fallbackFileName}`
+    );
+    if (existsSync(fallback)) {
+      const buf = readFileSync(fallback);
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+    }
   }
 
   // Last resort: system fonts
@@ -60,69 +64,157 @@ function loadFont(): ArrayBuffer {
   }
 
   throw new Error(
-    "No font found. Place heading-font.ttf at packages/app-config/assets/"
+    `No font found for ${fileName}. Place it at packages/app-config/assets/`
   );
 }
 
-/** Blueprint "B" logo mark — indigo circle */
-function logoMark(size = 56) {
+function loadHeadingFont(): ArrayBuffer {
+  return loadFontFile("heading-font.ttf", "og-font.ttf");
+}
+
+function loadBodyFont(): ArrayBuffer {
+  return loadFontFile("body-font.ttf");
+}
+
+/** Apple-style 🧢 billed cap emoji loaded from PNG asset */
+function loadCapEmojiDataUri(): string {
+  const capPath = resolve(
+    process.cwd(),
+    "../../packages/app-config/assets/cap-emoji.png"
+  );
+  if (existsSync(capPath)) {
+    const buf = readFileSync(capPath);
+    const b64 = Buffer.from(buf).toString("base64");
+    return `data:image/png;base64,${b64}`;
+  }
+  // Fallback: transparent 1x1 pixel
+  return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+}
+
+const CAP_EMOJI_DATA_URI = loadCapEmojiDataUri();
+
+/** Blueprint 🧢 logo mark — cap emoji rendered as Apple-style PNG image */
+function logoMark(size = 84) {
   return {
-    type: "div",
+    type: "img",
     props: {
+      src: CAP_EMOJI_DATA_URI,
+      width: size,
+      height: size,
       style: {
         width: size,
         height: size,
-        borderRadius: "50%",
-        background: ACCENT,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         flexShrink: 0,
-        boxShadow: `0 0 0 2px ${BORDER}, 0 8px 32px rgba(56,189,248,0.35)`,
       },
-      children: {
-        type: "span",
-        props: {
-          style: {
-            color: WHITE,
-            fontSize: size * 0.5,
-            fontWeight: 700,
-            lineHeight: 1,
-          },
-          children: "B",
+    },
+  };
+}
+
+/** Blueprint gradient background — lighter at top, darker at bottom */
+function blueprintBackground() {
+  return {
+    type: "div",
+    props: {
+      style: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `linear-gradient(180deg, ${GRADIENT_TOP} 0%, ${GRADIENT_BOTTOM} 100%)`,
+      },
+    },
+  };
+}
+
+/** Blueprint grid overlay — major lines (120px, brighter) + minor lines (30px, barely visible) */
+function blueprintGrid() {
+  const majorStep = 120;
+  const minorStep = 30;
+  const children: Record<string, unknown>[] = [];
+
+  // Minor horizontal lines
+  for (let y = 0; y <= CARD_HEIGHT; y += minorStep) {
+    if (y % majorStep === 0) continue;
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: y,
+          left: 0,
+          width: CARD_WIDTH,
+          height: 1,
+          background: "rgba(255,255,255,0.05)",
         },
       },
-    },
-  };
-}
+    });
+  }
 
-/** Shared dot-grid background decoration */
-function dotGrid() {
+  // Minor vertical lines
+  for (let x = 0; x <= CARD_WIDTH; x += minorStep) {
+    if (x % majorStep === 0) continue;
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: 0,
+          left: x,
+          width: 1,
+          height: CARD_HEIGHT,
+          background: "rgba(255,255,255,0.05)",
+        },
+      },
+    });
+  }
+
+  // Major horizontal lines
+  for (let y = 0; y <= CARD_HEIGHT; y += majorStep) {
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: y,
+          left: 0,
+          width: CARD_WIDTH,
+          height: 1,
+          background: "rgba(255,255,255,0.12)",
+        },
+      },
+    });
+  }
+
+  // Major vertical lines
+  for (let x = 0; x <= CARD_WIDTH; x += majorStep) {
+    children.push({
+      type: "div",
+      props: {
+        style: {
+          position: "absolute",
+          top: 0,
+          left: x,
+          width: 1,
+          height: CARD_HEIGHT,
+          background: "rgba(255,255,255,0.12)",
+        },
+      },
+    });
+  }
+
   return {
     type: "div",
     props: {
       style: {
         position: "absolute",
-        inset: 0,
-        backgroundImage:
-          "radial-gradient(rgba(56,189,248,0.12) 1px, transparent 1px)",
-        backgroundSize: "32px 32px",
+        top: 0,
+        left: 0,
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+        display: "flex",
       },
-    },
-  };
-}
-
-/** Shared gradient overlay */
-function gradientOverlay() {
-  return {
-    type: "div",
-    props: {
-      style: {
-        position: "absolute",
-        inset: 0,
-        background:
-          "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(56,189,248,0.18) 0%, transparent 70%)",
-      },
+      children,
     },
   };
 }
@@ -134,15 +226,14 @@ function buildAnnouncementCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
-        dotGrid(),
-        gradientOverlay(),
+        blueprintBackground(),
+        blueprintGrid(),
         {
           type: "div",
           props: {
@@ -161,15 +252,16 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                 props: {
                   style: { display: "flex", alignItems: "center", gap: 16 },
                   children: [
-                    logoMark(48),
+                    logoMark(72),
                     {
                       type: "span",
                       props: {
                         style: {
                           color: WHITE,
-                          fontSize: 22,
+                          fontSize: 38,
                           fontWeight: 700,
                           letterSpacing: "-0.02em",
+                          fontFamily: `${HEADING_FONT}, serif`,
                         },
                         children: appConfig.name,
                       },
@@ -177,7 +269,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                   ],
                 },
               },
-              // Center: title + subtitle
+              // Center: title + subtitle (no announcement pill)
               {
                 type: "div",
                 props: {
@@ -187,37 +279,12 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                       type: "div",
                       props: {
                         style: {
-                          display: "flex",
-                          padding: "6px 16px",
-                          background: ACCENT_MUTED,
-                          border: `1px solid ${BORDER}`,
-                          borderRadius: 99,
-                          marginBottom: 8,
-                        },
-                        children: {
-                          type: "span",
-                          props: {
-                            style: {
-                              color: ACCENT,
-                              fontSize: 14,
-                              fontWeight: 600,
-                              letterSpacing: "0.06em",
-                              textTransform: "uppercase",
-                            },
-                            children: "Announcement",
-                          },
-                        },
-                      },
-                    },
-                    {
-                      type: "div",
-                      props: {
-                        style: {
                           color: WHITE,
-                          fontSize: 62,
+                          fontSize: 93,
                           fontWeight: 700,
                           lineHeight: 1.1,
                           letterSpacing: "-0.03em",
+                          fontFamily: `${HEADING_FONT}, serif`,
                         },
                         children: body.title,
                       },
@@ -249,8 +316,8 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                         alignItems: "center",
                         gap: 12,
                         padding: "14px 24px",
-                        background: ACCENT_MUTED,
-                        border: `1px solid ${BORDER}`,
+                        background: "rgba(255,255,255,0.15)",
+                        border: "1px solid rgba(255,255,255,0.25)",
                         borderRadius: 12,
                         alignSelf: "flex-start",
                       },
@@ -258,7 +325,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                         type: "span",
                         props: {
                           style: {
-                            color: ACCENT,
+                            color: WHITE,
                             fontSize: 18,
                             fontWeight: 600,
                           },
@@ -283,15 +350,14 @@ function buildFeatureCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
-        dotGrid(),
-        gradientOverlay(),
+        blueprintBackground(),
+        blueprintGrid(),
         {
           type: "div",
           props: {
@@ -316,22 +382,22 @@ function buildFeatureCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(40),
+                    logoMark(60),
                     {
                       type: "div",
                       props: {
                         style: {
                           display: "flex",
                           padding: "6px 16px",
-                          background: ACCENT_MUTED,
-                          border: `1px solid ${BORDER}`,
+                          background: "rgba(255,255,255,0.15)",
+                          border: "1px solid rgba(255,255,255,0.25)",
                           borderRadius: 99,
                         },
                         children: {
                           type: "span",
                           props: {
                             style: {
-                              color: ACCENT,
+                              color: WHITE,
                               fontSize: 13,
                               fontWeight: 600,
                               letterSpacing: "0.06em",
@@ -351,10 +417,11 @@ function buildFeatureCard(body: GenerateCardBody) {
                 props: {
                   style: {
                     color: WHITE,
-                    fontSize: 72,
+                    fontSize: 108,
                     fontWeight: 700,
                     lineHeight: 1.05,
                     letterSpacing: "-0.04em",
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: body.title,
                 },
@@ -381,11 +448,11 @@ function buildFeatureCard(body: GenerateCardBody) {
                     type: "div",
                     props: {
                       style: {
-                        color: ACCENT,
+                        color: "rgba(255,255,255,0.8)",
                         fontSize: 18,
                         fontWeight: 500,
                       },
-                      children: `→ ${body.cta}`,
+                      children: body.cta,
                     },
                   }
                 : null,
@@ -404,26 +471,14 @@ function buildQuoteCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
-        dotGrid(),
-        // Centered radial glow
-        {
-          type: "div",
-          props: {
-            style: {
-              position: "absolute",
-              inset: 0,
-              background:
-                "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(56,189,248,0.14) 0%, transparent 70%)",
-            },
-          },
-        },
+        blueprintBackground(),
+        blueprintGrid(),
         {
           type: "div",
           props: {
@@ -435,7 +490,7 @@ function buildQuoteCard(body: GenerateCardBody) {
               alignItems: "center",
               padding: "64px 88px",
               height: "100%",
-              gap: 32,
+              gap: 16,
               textAlign: "center",
             },
             children: [
@@ -444,25 +499,27 @@ function buildQuoteCard(body: GenerateCardBody) {
                 type: "div",
                 props: {
                   style: {
-                    color: ACCENT,
-                    fontSize: 120,
+                    color: WHITE,
+                    fontSize: 180,
                     fontWeight: 700,
                     lineHeight: 0.8,
-                    opacity: 0.4,
+                    opacity: 0.3,
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: "\u201C",
                 },
               },
-              // Quote text
+              // Quote text (title = the quote itself, uses heading font)
               {
                 type: "div",
                 props: {
                   style: {
                     color: WHITE,
-                    fontSize: 44,
+                    fontSize: 66,
                     fontWeight: 600,
                     lineHeight: 1.35,
                     letterSpacing: "-0.02em",
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: body.title,
                 },
@@ -485,8 +542,8 @@ function buildQuoteCard(body: GenerateCardBody) {
                             style: {
                               width: 40,
                               height: 1,
-                              background: ACCENT,
-                              opacity: 0.5,
+                              background: WHITE,
+                              opacity: 0.4,
                             },
                           },
                         },
@@ -518,14 +575,15 @@ function buildQuoteCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(32),
+                    logoMark(48),
                     {
                       type: "span",
                       props: {
                         style: {
                           color: MUTED,
-                          fontSize: 16,
+                          fontSize: 28,
                           fontWeight: 600,
+                          fontFamily: `${HEADING_FONT}, serif`,
                         },
                         children: appConfig.name,
                       },
@@ -551,16 +609,15 @@ function buildStatCard(body: GenerateCardBody) {
       style: {
         width: "100%",
         height: "100%",
-        background: BG,
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
-        dotGrid(),
-        gradientOverlay(),
-        // Vertical accent bar left
+        blueprintBackground(),
+        blueprintGrid(),
+        // Vertical accent bar left — white on blueprint bg
         {
           type: "div",
           props: {
@@ -570,7 +627,7 @@ function buildStatCard(body: GenerateCardBody) {
               top: "20%",
               bottom: "20%",
               width: 4,
-              background: `linear-gradient(to bottom, transparent, ${ACCENT}, transparent)`,
+              background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.6), transparent)",
               borderRadius: "0 4px 4px 0",
             },
           },
@@ -590,17 +647,18 @@ function buildStatCard(body: GenerateCardBody) {
               textAlign: "center",
             },
             children: [
-              logoMark(52),
+              logoMark(78),
               // Big stat
               {
                 type: "div",
                 props: {
                   style: {
                     color: WHITE,
-                    fontSize: 100,
+                    fontSize: 150,
                     fontWeight: 700,
                     lineHeight: 1,
                     letterSpacing: "-0.05em",
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: statText,
                 },
@@ -628,7 +686,8 @@ function buildStatCard(body: GenerateCardBody) {
                       style: {
                         display: "flex",
                         padding: "12px 28px",
-                        background: ACCENT,
+                        background: "rgba(255,255,255,0.2)",
+                        border: "1px solid rgba(255,255,255,0.3)",
                         borderRadius: 10,
                         marginTop: 8,
                       },
@@ -690,7 +749,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const fontData = loadFont();
+    const headingFontData = loadHeadingFont();
+    const bodyFontData = loadBodyFont();
     const element = buildCard(body);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -698,8 +758,12 @@ export async function POST(req: NextRequest) {
       width: CARD_WIDTH,
       height: CARD_HEIGHT,
       fonts: [
-        { name: "Instrument Serif", data: fontData, weight: 400, style: "normal" },
-        { name: "Instrument Serif", data: fontData, weight: 700, style: "normal" },
+        { name: HEADING_FONT, data: headingFontData, weight: 400, style: "normal" },
+        { name: HEADING_FONT, data: headingFontData, weight: 700, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 400, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 500, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 600, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 700, style: "normal" },
       ],
     });
 
