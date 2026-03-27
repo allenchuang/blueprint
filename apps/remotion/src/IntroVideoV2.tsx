@@ -461,9 +461,9 @@ const Scene2WrongPath: React.FC = () => {
 // ---------------------------------------------------------------------------
 
 const SCENE3_LINES = [
-  "what if...",
+  "What if...",
   "there's a magical workspace",
-  "that agents call home...",
+  "that agents call home",
 ];
 const SCENE3_LINE_DELAY = 35; // frames between each line appearing
 const SCENE3_FIRST_LINE_DELAY = 20; // delay before first line appears
