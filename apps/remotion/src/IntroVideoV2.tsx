@@ -2,6 +2,7 @@ import {
   AbsoluteFill,
   Html5Audio,
   Img,
+  OffthreadVideo,
   Sequence,
   interpolate,
   spring,
@@ -489,8 +490,6 @@ const SCENE3_WORD_START    = SCENE3_ENTER_DELAY; // first word appears with the 
 // Scene 3 — "what if there's a ___" cycling words → "workspace that agents call home"
 // ---------------------------------------------------------------------------
 
-const LOBSTER_ENTER_DELAY = 40; // frames after scene start — after text appears
-
 const Scene3WhatIf: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -504,26 +503,70 @@ const Scene3WhatIf: React.FC = () => {
   const headerOpacity = interpolate(headerProgress, [0, 1], [0, 1],  { extrapolateRight: "clamp" });
   const headerY       = interpolate(headerProgress, [0, 1], [44, 0], { extrapolateRight: "clamp" });
 
-  // Lobster poke-up spring — starts after text appears
-  const lobsterProgress = spring({
-    frame: Math.max(0, frame - LOBSTER_ENTER_DELAY),
-    fps,
-    config: { damping: 12, stiffness: 80 }, // bouncy, playful bob
-  });
-  // Start fully off-screen below (translateY 100%) → spring up to show top ~65%
-  const lobsterY = interpolate(lobsterProgress, [0, 1], [420, 40], { extrapolateRight: "clamp" });
-  const lobsterOpacity = interpolate(lobsterProgress, [0, 1], [0, 1], { extrapolateRight: "clamp" });
-
   return (
-    <SceneWrapper topColor="#7dd3fc" bottomColor="#5bc2f5">
-      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", padding: 120 }}>
-        <div style={{ textAlign: "center" }}>
+    <AbsoluteFill>
+      {/* Left half — lobster video */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: "57%",
+          height: "100%",
+          overflow: "hidden",
+          backgroundColor: "#000",
+        }}
+      >
+        <OffthreadVideo
+          src={staticFile("lobster-scene.mp4")}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+          muted
+        />
+      </div>
+
+      {/* Right half — text content on dark gradient */}
+      <div
+        style={{
+          position: "absolute",
+          right: 0,
+          top: 0,
+          width: "43%",
+          height: "100%",
+          background: "linear-gradient(180deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {/* Subtle grid overlay on right side */}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          <svg
+            width="100%"
+            height="100%"
+            style={{ position: "absolute", width: "100%", height: "100%" }}
+          >
+            {Array.from({ length: 10 }, (_, i) => (
+              <line key={`h-${i}`} x1="0" y1={`${i * 10}%`} x2="100%" y2={`${i * 10}%`}
+                stroke="white" strokeWidth="0.5" opacity="0.06" />
+            ))}
+            {Array.from({ length: 8 }, (_, i) => (
+              <line key={`v-${i}`} x1={`${i * 14}%`} y1="0" x2={`${i * 14}%`} y2="100%"
+                stroke="white" strokeWidth="0.5" opacity="0.06" />
+            ))}
+          </svg>
+        </div>
+
+        <div style={{ textAlign: "center", padding: "40px 48px", position: "relative", zIndex: 1 }}>
 
           {/* "what if there's a" */}
           <div
             style={{
               fontFamily,
-              fontSize: 96,
+              fontSize: 64,
               color: TEXT_COLOR,
               textShadow: TEXT_SHADOW,
               lineHeight: 1.3,
@@ -535,7 +578,7 @@ const Scene3WhatIf: React.FC = () => {
           </div>
 
           {/* Cycling word slot — fixed height so layout never shifts */}
-          <div style={{ position: "relative", height: 158, marginTop: 6 }}>
+          <div style={{ position: "relative", height: 110, marginTop: 6 }}>
             {CYCLING_WORDS.map(({ word, effect }, i) => {
               const wStart  = SCENE3_WORD_START + i * SCENE3_WORD_INTERVAL;
               const inEnd   = wStart + SCENE3_WORD_IN;
@@ -570,7 +613,7 @@ const Scene3WhatIf: React.FC = () => {
                     left: 0,
                     right: 0,
                     fontFamily,
-                    fontSize: 116,
+                    fontSize: 78,
                     color: TEXT_COLOR,
                     textShadow: TEXT_SHADOW,
                     fontStyle: "italic",
@@ -588,7 +631,7 @@ const Scene3WhatIf: React.FC = () => {
           <div
             style={{
               fontFamily,
-              fontSize: 84,
+              fontSize: 52,
               color: TEXT_COLOR,
               textShadow: TEXT_SHADOW,
               lineHeight: 1.35,
@@ -602,33 +645,8 @@ const Scene3WhatIf: React.FC = () => {
           </div>
 
         </div>
-      </AbsoluteFill>
-
-      {/* Lobster mascot poking up from the bottom */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: "50%",
-          transform: `translateX(-50%) translateY(${lobsterY}px)`,
-          opacity: lobsterOpacity,
-          width: 380,
-          overflow: "visible",
-          pointerEvents: "none",
-          zIndex: 10,
-        }}
-      >
-        <Img
-          src={staticFile("lobster.jpg")}
-          style={{
-            width: "100%",
-            height: "auto",
-            borderRadius: 20,
-            filter: "drop-shadow(0 -4px 20px rgba(0,0,0,0.3))",
-          }}
-        />
       </div>
-    </SceneWrapper>
+    </AbsoluteFill>
   );
 };
 
