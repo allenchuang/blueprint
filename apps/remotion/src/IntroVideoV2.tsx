@@ -517,6 +517,24 @@ const Scene3WhatIf: React.FC = () => {
                   })
                 : 0;
 
+            // Build line content with emphasized key words
+            const lineContent =
+              i === 1 ? (
+                <>
+                  <span>{"There's a "}</span>
+                  <span style={{ fontSize: 106 }}>Magical Workspace</span>
+                </>
+              ) : i === 2 ? (
+                <>
+                  <span>That </span>
+                  <span style={{ fontSize: 106 }}>Agents</span>
+                  <span> call </span>
+                  <span style={{ fontSize: 106 }}>Home?</span>
+                </>
+              ) : (
+                line
+              );
+
             return (
               <div
                 key={i}
@@ -529,12 +547,12 @@ const Scene3WhatIf: React.FC = () => {
                     "0 2px 12px rgba(255, 255, 255, 0.4), 0 1px 4px rgba(255, 255, 255, 0.2)",
                   lineHeight: 1.4,
                   textAlign: (i === 0 ? "left" : "center") as const,
-                  marginTop: i === 1 ? 100 : 0,
+                  marginTop: i === 1 ? 100 : i === 2 ? 50 : 0,
                   opacity,
                   transform: `translateY(${translateY}px)`,
                 }}
               >
-                {line}
+                {lineContent}
               </div>
             );
           })}
