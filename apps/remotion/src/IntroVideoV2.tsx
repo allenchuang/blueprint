@@ -1076,7 +1076,7 @@ const FPS = 30;
 
 const S1 = Math.round(3.5 * FPS);   // shortened — scene 3 gets the extra time
 const S2 = 5 * FPS;
-const S3 = Math.round(7.5 * FPS);   // longer to fit cycling words + final phrase
+const S3 = Math.round(5.04 * FPS);  // match lobster video clip length (≈151 frames)
 const S_TERM = Math.round(6.5 * FPS);
 const S4 = Math.round(6.5 * FPS);
 const S56 = Math.round(4.5 * FPS); // Blueprint 2s + 0.5s gap + Your Rules 2s
