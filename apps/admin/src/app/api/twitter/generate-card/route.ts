@@ -94,7 +94,7 @@ function loadCapEmojiDataUri(): string {
 const CAP_EMOJI_DATA_URI = loadCapEmojiDataUri();
 
 /** Blueprint 🧢 logo mark — cap emoji rendered as Apple-style PNG image */
-function logoMark(size = 147) {
+function logoMark(size = 84) {
   return {
     type: "img",
     props: {
@@ -252,13 +252,13 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                 props: {
                   style: { display: "flex", alignItems: "center", gap: 16 },
                   children: [
-                    logoMark(126),
+                    logoMark(72),
                     {
                       type: "span",
                       props: {
                         style: {
                           color: WHITE,
-                          fontSize: 22,
+                          fontSize: 38,
                           fontWeight: 700,
                           letterSpacing: "-0.02em",
                           fontFamily: `${HEADING_FONT}, serif`,
@@ -382,7 +382,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(105),
+                    logoMark(60),
                     {
                       type: "div",
                       props: {
@@ -575,13 +575,13 @@ function buildQuoteCard(body: GenerateCardBody) {
                     gap: 10,
                   },
                   children: [
-                    logoMark(84),
+                    logoMark(48),
                     {
                       type: "span",
                       props: {
                         style: {
                           color: MUTED,
-                          fontSize: 16,
+                          fontSize: 28,
                           fontWeight: 600,
                           fontFamily: `${HEADING_FONT}, serif`,
                         },
@@ -647,7 +647,7 @@ function buildStatCard(body: GenerateCardBody) {
               textAlign: "center",
             },
             children: [
-              logoMark(137),
+              logoMark(78),
               // Big stat
               {
                 type: "div",
