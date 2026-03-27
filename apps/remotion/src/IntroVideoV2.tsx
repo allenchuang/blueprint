@@ -460,13 +460,8 @@ const Scene2WrongPath: React.FC = () => {
 // Scene 3 — Full-frame lobster video with staggered text overlay
 // ---------------------------------------------------------------------------
 
-const SCENE3_LINES = [
-  "What if...",
-  "There's a magical Workspace",
-  "that Agents call",
-  "...Home?",
-];
-const SCENE3_LINE_STARTS = [20, 50, 80, 110]; // per-line reveal frames
+const SCENE3_LINES = ["What if...", "There's a magical", "Workspace"];
+const SCENE3_LINE_STARTS = [20, 55, 90]; // per-line reveal frames
 
 const Scene3WhatIf: React.FC = () => {
   const frame = useCurrentFrame();
@@ -509,7 +504,7 @@ const Scene3WhatIf: React.FC = () => {
             const opacity = interpolate(progress, [0, 1], [0, 1], {
               extrapolateRight: "clamp",
             });
-            // Line 1 keeps slide-up animation; lines 2-4 just fade in
+            // Line 1 keeps slide-up animation; lines 2-3 just fade in
             const translateY =
               i === 0
                 ? interpolate(progress, [0, 1], [30, 0], {
@@ -517,31 +512,14 @@ const Scene3WhatIf: React.FC = () => {
                   })
                 : 0;
 
-            // Build line content with emphasized key words
-            const lineContent =
-              i === 1 ? (
-                <>
-                  <span>{"There's a magical "}</span>
-                  <span style={{ fontSize: 106 }}>Workspace</span>
-                </>
-              ) : i === 2 ? (
-                <>
-                  <span>{"that "}</span>
-                  <span style={{ fontSize: 106 }}>Agents</span>
-                  <span>{" call"}</span>
-                </>
-              ) : i === 3 ? (
-                <span style={{ fontSize: 106 }}>{"...Home?"}</span>
-              ) : (
-                line
-              );
+            const lineContent = line;
 
             return (
               <div
                 key={i}
                 style={{
                   fontFamily,
-                  fontSize: i === 0 ? 106 : 80,
+                  fontSize: i === 1 ? 80 : 106,
                   letterSpacing: "-0.03em",
                   color: "#0c2340",
                   textShadow:
