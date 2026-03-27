@@ -1016,7 +1016,7 @@ const Scene56LogoAndRules: React.FC = () => {
                   userSelect: "none",
                 }}
               >
-                🧢
+                <Img src={staticFile("cap-emoji.png")} width={156} height={156} style={{ display: "block" }} />
               </span>
             </span>
             rint
