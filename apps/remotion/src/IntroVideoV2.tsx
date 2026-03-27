@@ -462,8 +462,8 @@ const Scene2WrongPath: React.FC = () => {
 
 const SCENE3_LINES = [
   "What if...",
-  "There's a Magical Workspace",
-  "That Agents call Home?",
+  "There's a magical Workspace",
+  "that Agents call Home?",
 ];
 const SCENE3_LINE_DELAY = 35; // frames between each line appearing
 const SCENE3_FIRST_LINE_DELAY = 20; // delay before first line appears
@@ -521,12 +521,12 @@ const Scene3WhatIf: React.FC = () => {
             const lineContent =
               i === 1 ? (
                 <>
-                  <span>{"There's a "}</span>
-                  <span style={{ fontSize: 106 }}>Magical Workspace</span>
+                  <span>{"There's a magical "}</span>
+                  <span style={{ fontSize: 106 }}>Workspace</span>
                 </>
               ) : i === 2 ? (
                 <>
-                  <span>That </span>
+                  <span>{"that "}</span>
                   <span style={{ fontSize: 106 }}>Agents</span>
                   <span> call </span>
                   <span style={{ fontSize: 106 }}>Home?</span>
@@ -546,7 +546,7 @@ const Scene3WhatIf: React.FC = () => {
                   textShadow:
                     "0 2px 12px rgba(255, 255, 255, 0.4), 0 1px 4px rgba(255, 255, 255, 0.2)",
                   lineHeight: 1.4,
-                  textAlign: (i === 0 ? "left" : "center") as const,
+                  textAlign: "center" as const,
                   marginTop: i === 1 ? 100 : i === 2 ? 50 : 0,
                   opacity,
                   transform: `translateY(${translateY}px)`,
