@@ -15,6 +15,10 @@ const MUTED = "rgba(255,255,255,0.85)";
 const GRADIENT_TOP = "#7dd3fc"; // lighter sky blue
 const GRADIENT_BOTTOM = "#0369a1"; // deep blueprint blue
 
+// Font family constants
+const HEADING_FONT = "Instrument Serif";
+const BODY_FONT = "Inter";
+
 type CardType = "announcement" | "feature" | "quote" | "stat";
 
 interface GenerateCardBody {
@@ -25,25 +29,25 @@ interface GenerateCardBody {
   cta?: string;
 }
 
-function loadFont(): ArrayBuffer {
-  // Prefer the centralized heading font (Instrument Serif)
-  const headingFont = resolve(
+function loadFontFile(fileName: string, fallbackFileName?: string): ArrayBuffer {
+  const primary = resolve(
     process.cwd(),
-    "../../packages/app-config/assets/heading-font.ttf"
+    `../../packages/app-config/assets/${fileName}`
   );
-  if (existsSync(headingFont)) {
-    const buf = readFileSync(headingFont);
+  if (existsSync(primary)) {
+    const buf = readFileSync(primary);
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
   }
 
-  // Fallback: og-font.ttf
-  const ogFont = resolve(
-    process.cwd(),
-    "../../packages/app-config/assets/og-font.ttf"
-  );
-  if (existsSync(ogFont)) {
-    const buf = readFileSync(ogFont);
-    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  if (fallbackFileName) {
+    const fallback = resolve(
+      process.cwd(),
+      `../../packages/app-config/assets/${fallbackFileName}`
+    );
+    if (existsSync(fallback)) {
+      const buf = readFileSync(fallback);
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+    }
   }
 
   // Last resort: system fonts
@@ -60,20 +64,41 @@ function loadFont(): ArrayBuffer {
   }
 
   throw new Error(
-    "No font found. Place heading-font.ttf at packages/app-config/assets/"
+    `No font found for ${fileName}. Place it at packages/app-config/assets/`
   );
 }
 
-/** Twemoji 🧢 billed cap SVG as data URI (avoids emoji font requirement in Satori) */
-const CAP_SVG_DATA_URI =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PGVsbGlwc2UgdHJhbnNmb3JtPSJyb3RhdGUoLTg3LjQ5NSAyMS4yNSA1LjAxOCkiIGZpbGw9IiMyQjdCQjkiIGN4PSIyMS4yNDkiIGN5PSI1LjAxOCIgcng9Ii45NDQiIHJ5PSIxLjU2NSIvPjxwYXRoIGZpbGw9IiMyOTJGMzMiIGQ9Ik0yOS44MzEgMjcuNzRzMy41MjMgMS4zODUgNS4xODUuMDg4Yy4xMjUtMS4xNy0zLjMxMS0yLjAzNS0zLjMxMS0yLjAzNWwtMS44NzQgMS45NDd6TTcuNTI3IDI1LjU0OVMyLjI3MSAzMy4zNzUuNzcgMzIuMDMxYzAgMC0uNDI1LTEuMzk3IDEuMjMtNC4yMTggMS42NTYtMi44MjIgNS41MjctMi4yNjQgNS41MjctMi4yNjR6Ii8+PHBhdGggZmlsbD0iIzFDNjM5OSIgZD0iTTE5Ljc2NiA0Ljgycy04LjUzNy40My0xMy43MzUgMTYuMzQ4YzcuNDk0IDAgMTYuNzg1LjU1NSAxNi43ODUuNTU1czcuNzk5IDMuOTgyIDguODg5IDQuNDY5YzEuMDg5LjQ4NyAzLjMxMSAxLjYzNyAzLjMxMSAxLjYzN3MxLjA4OS01LjUzMS4zMDUtOS42OVMzMC43OSA0Ljk5NyAxOS43NjYgNC44MnoiLz48cGF0aCBmaWxsPSIjMUM2Mzk5IiBkPSJNMy4zNTQgMjUuMTY3QzEuNTIxIDI4LjIwOS4xMzggMzAuOTg4Ljc3IDMyLjAzMWMwIDAtLjIwMy0uNzYxLjc3NS0xLjYzMy44OTItLjc5NSAyLjgwNS0xLjUyMiA2LjQ2MS0xLjUyMiA1LjUzNCAwIDEzLjAwNiA0LjQ5OCAxNi4xMTkgNS41NjIgMi4zNzUuODEyIDIuODc1LjE4OCA0LjE4OC0xLjI1IDEuNC0xLjUzNCAzLjcxNi02LjkwNCAzLjcxNi02LjkwNHMtNy40Ny00LjEwNy0xMS44NzEtNS43MjYtNS4zNTgtMS40MjctNi43NTItMS40MDFjLTMuMDU2LjA1Ny01LjMxNC42NzEtNy4zNzUgMi4wMTEgMCAwLTEuNDk0IDIuMDM2LTIuNjc3IDMuOTk5eiIvPjxwYXRoIGZpbGw9IiM1MEE1RTYiIGQ9Ik0zMC41ODggMTEuMzM5Yy0uNjEtMy40NDMtNC4wMTEtNS4wNzYtNC4wMTEtNS4wNzYtMS44OTUtLjg4My00LjE1OC0xLjQ0OC02Ljg2NC0xLjQ5MSAwIDAtMTIuMTkyLS4xMDUtMTMuNjgxIDE2LjM5NSAwIDAgMi41NDEtMS4xMTUgNy45Mi0uNzkzIDcuMjk5LjQzOCAxNC40MTQgNC4xMTcgMTUuOTg2IDQuODEyLjgzLTIuNzc5IDEuMzY3LTkuNzk4LjY1LTEzLjg0N3oiLz48L3N2Zz4=";
+function loadHeadingFont(): ArrayBuffer {
+  return loadFontFile("heading-font.ttf", "og-font.ttf");
+}
 
-/** Blueprint 🧢 logo mark — cap emoji rendered as Twemoji SVG image */
+function loadBodyFont(): ArrayBuffer {
+  return loadFontFile("body-font.ttf");
+}
+
+/** Apple-style 🧢 billed cap emoji loaded from PNG asset */
+function loadCapEmojiDataUri(): string {
+  const capPath = resolve(
+    process.cwd(),
+    "../../packages/app-config/assets/cap-emoji.png"
+  );
+  if (existsSync(capPath)) {
+    const buf = readFileSync(capPath);
+    const b64 = Buffer.from(buf).toString("base64");
+    return `data:image/png;base64,${b64}`;
+  }
+  // Fallback: transparent 1x1 pixel
+  return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+}
+
+const CAP_EMOJI_DATA_URI = loadCapEmojiDataUri();
+
+/** Blueprint 🧢 logo mark — cap emoji rendered as Apple-style PNG image */
 function logoMark(size = 84) {
   return {
     type: "img",
     props: {
-      src: CAP_SVG_DATA_URI,
+      src: CAP_EMOJI_DATA_URI,
       width: size,
       height: size,
       style: {
@@ -204,7 +229,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
         blueprintBackground(),
@@ -243,7 +268,7 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                   ],
                 },
               },
-              // Center: title + subtitle
+              // Center: title + subtitle (no announcement pill)
               {
                 type: "div",
                 props: {
@@ -253,37 +278,12 @@ function buildAnnouncementCard(body: GenerateCardBody) {
                       type: "div",
                       props: {
                         style: {
-                          display: "flex",
-                          padding: "6px 16px",
-                          background: "rgba(255,255,255,0.15)",
-                          border: "1px solid rgba(255,255,255,0.25)",
-                          borderRadius: 99,
-                          marginBottom: 8,
-                        },
-                        children: {
-                          type: "span",
-                          props: {
-                            style: {
-                              color: WHITE,
-                              fontSize: 21,
-                              fontWeight: 600,
-                              letterSpacing: "0.06em",
-                              textTransform: "uppercase",
-                            },
-                            children: "Announcement",
-                          },
-                        },
-                      },
-                    },
-                    {
-                      type: "div",
-                      props: {
-                        style: {
                           color: WHITE,
                           fontSize: 93,
                           fontWeight: 700,
                           lineHeight: 1.1,
                           letterSpacing: "-0.03em",
+                          fontFamily: `${HEADING_FONT}, serif`,
                         },
                         children: body.title,
                       },
@@ -352,7 +352,7 @@ function buildFeatureCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
         blueprintBackground(),
@@ -420,6 +420,7 @@ function buildFeatureCard(body: GenerateCardBody) {
                     fontWeight: 700,
                     lineHeight: 1.05,
                     letterSpacing: "-0.04em",
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: body.title,
                 },
@@ -472,7 +473,7 @@ function buildQuoteCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
         blueprintBackground(),
@@ -502,11 +503,12 @@ function buildQuoteCard(body: GenerateCardBody) {
                     fontWeight: 700,
                     lineHeight: 0.8,
                     opacity: 0.3,
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: "\u201C",
                 },
               },
-              // Quote text
+              // Quote text (title = the quote itself, uses heading font)
               {
                 type: "div",
                 props: {
@@ -516,6 +518,7 @@ function buildQuoteCard(body: GenerateCardBody) {
                     fontWeight: 600,
                     lineHeight: 1.35,
                     letterSpacing: "-0.02em",
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: body.title,
                 },
@@ -607,7 +610,7 @@ function buildStatCard(body: GenerateCardBody) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: "Instrument Serif, system-ui, sans-serif",
+        fontFamily: `${BODY_FONT}, system-ui, sans-serif`,
       },
       children: [
         blueprintBackground(),
@@ -653,6 +656,7 @@ function buildStatCard(body: GenerateCardBody) {
                     fontWeight: 700,
                     lineHeight: 1,
                     letterSpacing: "-0.05em",
+                    fontFamily: `${HEADING_FONT}, serif`,
                   },
                   children: statText,
                 },
@@ -743,7 +747,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const fontData = loadFont();
+    const headingFontData = loadHeadingFont();
+    const bodyFontData = loadBodyFont();
     const element = buildCard(body);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -751,8 +756,12 @@ export async function POST(req: NextRequest) {
       width: CARD_WIDTH,
       height: CARD_HEIGHT,
       fonts: [
-        { name: "Instrument Serif", data: fontData, weight: 400, style: "normal" },
-        { name: "Instrument Serif", data: fontData, weight: 700, style: "normal" },
+        { name: HEADING_FONT, data: headingFontData, weight: 400, style: "normal" },
+        { name: HEADING_FONT, data: headingFontData, weight: 700, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 400, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 500, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 600, style: "normal" },
+        { name: BODY_FONT, data: bodyFontData, weight: 700, style: "normal" },
       ],
     });
 
