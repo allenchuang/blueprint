@@ -60,7 +60,6 @@ storage/documents/*
 storage/temp/*
 !storage/**/.gitkeep
 
-# PM2
-ecosystem.config.cjs
+# PM2 ecosystem config is tracked in git (see ecosystem.config.cjs)
 
 apps/remotion/build.env.local
