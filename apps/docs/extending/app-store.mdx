@@ -1,0 +1,127 @@
+---
+title: "Blueprint App Store"
+description: "Install apps, agents, and skills into your Blueprint instance with a single command"
+---
+
+## What Is the App Store?
+
+The Blueprint App Store is a package registry that lets you extend your Blueprint instance with pre-built apps, agents, and skills. Instead of scaffolding from scratch, you browse available packages and install them with a single CLI command.
+
+When you install a package, Blueprint:
+
+1. Scaffolds the app into `apps/`
+2. Registers it in `packages/app-config/src/apps-registry.ts`
+3. Wires up PM2, Caddy, and the OS desktop automatically
+
+## Browsing Available Packages
+
+List all available packages from the registry:
+
+```bash
+blueprint list
+```
+
+This outputs the current catalog with each package's name, type, and short description.
+
+## Installing a Package
+
+```bash
+blueprint install crm
+```
+
+That's it. Blueprint pulls the manifest, scaffolds the app, and registers it in your OS. After install, build and start it:
+
+```bash
+pnpm build --filter=crm
+pm2 restart crm
+```
+
+## Available Packages
+
+<CardGroup cols={3}>
+  <Card title="CRM" icon="address-book">
+    A customer relationship manager. Track contacts, deals, and follow-ups directly inside your Blueprint OS.
+  </Card>
+  <Card title="Pulse" icon="chart-line">
+    A real-time metrics dashboard. Visualize key business signals and agent activity at a glance.
+  </Card>
+  <Card title="Support" icon="headset">
+    A support ticket system. Manage inbound requests, assign to agents, and track resolution status.
+  </Card>
+</CardGroup>
+
+## What Happens on Install
+
+When you run `blueprint install <package>`, the CLI:
+
+<Steps>
+  <Step title="Fetches the manifest">
+    Pulls `manifest.json` from `registry/packages/<package>/manifest.json` in the Blueprint repo.
+  </Step>
+  <Step title="Scaffolds the app">
+    Creates the app directory under `apps/` with the package's source files and dependencies.
+  </Step>
+  <Step title="Registers in OS">
+    Adds an entry to `packages/app-config/src/apps-registry.ts` so the app appears on the desktop and gets a PM2 process and Caddy reverse proxy.
+  </Step>
+  <Step title="Runs postInstall (if defined)">
+    Executes any post-install commands listed in the manifest (e.g., database migrations).
+  </Step>
+</Steps>
+
+## Contributing a Package
+
+Want to publish your own app to the registry? Open a PR to `registry/packages/` with a `manifest.json` describing your package.
+
+```
+registry/
+└── packages/
+    └── my-app/
+        └── manifest.json
+```
+
+### manifest.json Schema
+
+```json
+{
+  "id": "my-app",
+  "name": "My App",
+  "version": "1.0.0",
+  "type": "app",
+  "description": "Short description shown in blueprint list",
+  "port": 3010,
+  "appType": "nextjs",
+  "icon": "star",
+  "color": "purple",
+  "subdomain": "my-app",
+  "envVars": [
+    {
+      "key": "MY_APP_API_KEY",
+      "description": "API key for My App",
+      "required": true
+    }
+  ],
+  "dependencies": ["@repo/db", "@repo/app-config"],
+  "postInstall": ["pnpm db:push"]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique package identifier (used in `blueprint install <id>`) |
+| `name` | `string` | Human-readable display name |
+| `version` | `string` | Semver version string |
+| `type` | `string` | `"app"`, `"agent"`, or `"skill"` |
+| `description` | `string` | One-line description shown in `blueprint list` |
+| `port` | `number` | Local port the app listens on |
+| `appType` | `string` | Scaffold type: `"nextjs"`, `"fastify"`, etc. |
+| `icon` | `string` | Icon name from [Lucide](https://lucide.dev/icons/) |
+| `color` | `string` | Tailwind color name for OS window chrome |
+| `subdomain` | `string` | Subdomain for Caddy reverse proxy |
+| `envVars` | `array` | Required/optional environment variables |
+| `dependencies` | `array` | Workspace packages to link (`workspace:*`) |
+| `postInstall` | `array` | Shell commands to run after scaffolding |
+
+<Tip>
+Keep `port` values above 3100 to avoid conflicts with core Blueprint services. Check `packages/app-config/src/apps-registry.ts` for ports already in use.
+</Tip>

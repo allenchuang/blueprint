@@ -102,7 +102,9 @@
         "extending/deploy-pipeline",
         "extending/multi-repo-pipeline",
         "extending/file-storage",
-        "extending/custom-agents"
+        "extending/custom-agents",
+        "extending/app-store",
+        "extending/ci-cd"
       ]
     },
     {
