@@ -57,7 +57,7 @@ const bottomTabs = [
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/sessions", label: "Sessions", icon: MessagesSquare },
   { href: "/costs", label: "Costs", icon: DollarSign },
-  { href: "/logs", label: "Logs", icon: ScrollText },
+  { href: "/cron", label: "Cron", icon: Clock },
 ];
 
 export function AppSidebar() {

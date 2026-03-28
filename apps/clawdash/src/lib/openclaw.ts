@@ -381,6 +381,23 @@ export async function listCronJobs(): Promise<CronJob[]> {
   }
 }
 
+export async function toggleCronJob(id: string, enabled: boolean): Promise<boolean> {
+  const cronPath = join(getOpenClawDir(), "cron", "jobs.json");
+  try {
+    const raw = await readFile(cronPath, "utf-8");
+    const data = JSON.parse(raw);
+    const jobs: CronJob[] = Array.isArray(data) ? data : data.jobs || [];
+    const job = jobs.find((j) => j.id === id);
+    if (!job) return false;
+    job.enabled = enabled;
+    const updated = Array.isArray(data) ? jobs : { ...data, jobs };
+    await writeFile(cronPath, JSON.stringify(updated, null, 2), "utf-8");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function readOpenClawConfig(): Promise<Record<string, unknown> | null> {
   const configPath = join(getOpenClawDir(), "openclaw.json");
   try {
