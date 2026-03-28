@@ -94,6 +94,22 @@ const SVG_PATHS: Record<string, { desktop: ReactNode; titleBar: ReactNode }> = {
     desktop: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
     titleBar: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
   },
+  store: {
+    desktop: (
+      <>
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </>
+    ),
+    titleBar: (
+      <>
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </>
+    ),
+  },
   paperclip: {
     desktop: (
       <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
@@ -114,6 +130,7 @@ const COLOR_MAP: Record<string, { from: string; to: string; text: string }> = {
   pink: { from: "from-pink-500", to: "to-rose-600", text: "text-pink-400" },
   indigo: { from: "from-indigo-500", to: "to-violet-700", text: "text-indigo-400" },
   amber: { from: "from-amber-500", to: "to-orange-600", text: "text-amber-400" },
+  sky: { from: "from-sky-500", to: "to-blue-600", text: "text-sky-400" },
   zinc: DEFAULT_COLORS,
 };
 
