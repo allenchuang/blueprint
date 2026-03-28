@@ -8,6 +8,8 @@ import prompts from "prompts";
 import { newCommand } from "./commands/new.js";
 import type { NewCommandOptions } from "./commands/new.js";
 import { runCommand, listProxyCommands } from "./commands/run.js";
+import { installCommand } from "./commands/install.js";
+import { listCommand } from "./commands/list.js";
 import { printLogo } from "./utils/logo.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -62,6 +64,20 @@ program
     }
 
     await newCommand(projectName!, opts);
+  });
+
+program
+  .command("install <package-id>")
+  .description("Install a package from the Blueprint App Store")
+  .action(async (packageId: string) => {
+    await installCommand(packageId);
+  });
+
+program
+  .command("list")
+  .description("List all available packages in the Blueprint App Store")
+  .action(async () => {
+    await listCommand();
   });
 
 const proxyCommands = listProxyCommands();

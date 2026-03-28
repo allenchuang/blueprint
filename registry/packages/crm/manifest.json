@@ -1,0 +1,15 @@
+{
+  "id": "crm",
+  "name": "Blueprint CRM",
+  "version": "0.1.0",
+  "type": "app",
+  "description": "Lightweight customer pipeline — track leads, trials, and paid users. Agent-powered follow-ups.",
+  "port": 3005,
+  "appType": "nextjs",
+  "icon": "users",
+  "color": "teal",
+  "subdomain": "crm",
+  "envVars": [],
+  "dependencies": [],
+  "postInstall": "pnpm install"
+}

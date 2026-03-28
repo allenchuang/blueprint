@@ -1,0 +1,15 @@
+{
+  "id": "support",
+  "name": "Blueprint Support",
+  "version": "0.1.0",
+  "type": "app",
+  "description": "AI-first customer support inbox. Agents handle tier-1, escalate to you. Syncs with docs.",
+  "port": 3007,
+  "appType": "nextjs",
+  "icon": "message-circle",
+  "color": "amber",
+  "subdomain": "support",
+  "envVars": [],
+  "dependencies": [],
+  "postInstall": "pnpm install"
+}

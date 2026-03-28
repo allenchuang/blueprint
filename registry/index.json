@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-03-28T00:00:00Z",
+  "packages": [
+    {
+      "id": "crm",
+      "name": "Blueprint CRM",
+      "description": "Lightweight customer pipeline — track leads, trials, and paid users. Agent-powered follow-ups.",
+      "type": "app",
+      "version": "0.1.0",
+      "author": "blueprint",
+      "tags": ["crm", "sales", "customers"],
+      "port": 3005,
+      "icon": "users",
+      "color": "teal"
+    },
+    {
+      "id": "pulse",
+      "name": "Blueprint Pulse",
+      "description": "Unified KPI dashboard — MRR, active users, agent activity, cost per run. The CEO view.",
+      "type": "app",
+      "version": "0.1.0",
+      "author": "blueprint",
+      "tags": ["analytics", "metrics", "dashboard"],
+      "port": 3006,
+      "icon": "bar-chart",
+      "color": "violet"
+    },
+    {
+      "id": "support",
+      "name": "Blueprint Support",
+      "description": "AI-first customer support inbox. Agents handle tier-1, escalate to you. Syncs with docs.",
+      "type": "app",
+      "version": "0.1.0",
+      "author": "blueprint",
+      "tags": ["support", "customers", "inbox"],
+      "port": 3007,
+      "icon": "message-circle",
+      "color": "amber"
+    }
+  ]
+}
