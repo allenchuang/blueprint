@@ -87,6 +87,18 @@ export const appsRegistry: AppEntry[] = [
     type: "nextjs",
   },
   {
+    id: "store",
+    name: "BlueMart",
+    port: 3008,
+    description: "Blueprint App Store — browse and install apps, agents, and skills",
+    icon: "store",
+    color: "sky",
+    subdomain: "store",
+    openMaximized: true,
+    access: "private",
+    type: "nextjs",
+  },
+  {
     id: "os",
     name: "OS",
     port: 7777,
