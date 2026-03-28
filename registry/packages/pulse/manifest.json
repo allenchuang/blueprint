@@ -1,0 +1,15 @@
+{
+  "id": "pulse",
+  "name": "Blueprint Pulse",
+  "version": "0.1.0",
+  "type": "app",
+  "description": "Unified KPI dashboard — MRR, active users, agent activity, cost per run. The CEO view.",
+  "port": 3006,
+  "appType": "nextjs",
+  "icon": "bar-chart",
+  "color": "violet",
+  "subdomain": "pulse",
+  "envVars": [],
+  "dependencies": [],
+  "postInstall": "pnpm install"
+}
