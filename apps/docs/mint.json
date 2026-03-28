@@ -1,18 +1,18 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Mastermind",
+  "name": "Blueprint OS",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#52c2a0",
-    "dark": "#0D9373",
+    "primary": "#38BDF8",
+    "light": "#7DD3FC",
+    "dark": "#0EA5E9",
     "anchors": {
-      "from": "#0D9373",
-      "to": "#52c2a0"
+      "from": "#38BDF8",
+      "to": "#0EA5E9"
     }
   },
   "topbarLinks": [

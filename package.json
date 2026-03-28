@@ -11,6 +11,7 @@
     "dev:remotion": "turbo run dev --filter=remotion",
     "dev:os": "turbo run dev --filter=os",
     "dev:clawdash": "turbo run dev --filter=clawdash",
+    "dev:store": "pnpm --filter store dev",
     "dev:paperclip": "pnpm --filter=paperclip dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
