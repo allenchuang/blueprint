@@ -1,0 +1,93 @@
+---
+title: "CI/CD & Quality Gates"
+description: "Automated type checking and linting on every PR to keep the codebase healthy"
+---
+
+## What CI Does
+
+Every pull request targeting `allen/os` runs an automated quality gate via GitHub Actions. The pipeline:
+
+1. Checks out the branch
+2. Installs dependencies with `pnpm install`
+3. Runs **`pnpm check-types`** — TypeScript strict-mode type check across all apps and packages
+4. Runs **`pnpm lint`** — ESLint across the full monorepo
+
+If either check fails, the PR is blocked from merging.
+
+## Why It Matters
+
+Blueprint OS is developed by multiple AI agents pushing code concurrently — Ocean, Arctic, Skylar, Coral, and others. Without an automated gate, type errors and lint violations accumulate quickly across simultaneous branches.
+
+CI acts as the objective referee: every agent's code gets the same check, and no broken code sneaks into the main branch.
+
+## What Runs
+
+### Type Check
+
+```bash
+pnpm check-types
+```
+
+Runs `tsc --noEmit` across the entire monorepo via Turborepo. Catches:
+
+- Missing or wrong types
+- Incorrect prop types on React components
+- Unsafe `any` usage (TypeScript strict mode is on)
+- Import errors (missing modules, wrong paths)
+
+### Lint
+
+```bash
+pnpm lint
+```
+
+Runs ESLint across all apps and packages using the shared config from `packages/eslint-config/`. Catches:
+
+- Unused imports and variables
+- `console.log` left in production code
+- React hooks violations
+- Code style inconsistencies
+
+## PR Template Checklist
+
+Every PR to `allen/os` should cover:
+
+- [ ] `pnpm check-types` passes locally
+- [ ] `pnpm lint` passes locally
+- [ ] Changes are scoped to a single concern
+- [ ] Commit messages follow [conventional commits](/conventions) (`feat:`, `fix:`, `docs:`, etc.)
+- [ ] New pages/routes include mobile viewport testing at 375px
+- [ ] If adding a new app or package: registered in `apps-registry.ts`
+- [ ] If changing the API: Swagger schema updated
+
+## Running Checks Locally
+
+Run the same checks CI runs before opening a PR:
+
+```bash
+# Type check the full monorepo
+pnpm check-types
+
+# Lint the full monorepo
+pnpm lint
+```
+
+To target a single app (faster during development):
+
+```bash
+pnpm check-types --filter=web
+pnpm lint --filter=web
+```
+
+<Tip>
+Run these before every commit. The CI pipeline runs the same commands, so a clean local run means CI will pass.
+</Tip>
+
+## CI Configuration
+
+The workflow lives at `.github/workflows/ci.yml` in the repo root. It triggers on:
+
+- Every `pull_request` targeting `allen/os`
+- Every `push` to `allen/os`
+
+Agents should treat a failing CI check as a blocking issue — fix the types or lint errors before the PR can be reviewed.
