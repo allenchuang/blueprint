@@ -1,0 +1,28 @@
+{
+  "id": "crm",
+  "name": "Blueprint CRM",
+  "version": "1.2.0",
+  "description": "Customer relationship management built for small teams. Track contacts, deals, and follow-ups.",
+  "type": "app",
+  "author": "blueprint-team",
+  "icon": "👥",
+  "color": "#38BDF8",
+  "tags": ["crm", "sales", "productivity"],
+  "port": 3006,
+  "repository": "https://github.com/allenchuang/blueprint",
+  "license": "MIT",
+  "installCommand": "blueprint install crm",
+  "downloads": 1842,
+  "updatedAt": "2026-03-15",
+  "blueprint": {
+    "minVersion": "0.1.0",
+    "files": [
+      "apps/crm/",
+      "packages/db/src/schema/contacts.ts",
+      "packages/db/src/schema/deals.ts"
+    ],
+    "envVars": ["DATABASE_URL"],
+    "dependencies": [],
+    "dbSchema": true
+  }
+}
