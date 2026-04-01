@@ -1,0 +1,22 @@
+{
+  "name": "@repo/mcp-server",
+  "version": "0.1.0",
+  "description": "Blueprint OS MCP server — makes Blueprint discoverable by AI assistants",
+  "type": "module",
+  "bin": {
+    "blueprint-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

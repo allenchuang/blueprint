@@ -133,12 +133,13 @@ function syncDocs(): void {
 // 3. Generate theme.css for Next.js apps
 // ---------------------------------------------------------------------------
 function syncNextApps(): void {
-  console.log("\n[Web + Admin] Generating theme.css + copying assets...");
+  console.log("\n[Web + Admin + Store] Generating theme.css + copying assets...");
 
   const themeContent = generateFullThemeFile(appConfig.colors.primary);
 
   writeFile("apps/web/src/app/theme.css", themeContent);
   writeFile("apps/admin/src/app/theme.css", themeContent);
+  writeFile("apps/store/src/app/theme.css", themeContent);
 
   for (const app of ["apps/web", "apps/admin"]) {
     copyAsset("favicon.svg", `${app}/public/favicon.svg`);
@@ -148,6 +149,9 @@ function syncNextApps(): void {
     copyAsset("icon-512.png", `${app}/public/icon-512.png`);
     copyAsset("apple-touch-icon.png", `${app}/public/apple-touch-icon.png`);
   }
+
+  // Store only needs favicon (no logos used in layout)
+  copyAsset("favicon.svg", "apps/store/public/favicon.svg");
 }
 
 // ---------------------------------------------------------------------------
